@@ -13,4 +13,4 @@ rf.set_paths('~/obspyDMT-data/client_test')
 rf.create_rfeventsfile('./events.xml')
 
 #Calculate receiver functions. Station coordinates are given in stations.txt
-rf.rf('client', getwaveform, './stations.txt')
+rf.rf('client', getwaveform, './stations.txt', deconvolve='freq')
