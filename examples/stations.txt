@@ -1,0 +1,2 @@
+# station  lat  lon  elevation
+Z30A  33.2861  -101.128  729
