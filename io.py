@@ -13,15 +13,15 @@ CONF_ABBREVS = {'{net}':'{stats.network}',
                 '{loc}':'{stats.location}',
                 '{cha}':'{stats.channel}'}
 
-conf.rf_data_in = conf.rf_data
-conf.mout_data_in = conf.rf_data
+conf.rf_in = conf.rf
+conf.mout_in = conf.mout
 for key, val in CONF_ABBREVS.items():
-    conf.dmt_data = conf.dmt_data.replace(key, '*')
-    conf.rf_data_in = conf.rf_data_in.replace(key, '*')  #@UndefinedVariable
-    conf.mout_data_in = conf.mout_data_in.replace(key, '*')  #@UndefinedVariable
-    conf.rf_data = conf.rf_data.replace(key, val)
-    conf.mout_data = conf.mout_data.replace(key, val)
-    conf.sum_data = conf.sum_data.replace(key, val)
+    conf.data = conf.data.replace(key, '*')
+    conf.rf_in = conf.rf_in.replace(key, '*')  #@UndefinedVariable
+    conf.mout_in = conf.mout_in.replace(key, '*')  #@UndefinedVariable
+    conf.rf = conf.rf.replace(key, val)
+    conf.mout = conf.mout.replace(key, val)
+    conf.mean = conf.mean.replace(key, val)
 
 def create_dir(filename):
     """
@@ -87,8 +87,8 @@ def set_paths(dmt_path, output_path=None):
     conf.output_path = os.path.expanduser(output_path)
 
 def convert_dmteventfile():
-    eventsfile1 = os.path.join(conf.dmt_path, 'EVENT', 'event_list')
-    eventsfile2 = os.path.join(conf.dmt_path, 'EVENT', 'events.xml')
+    eventsfile1 = os.path.join(conf.data_path, 'EVENT', 'event_list')
+    eventsfile2 = os.path.join(conf.data_path, 'EVENT', 'events.xml')
     with open(eventsfile1) as f:
         events1 = pickle.load(f)
     events2 = Catalog()
@@ -121,7 +121,7 @@ def create_rfeventsfile(events='events.xml',
 
     if isinstance(events, basestring):
         if not os.path.exists(events):
-            events = os.path.join(conf.dmt_path, 'EVENT', 'events.xml')
+            events = os.path.join(conf.data_path, 'EVENT', 'events.xml')
         events = readEvents(events)
     if filters:
         events.filter(*filters)

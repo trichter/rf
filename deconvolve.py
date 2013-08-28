@@ -3,7 +3,7 @@ from numpy import max, pi
 from obspy.signal.util import nextpow2
 from scipy.fftpack import fft, ifft
 from scipy.signal import correlate
-import _toeplitz
+from toeplitz import sto_sl
 import numpy as np
 
 def deconv(stream, src_comp, method='time', **kwargs):
@@ -129,27 +129,41 @@ def xcorrt(a, b, num, zero_sample=0):
         a = add_zeros(a, -dif // 2)
     return correlate(a, b, 'valid')
 
-def toeplitz(a1, b, a2=None):
-    """
-    Calculate inverse A^-1*b of Toeplitz matrix A.
+#def toeplitz(a1, b, a2=None):
+    #"""
+    #Solve linear system Ax=b with complex block Toeplitz matrix A
     
-    a1   first row of Toeplitz matrix A
-    b    vector for multiplication with Inverse of Toeplitz matrix 
+    #a1   first block row of Toeplitz matrix A (dimension m*m, l)
+    #b    vector  (dimension m,l)
+    #a2   None -> assume symmetric block Toeplitz matrix
+    
+    #if m=1 (no block matrix) first dimension of inputs can be omitted
+    #"""
+    #if len(a1.shape) == 1:
+        #a1 = a1[np.newaxis, :]
+    #if a2 == None:
+        #a2 = a1[:, 1:]
+    #elif len(a2.shape) == 1:
+        #a2 = a2[np.newaxis, :]
+    #if len(b.shape) == 1:
+        #bnew = b[np.newaxis, :]
+    #ret = cbto_sl(a1, a2, bnew)
+    #if not a1.dtype == np.complex and not a2.dtype == np.complex:
+        #ret = np.real(ret)
+    #if len(b.shape) == 1:
+        #ret = ret[0, :]
+    #return ret
+
+def toeplitz_real_sym(a, b, job=True):
     """
-    if len(a1.shape) == 1:
-        a1 = a1[np.newaxis, :]
-    if a2 == None:
-        a2 = a1[:, 1:]
-    elif len(a2.shape) == 1:
-        a2 = a2[np.newaxis, :]
-    if len(b.shape) == 1:
-        bnew = b[np.newaxis, :]
-    ret = _toeplitz.cbto_sl(a1, a2, bnew)
-    if not a1.dtype == np.complex and not a2.dtype == np.complex:
-        ret = np.real(ret)
-    if len(b.shape) == 1:
-        ret = ret[0, :]
-    return ret
+    Solve linear system Ax=b for real symmetric Toeplitz matrix A
+    
+    a   first row of Toeplitz matrix A
+    b   vector
+    job True for solving Ax = b
+        False for solving A^T x=b 
+    """
+    return sto_sl(np.hstack((a, a[1:])), b, not job)
 
 # Gives similar results as a deconvolution with Seismic handler,
 # but SH is faster
@@ -209,7 +223,7 @@ def deconvt(rsp_list, src, shift, spiking=1, length=None, normalize=True):
         STR = xcorrt(rsp, src, length // 2, shift)
         if len(STR) > len(STS):
             STR = np.delete(STR, -1)
-        RF = toeplitz(STS, STR)
+        RF = toeplitz_real_sym(STS, STR)
         RF_list.append(RF)
     if normalize:
         norm = 1 / np.max(np.abs(RF_list[0]))

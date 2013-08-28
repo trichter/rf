@@ -44,13 +44,12 @@ def rf_dmt(events='events_rf.xml', rftype='Ps', dist=(30, 90),
     print events
     for event in events:
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
-        output_file = os.path.join(conf.output_path, event_id, conf.rf_data)
-        input_files = glob.glob(os.path.join(conf.dmt_path, event_id,
-                                             conf.dmt_data))
-        while len(input_files) > 0:
-            files_tmp = input_files[0][:-1] + '?'
+        inputs = conf.data.format(eventid=event_id)
+        inputs = glob.glob(os.path.join(conf.data_path, conf.data))
+        while len(inputs) > 0:
+            files_tmp = inputs[0][:-1] + '?'
             for f in glob.glob(files_tmp):
-                input_files.remove(f)
+                inputs.remove(f)
             st = read(files_tmp, headonly=True)
             io.read_sac_header(st)
             stats = event2stats(st[0].stats.latitude, st[0].stats.longitude,
@@ -68,8 +67,10 @@ def rf_dmt(events='events_rf.xml', rftype='Ps', dist=(30, 90),
             rf_stream(st, stats, **rf_kwargs)
             io.write_sac_header(st, event)
             for tr in st:
-                io.create_dir(output_file)
-                tr.write(output_file.format(stats=tr.stats), 'SAC')
+                output = os.path.join(conf.output_path, conf.rf)
+                output = output.format(eventid=event_id, stats=tr.stats)
+                io.create_dir(output)
+                tr.write(output, 'SAC')
 
 def rf_client(getwaveform, stations, events='events_rf.xml',
                request_window=(-50, 150), rftype='Ps', dist=(30, 90),
@@ -80,20 +81,14 @@ def rf_client(getwaveform, stations, events='events_rf.xml',
         stations = io.read_stations(stations)
     for event in events:
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
-        output_file = os.path.join(conf.output_path, event_id, conf.rf_data)
         for station in stations:
-            lat = stations[station].latitude
-            lon = stations[station].longitude
-            el = stations[station].elevation
-            print lat, lon, event
-            stats = event2stats(lat, lon, event, phase=rftype[0],
-                                dist_range=dist)
-            print stats
+            stats = event2stats(stations[station].latitude,
+                                stations[station].longitude,
+                                event, phase=rftype[0], dist_range=dist)
             if not stats:
                 continue
             st = getwaveform(station, stats.onset + request_window[0],
                              stats.onset + request_window[1])
-            print st
             st.merge()
             if len(st) != 3:
                 import warnings
@@ -101,14 +96,17 @@ def rf_client(getwaveform, stations, events='events_rf.xml',
                               'than three components for event %s, station %s.'
                               % (event_id, station))
                 continue
-            stats.latitude = lat
-            stats.longitude = lon
+            stats.latitude = stations[station].latitude
+            stats.longitude = stations[station].longitude
             stats.elevation = stations[station].elevation
             rf_stream(st, stats, **rf_kwargs)
             io.write_sac_header(st, event)
-            io.create_dir(output_file)
             for tr in st:
-                tr.write(output_file.format(stats=tr.stats), 'SAC')
+                output = os.path.join(conf.output_path, conf.rf)
+                output = output.format(eventid=event_id, stats=tr.stats)
+                io.create_dir(output)
+                tr.write(output, 'SAC')
+
 
 def rf_stream(stream, stats, method='P', window=(-20, 100),
               downsample=None, filter=None,  #@ReservedAssignment

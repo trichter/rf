@@ -1,6 +1,6 @@
 RF: Python scripts for receiver function calculation.
 
-* Install: * Dependencies: ObsPy and obspyDMT
+* Install: * Dependencies: ObsPy and obspyDMT, toeplitz
            * Clone repo
            * Run cd src; compile_toeplitz.sh
            * Put package in PYTHON_PATH variable
