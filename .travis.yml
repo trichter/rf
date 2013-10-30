@@ -7,9 +7,7 @@ before_install:
   - lsb_release -a # get info on the operating system
   - echo 'deb http://deb.obspy.org precise main' | sudo -qq tee -a /etc/apt/sources.list
   - wget --quiet -O - https://raw.github.com/obspy/obspy/master/misc/debian/public.key | sudo apt-key add -qq -
-  - sudo apt-get update -qq
-python
-    sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
+  - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
 #  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
 #  - sudo apt-get install -qq python-numpy python-scipy
 #  - sudo apt-get install -qq python-obspy
