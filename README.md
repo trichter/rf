@@ -1,5 +1,6 @@
 # rf
 ### Receiver function calculation in seismology
+[![Build Status](https://api.travis-ci.org/trichter/rf.png?branch=master)](https://travis-ci.org/trichter/rf)
 
 ### Installation
 * install [ObsPy][1], its dependencies and [toeplitz][2]
