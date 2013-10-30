@@ -1,5 +1,5 @@
 """
-RF: Receiver function calculation in seismology
+rf: Receiver function calculation in seismology
 ===============================================
 
 This module heavily depends on ObsPy obspy.org

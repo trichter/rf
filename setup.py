@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-RF
+rf
 ==
 Receiver function calculation in seismology
 -------------------------------------------

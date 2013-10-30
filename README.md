@@ -1,4 +1,4 @@
-# RF
+# rf
 ### Receiver function calculation in seismology
 
 ### Installation
