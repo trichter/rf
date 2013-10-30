@@ -9,7 +9,7 @@
 * download this code and run `python setup.py install`
 
 ### Usage
- See [documentation][4].
+ ~~See [documentation][4].~~ See documentation in source code.
 
 ### TODO
 * More documentation
