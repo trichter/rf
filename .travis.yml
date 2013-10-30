@@ -1,0 +1,20 @@
+language: python
+python:
+  - "2.7"
+virtualenv:
+  system_site_packages: true
+before_install:
+  - lsb_release -a # get info on the operating system
+  - sudo -qq echo 'deb http://deb.obspy.org precise main' >> /etc/apt/sources.list
+  - wget --quiet -O - https://raw.github.com/obspy/obspy/master/misc/debian/public.key | sudo apt-key add -qq -
+  - sudo apt-get update -qq
+#  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
+  - sudo apt-get install -qq python-obspy
+  - pip install --use-mirrors toeplitz
+install:
+  - pip install . --use-mirrors
+script:
+  - rf-runtests
+after_success:
+notifications:
+    email: false

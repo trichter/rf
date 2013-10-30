@@ -1,12 +1,12 @@
 # by TR
 
+import os
+import pickle
 from obspy import readEvents
 from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
                               Origin, Magnitude)
 from obspy.core.util import AttribDict
-from rf import conf
-import os
-import pickle
+from rf import conf, EXAMPLE_CONFIG
 
 CONF_ABBREVS = {'{net}':'{stats.network}',
                 '{sta}':'{stats.station}',
@@ -34,7 +34,7 @@ def create_dir(filename):
 def read_stations(fname):
     """
     Read station positions from whitespace delimited file
-    
+
     Example file:
     # station  lat  lon  elev
     STN  10.0  -50.0  160
@@ -59,26 +59,6 @@ def write_stations(fname, dic, comment='# station  lat  lon  elev\n'):
         for key, val in sorted(dic.items()):
             f.write('%s  %s  %s  %s\n' % (key, val['latitude'],
                                           val['longitude'], val['elevation']))
-
-def read_sac_header(stream):
-    for tr in stream:
-        tr.stats.latitude = tr.stats.sac.stla
-        tr.stats.longitude = tr.stats.sac.stlo
-        tr.stats.elevation = tr.stats.sac.stel
-
-def write_sac_header(stream, event=None):
-    for tr in stream:
-        try:
-            tr.stats.sac.stla = tr.stats.latitude
-        except KeyError:
-            tr.stats.sac = AttribDict({})
-            tr.stats.sac.stla = tr.stats.latitude
-        tr.stats.sac.stlo = tr.stats.longitude
-        tr.stats.sac.stel = tr.stats.elevation
-        if event:
-            tr.stats.sac.evla = event.origins[0].latitude
-            tr.stats.sac.evlo = event.origins[0].longitude
-            tr.stats.sac.evdp = event.origins[0].depth
 
 def set_paths(dmt_path, output_path=None):
     if not output_path:
@@ -128,3 +108,6 @@ def create_rfeventsfile(events='events.xml',
     eventsfile = os.path.join(conf.output_path, 'EVENT', eventsfile)
     create_dir(eventsfile)
     events.write(eventsfile, 'QUAKEML')
+
+if EXAMPLE_CONFIG:
+    set_paths('~/obspyDMT-data/2010-01-01_2010-01-10_5.5_9.9')

@@ -1,4 +1,3 @@
-
 from numpy import max, pi
 from obspy.signal.util import nextpow2
 from scipy.fftpack import fft, ifft
@@ -7,15 +6,40 @@ from toeplitz import sto_sl
 import numpy as np
 
 def deconv(stream, src_comp, method='time', **kwargs):
+    """
+    Deconvolve one component of a stream from all components
+
+    The deconvolutions are written to the data arrays of the stream. To keep
+    the original data use the copy method of Stream.
+    The stats dictionaries of the traces inside stream must have an 'onset'
+    entry with a :class:`~obspy.core.UTCDateeTime` object. This will be used
+    for determining the data windows.
+
+    :param stream: :class:`~obspy.Stream` object including response and source
+    :param src_comp: Name of component using for source function
+    :param method: 'time' -> use time domain deconvolution
+        :func:`~rf.deconvolve.deconvt`
+        'freq' -> use freqeuency domain deconvolution
+        :func:`~rf.deconvolve.deconvf`, optional
+    :param winsrc: data window for source function, tuple with
+        (start, end, taper) in seconds relative to onset, optional, default:
+        (-10, 30, 5) for method='time', (-20, 80, 5) for method='freq'
+    :param winrsp: data window for response functions, tuple (start, end),
+        optional, just for method='time', default: (-20, 80)
+    :param winrf: data window for results/ deconvolution/receiver functions,
+        optional, just for method='time', default: (-20, 80)
+    Other optional parameters are passed to the underlying deconvolution
+    functions :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`.
+    """
+    if method not in ('time', 'freq'):
+        raise NotImplementedError()
     if method == 'time':
         winsrc = kwargs.get('winsrc', (-10, 30, 5))
         winrsp = kwargs.get('winrsp', (-20, 80))
         winrf = kwargs.get('winrf', (-20, 80))
-    elif method == 'freq':
+    else:
         winsrc = kwargs.get('winsrc', (-20, 80, 5))
         tshift = kwargs.get('tshift', 10)
-    else:
-        raise Exception('Method is not a valid method')
     st = stream
     samp = st[0].stats.sampling_rate
     onset = st[0].stats.onset
@@ -23,7 +47,7 @@ def deconv(stream, src_comp, method='time', **kwargs):
     src_index = st.traces.index(src)
     src = src.copy()
     src.trim(onset + winsrc[0], onset + winsrc[1])
-    src.taper(p=2 * winsrc[2] / (winsrc[1] - winsrc[0]))
+    src.taper(max_percentage=None, max_length=winsrc[2])
     src = src.data
     rsp = [st[(i + src_index) % 3].data for i in range(3)]
     if method == 'time':
@@ -42,16 +66,30 @@ def deconv(stream, src_comp, method='time', **kwargs):
 
 def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
             pad=0, length=None, normalize=True, normalize_to_src=False,
-            returnall=False):
+            return_dict=False):
     """
     Frequency-domain deconvolution using waterlevel method.
 
-    rsp, src    data containing the response and
-                source functions, respectively
-    water       waterlevel to stabilize the deconvolution
-    gauss       Gauss parameter of Low-pass filter
-    tshift      shift the resulting function by that amount
-    pad         multiply number of samples used for fft by 2**pad
+    Deconvolve src from arrays in rsp_list.
+
+    :param rsp_list: either a list of arrays containing the response functions
+        or a single array
+    :param src: array of source function
+    :param sampling_rate: sampling rate of the data
+    :param water: waterlevel to stabilize the deconvolution, optional
+    :param gauss: Gauss parameter of Low-pass filter, optional
+    :param tshift: delay time 0s will be at time tshift afterwards, optional
+    :param pad: multiply number of samples used for fft by 2**pad, optional
+    :param length: number of data points in results, optional
+    :param normalize: if results are normalized, optional
+    :param normalize_to_src: True ->  normalized so that the maximum of a
+        deconvolution of the source with itself is 1
+        False -> normalized so that the maximum of the deconvolution of the
+        first response array in rsp_list is 1, optional
+    :param return_dict: return additionally a lot of different parameters in a
+        dict for debugging purposes, optional
+
+    :return: (list of) array(s) with deconvolution(s)
     """
     if length == None:
         length = len(src)
@@ -69,8 +107,6 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
     if normalize_to_src:
         spec_src = gauss * spec_src * spec_src_conj / spec_src_water
         rf_src = ifft(spec_src, nfft)[:N]
-        #i1 = int((tshift-1)*sampling_rate)
-        #i2 = int((tshift+1)*sampling_rate)
         norm = 1 / max(rf_src)
         rf_src = norm * rf_src
 
@@ -85,26 +121,30 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
             norm = 1. / max(rf_list[0])
         for rf in rf_list:
             rf *= norm
-    if returnall:
+    if return_dict:
         if not normalize_to_src:
             spec_src = gauss * spec_src * spec_src_conj / spec_src_water
             rf_src = ifft(spec_src, nfft)[:N]
             norm = 1 / max(rf_src)
             rf_src = norm * rf_src
-        return rf_list, rf_src, spec_src_conj, spec_src_water, freq, gauss, norm, N, nfft
+        ret_dict = {'rf_src': rf_src, 'rf_src_conj': spec_src_conj,
+                    'spec_src_water': spec_src_water, 'freq':freq,
+                    'gauss':gauss, 'norm': norm, 'N':N, 'nfft':nfft}
+        return rf_list, ret_dict
     elif flag:
         return rf
     else:
         return rf_list
 
 def add_zeros(a, num, side='both'):
+    """Add 'num' zeros at 'side' side of array a"""
     return np.hstack([np.zeros(num)] * (side in ('both', 'left')) + [a] +
                      [np.zeros(num)] * (side in ('both', 'right')))
 
 def acorrt(a, num):
     """
     Return not normalized auto-correlation of signal a.
-    
+
     Sample 0 corresponds to zero lag time. Auto-correlation will consist of
     num samples.
     """
@@ -113,8 +153,8 @@ def acorrt(a, num):
 def xcorrt(a, b, num, zero_sample=0):
     """
     Return not normalized cross-correlation of signals a and b.
-    
-    zero_sample: Signals a and b are aligned around the middle of there signals.
+
+    zero_sample: Signals a and b are aligned around the middle of their signals.
                  If zero_sample != 0 a will be shifted additionally to the left.
     num: The cross-correlation will consist of 2*num+1 samples. The sample with
          0 lag time will be in the middle.
@@ -129,48 +169,22 @@ def xcorrt(a, b, num, zero_sample=0):
         a = add_zeros(a, -dif // 2)
     return correlate(a, b, 'valid')
 
-#def toeplitz(a1, b, a2=None):
-    #"""
-    #Solve linear system Ax=b with complex block Toeplitz matrix A
-    
-    #a1   first block row of Toeplitz matrix A (dimension m*m, l)
-    #b    vector  (dimension m,l)
-    #a2   None -> assume symmetric block Toeplitz matrix
-    
-    #if m=1 (no block matrix) first dimension of inputs can be omitted
-    #"""
-    #if len(a1.shape) == 1:
-        #a1 = a1[np.newaxis, :]
-    #if a2 == None:
-        #a2 = a1[:, 1:]
-    #elif len(a2.shape) == 1:
-        #a2 = a2[np.newaxis, :]
-    #if len(b.shape) == 1:
-        #bnew = b[np.newaxis, :]
-    #ret = cbto_sl(a1, a2, bnew)
-    #if not a1.dtype == np.complex and not a2.dtype == np.complex:
-        #ret = np.real(ret)
-    #if len(b.shape) == 1:
-        #ret = ret[0, :]
-    #return ret
-
-def toeplitz_real_sym(a, b, job=True):
+def toeplitz_real_sym(a, b):
     """
     Solve linear system Ax=b for real symmetric Toeplitz matrix A
-    
+
     a   first row of Toeplitz matrix A
     b   vector
-    job True for solving Ax = b
-        False for solving A^T x=b 
     """
-    return sto_sl(np.hstack((a, a[1:])), b, not job)
+    return sto_sl(np.hstack((a, a[1:])), b, job=0)
 
 # Gives similar results as a deconvolution with Seismic handler,
 # but SH is faster
-def deconvt(rsp_list, src, shift, spiking=1, length=None, normalize=True):
+def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
     """
     Time domain deconvolution.
 
+    Deconvolve src from arrays in rsp_list.
     Calculate Toeplitz auto-correlation matrix of source, invert it, add noise
     and multiply it with cross-correlation vector of response and source.
 
@@ -189,37 +203,36 @@ def deconvt(rsp_list, src, shift, spiking=1, length=None, normalize=True):
     S... source matrix (shape N*N)
     R... response vector (length N)
     RF... receiver function (deconvolution) vector (length N)
-    STS = S^T*S = Toeplitz autocorrelation matrix
+    STS = S^T*S = symetric Toeplitz autocorrelation matrix
     STR = S^T*R = cross-correlation vector
     I... Identity
 
+    :param rsp_list: either a list of arrays containing the response functions
+        or a single array
+    :param src: array of source function
+    :param shift: shift the source by that amount of samples to the left side
+        to get onset in RF at the desired time (negative -> shift source to the
+        right side)
+        shift = (middle of rsp window - middle of src window) +
+                (0 - middle rf window)
+    :param spiking: random noise added to autocorrelation (eg. 1.0, 0.1), optional
+    :param length: number of data points in results, optional
+    :param normalize: normalize all results so that the maximum of the first
+        result is 1
 
-    :parameters:
-    rsp_list    (list of) data containing the response
-    src         data of source
-    spiking     random noise added to autocorrelation (eg. 1.0, 0.1)
-    shift       shift the source by that amount of samples to the left side to get onset in RF at the right time
-                (negative -> shift source to the right side)
-                shift = (middle of rsp window - middle of src window) + (0 - middle rf window)
-    length      number of data points of deconvolution
-    normalize   if True normalize all deconvolutions so that the maximum of the
-                first deconvolution is 1
-    :return:    (list of) deconvolutions (length N)
+    :return: (list of) array(s) with deconvolution(s)
     """
     if length == None:
         length = len(src)
     flag = False
     RF_list = []
-    #STS = sito.xcorr.acorrt(src, length, demean=False, clipdata=False)
     STS = acorrt(src, length)
     STS = STS / STS[0]
     STS[0] += spiking
-    #print shift, len(src), len(rsp_list), spiking, length
     if not isinstance(rsp_list, (list, tuple)):
         flag = True
         rsp_list = [rsp_list]
     for rsp in rsp_list:
-        #STR = sito.xcorr.xcorrt(rsp, src, length // 2, shift, demean=False)
         STR = xcorrt(rsp, src, length // 2, shift)
         if len(STR) > len(STS):
             STR = np.delete(STR, -1)
@@ -233,60 +246,3 @@ def deconvt(rsp_list, src, shift, spiking=1, length=None, normalize=True):
         return RF
     else:
         return RF_list
-
-#def deconvf(stream, src_comp, water=0.01, gauss=2, tshift=10,
-#            pad=0, winsrc=(-10, 30, 5), normalize=True):
-#    """
-#    Apply deconvolution in frequency domain.
-#
-#    :param water: waterlevel to stabilize the deconvolution (relative to data maximum)
-#    :param gauss: Gauss parameter of averaging function (std of LP-filter)
-#    :param tshift: shift the resulting function by that amount
-#    :param pad: multiply number of samples used for fft by 2**pad.
-#    :param window, start, end, where, lenslope: use only window (start,end) around
-#        where of type window (with lenslope seconds of smoothing) of source function
-#    :param return_real: just use the real part
-#    """
-#    st = stream
-#    samp = st[0].stats.sampling_rate
-#    onset = st[0].stats.onset
-#    src = st.select(component=src_comp)[0]
-#    src_index = st.index(src)
-#    src = src.copy()
-#    src.trim(onset + winsrc[0], onset + winsrc[1])
-#    src.taper(p=2 * winsrc[2] / (winsrc[1] - winsrc[0]))
-#    src = src.data
-#    rsp = [st[(i + src_index) % 3].data for i in range(3)]
-#    rf_resp = _deconvf(rsp, src, samp, water, gauss,
-#                       tshift, pad, normalize=normalize)
-#    for i in range(3):
-#        st[(i + src_index) % 3].data = rf_resp[i].real
-#    for tr in st:
-#        tr.stats.tshift = tshift
-#
-#def deconvt(stream, src_comp, winsrc=(-20, 80, 5),
-#            winrsp=(-20, 80), winrf=(-20, 80),
-#            spiking=1, normalize=True):
-#    """
-#    Aply deconvolution in time-domain.
-#    """
-#    st = stream
-#    samp = st[0].stats.sampling_rate
-#    onset = st[0].stats.onset
-#    src = st.select(component=src_comp).copy()
-#    src.trim(onset + winsrc[0], onset + winsrc[1])
-#    src.taper(p=2 * winsrc[2] / (winsrc[1] - winsrc[0]))
-#    src = src[0].data
-#    rsp = st[0].slice(onset + winrsp[0], onset + winrsp[1])
-#    rsp = [tr.data for tr in rsp]
-#    time_rf = winrf[1] - winrf[0]
-#    shift = int(samp * ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
-#                         time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0]))
-#    rf_resp = _deconvt(rsp, src, spiking, shift, length=int(time_rf * samp),
-#                         normalize=normalize)
-#    st[0].data = rf_resp[0].real
-#    st[1].data = rf_resp[1].real
-#    st[2].data = rf_resp[2].real
-#    for tr in st:
-#        tr.stats.tshift = -winrf[0]
-
