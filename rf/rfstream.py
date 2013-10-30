@@ -130,7 +130,7 @@ class RFStream(Stream):
 
     def moveout(self):
         """
-        Moveout correction to a slowness of 6.4s/°.
+        Moveout correction to a slowness of 6.4s/deg.
 
         The iasp91 model is used.
         """
