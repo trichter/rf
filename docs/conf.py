@@ -17,7 +17,8 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.join(*os.path.abspath(__file__).split('/')[:-1]))
-print sys.path
+for p in sys.path:
+    print p
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
