@@ -17,17 +17,8 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
 sys.path.insert(0, os.path.abspath('../'))
-
-if on_rtd:
-    html_theme = 'default'
-else:
-    html_theme = 'nature'
-
-
-for p in sys.path:
-    print p
+html_theme = 'nature'
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
@@ -55,10 +46,9 @@ MOCK_MODULES = [
                 'toeplitz', 'rf._xy',  #,
                 'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
                 ]
+
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
-
-import rf
 
 # -- General configuration -----------------------------------------------------
 
@@ -103,9 +93,9 @@ copyright = u'2013, Tom Richter'
 # built documents.
 #
 # The short X.Y version.
-version = '0.0.1'
+version = '0.1'
 # The full version, including alpha/beta/rc tags.
-release = '0.0.1'
+release = '0.1.0'
 
 #version = ".".join(rf.__version__.split(".")[:2])
 # The full version, including alpha/beta/rc tags.
