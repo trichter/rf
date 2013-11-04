@@ -9,7 +9,7 @@ from obspy.core.util import AttribDict
 from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
 from obspy.taup.taup import getTravelTimes
 from rf.deconvolve import deconv
-from rf import _xy
+import rf._xy as _xy
 
 STATION_GETTER = (('station_latitude', attrgetter('latitude')),
                   ('station_longitude', attrgetter('longitude')),
@@ -43,7 +43,7 @@ class RFStream(Stream):
     """
     To initialize a RFStream from a ObsPy stream use
     RFStream(stream=obspy_stream).
-    """    
+    """
     def __init__(self, traces=None, stream=None):
         if stream is not None:
             traces = stream.traces

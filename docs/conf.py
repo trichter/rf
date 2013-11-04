@@ -56,7 +56,7 @@ if on_rtd:
                     'obspy.core.util.geodetics',
                     'obspy.taup', 'obspy.taup.taup',
                     'obspy.signal', 'obspy.signal.util',
-                    'toeplitz', 'rf._xy', '_xy']
+                    'toeplitz', 'rf._xy']
     for mod_name in MOCK_MODULES:
         sys.modules[mod_name] = Mock()
     import pprint
