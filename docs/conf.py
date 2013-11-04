@@ -19,6 +19,7 @@ import sys, os
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     sys.path.insert(0, '/var/build/user_builds/rf/envs/latest/')
+    sys.path.insert(0, os.path.abspath('../rf'))
 else:
     sys.path.insert(0, '../')
 
