@@ -6,7 +6,7 @@ from obspy import readEvents
 from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
                               Origin, Magnitude)
 from obspy.core.util import AttribDict
-from rf import conf, EXAMPLE_CONFIG
+from rf import rfconf as conf, EXAMPLE_CONFIG
 
 CONF_ABBREVS = {'{net}':'{stats.network}',
                 '{sta}':'{stats.station}',

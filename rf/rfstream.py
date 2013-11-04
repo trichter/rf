@@ -40,11 +40,11 @@ _HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
 
 
 class RFStream(Stream):
+    """
+    To initialize a RFStream from a ObsPy stream use
+    RFStream(stream=obspy_stream).
+    """    
     def __init__(self, traces=None, stream=None):
-        """
-        To initialize a RFStream from a ObsPy stream use
-        RFStream(stream=obspy_stream).
-        """
         if stream is not None:
             traces = stream.traces
         if not traces is None and len(traces) > 0:

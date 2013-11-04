@@ -2,7 +2,7 @@
 import glob
 import os
 from obspy import read
-from rf import io, conf
+from rf import io, rfconf as conf
 from rf.rfstream import rfstats, RFStream
 
 def rf_batch(method='dmt', *args, **kwargs):
