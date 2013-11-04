@@ -126,10 +126,10 @@ except ImportError:
     import warnings
     warnings.warn("Didn't find file rfconf.py. Using example configuration.")
     EXAMPLE_CONFIG = True
-    from rf import rfconf_example as rfconf
+    import rfconf_example as rfconf
 
 from rfstream import RFStream, rfstats
-#from batch import rf_batch
+from batch import rf_batch
 #from io import convert_dmteventfile, create_rfeventsfile, set_paths
 
 

@@ -17,6 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../'))
+print sys.path
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
@@ -36,7 +37,7 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['numpy', 'obspy', 'toeplitz', 'scipy']
+MOCK_MODULES = ['numpy', 'obspy', 'obspy.core', 'toeplitz', 'scipy']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
