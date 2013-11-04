@@ -16,17 +16,20 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    sys.path.insert(0, '/var/build/user_builds/rf/envs/latest/')
-    sys.path.insert(0, os.path.abspath('../rf'))
-else:
-    sys.path.insert(0, '../')
+#on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+#if on_rtd:
+#    sys.path.insert(0, '/var/build/user_builds/rf/envs/latest/')
+#    sys.path.insert(0, os.path.abspath('../rf'))
+#else:
+#    sys.path.insert(0, '../')
+sys.path.insert(0, '/var/build/user_builds/rf/envs/latest/')
+sys.path.insert(0, os.path.abspath('../'))
 
-if on_rtd:
-    html_theme = 'default'
-else:
-    html_theme = 'nature'
+html_theme = 'default'
+#if on_rtd:
+#    html_theme = 'default'
+#else:
+#    html_theme = 'nature'
 
 
 for p in sys.path:
