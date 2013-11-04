@@ -9,7 +9,10 @@ from obspy.core.util import AttribDict
 from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
 from obspy.taup.taup import getTravelTimes
 from rf.deconvolve import deconv
-import rf._xy as _xy
+try:
+    from rf import _xy
+except:
+    warnings.warn("Error importing Fortran extensions module.")
 
 STATION_GETTER = (('station_latitude', attrgetter('latitude')),
                   ('station_longitude', attrgetter('longitude')),

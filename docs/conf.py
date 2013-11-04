@@ -29,8 +29,6 @@ else:
 for p in sys.path:
     print p
 
-#import rf
-
 class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -49,18 +47,18 @@ class Mock(object):
         else:
             return Mock()
 
-if on_rtd:
-    MOCK_MODULES = [
-                    'obspy', 'obspy.core', 'obspy.core.util', 'obspy.core.event',
-                    'obspy.core.util.geodetics',
-                    'obspy.taup', 'obspy.taup.taup',
-                    'obspy.signal', 'obspy.signal.util',
-                    'toeplitz', 'rf._xy'  #,
-                    'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
-                    ]
-    for mod_name in MOCK_MODULES:
-        sys.modules[mod_name] = Mock()
+MOCK_MODULES = [
+                'obspy', 'obspy.core', 'obspy.core.util', 'obspy.core.event',
+                'obspy.core.util.geodetics',
+                'obspy.taup', 'obspy.taup.taup',
+                'obspy.signal', 'obspy.signal.util',
+                'toeplitz', 'rf._xy',  #,
+                'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
+                ]
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
 
+import rf
 
 # -- General configuration -----------------------------------------------------
 
