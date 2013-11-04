@@ -17,11 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    print 'SUC'
-else:
-    print 'CES'
-#sys.path.insert(0, '/var/build/user_builds/rf/envs/latest/')
+
 sys.path.insert(0, os.path.abspath('../'))
 
 html_theme = 'default'
@@ -54,12 +50,15 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['numpy', 'obspy', 'obspy.core', 'obspy.core.util',
-                'obspy.core.util.geodetics', 'obspy.taup', 'obspy.taup.taup',
-                'obspy.signal', 'obspy.signal.util',
-                'toeplitz', 'scipy', 'scipy.signal', 'scipy.fftpack']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
+if on_rtd:
+    MOCK_MODULES = ['numpy', 'scipy', 'scipy.signal', 'scipy.fftpack',
+                    'obspy', 'obspy.core', 'obspy.core.util',
+                    'obspy.core.util.geodetics',
+                    'obspy.taup', 'obspy.taup.taup',
+                    'obspy.signal', 'obspy.signal.util',
+                    'toeplitz', 'rf._xy', '_xy']
+    for mod_name in MOCK_MODULES:
+        sys.modules[mod_name] = Mock()
 
 # -- General configuration -----------------------------------------------------
 
