@@ -57,7 +57,7 @@ class Mock(object):
 MOCK_MODULES = ['numpy', 'obspy', 'obspy.core', 'obspy.core.util',
                 'obspy.core.util.geodetics', 'obspy.taup', 'obspy.taup.taup',
                 'obspy.signal', 'obspy.signal.util',
-                'toeplitz', 'scipy', 'scipy.fftpack']
+                'toeplitz', 'scipy', 'scipy.signal', 'scipy.fftpack']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
