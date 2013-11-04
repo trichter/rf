@@ -59,6 +59,8 @@ if on_rtd:
                     'toeplitz', 'rf._xy', '_xy']
     for mod_name in MOCK_MODULES:
         sys.modules[mod_name] = Mock()
+    import pprint
+    pprint(sys.modules)
 
 # -- General configuration -----------------------------------------------------
 
