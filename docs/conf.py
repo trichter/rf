@@ -18,6 +18,28 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../'))
 
+class Mock(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+MOCK_MODULES = ['numpy', 'obspy', 'toeplitz', 'scipy']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -37,7 +59,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode'
               ]
 
-autodoc_default_flags = ['members', 'undoc-members',# 'private-members',
+autodoc_default_flags = ['members', 'undoc-members',  # 'private-members',
                          'show-inheritance']
 
 # Add any paths that contain templates here, relative to this directory.
@@ -104,7 +126,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'nature' #nature, sphinxdoc
+html_theme = 'nature'  #nature, sphinxdoc
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
