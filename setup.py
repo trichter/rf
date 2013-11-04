@@ -14,7 +14,7 @@ ext = Extension(name='rf._xy',
                          'rf/src/sppier.f'])
 
 setup(name='rf',
-      version='0.0.1',
+      version='0.1.0',
       description='Receiver function calculation in seismology',
       long_description=__doc__,
       url='https://github.com/trichter/rf',
