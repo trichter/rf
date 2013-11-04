@@ -51,16 +51,17 @@ class Mock(object):
             return Mock()
 
 if on_rtd:
-    MOCK_MODULES = ['numpy', 'scipy', 'scipy.signal', 'scipy.fftpack',
-                    'obspy', 'obspy.core', 'obspy.core.util',
+    MOCK_MODULES = [
+                    'obspy', 'obspy.core', 'obspy.core.util', 'obspy.core.event',
                     'obspy.core.util.geodetics',
                     'obspy.taup', 'obspy.taup.taup',
                     'obspy.signal', 'obspy.signal.util',
-                    'toeplitz', 'rf._xy']
+                    'toeplitz', 'rf._xy'  #,
+                    'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
+                    ]
     for mod_name in MOCK_MODULES:
         sys.modules[mod_name] = Mock()
-    import pprint
-    pprint(sys.modules)
+
 
 # -- General configuration -----------------------------------------------------
 
