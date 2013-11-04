@@ -10,4 +10,3 @@ See [documentation][1].
 * More tests
 
 [1]: http://rf.readthedocs.org/
-
