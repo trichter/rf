@@ -4,6 +4,10 @@ rf
 ==
 Receiver function calculation in seismology
 -------------------------------------------
+
+For details see the documentation_.
+
+.. _documentation: http://rf.readthedocs.org/
 """
 
 from setuptools import find_packages
