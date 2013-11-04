@@ -5,8 +5,4 @@
 ### Usage and Installation 
 See [documentation][1].
 
-### TODO
-* More documentation
-* More tests
-
 [1]: http://rf.readthedocs.org/
