@@ -16,16 +16,16 @@ Installation
 
 After installing `Obspy <http://www.obspy.org/>`_, its dependencies and
 `toeplitz <https://github.com/trichter/toeplitz>`_ the package can be installed
-with pip by running
-::
+with pip by running::
+
     pip install rf
 
-Alternatively download the source code and run
-::
+Alternatively download the source code and run::
+
     python setup.py install
 
-The tests can be run with the script
-::
+The tests can be run with the script::
+
     rf-runtests
 
 Usage
@@ -102,11 +102,12 @@ rf can also calculate S receiver functions (not much tested):
 
 When calling stream.rf the following operations are performed depending on
 the given kwargs:
-  * filtering
-  * trimming data to window relative to onset
-  * downsampling
-  * rotation
-  * deconvolution
+
+    * filtering
+    * trimming data to window relative to onset
+    * downsampling
+    * rotation
+    * deconvolution
 
 Please see :func:`~rfstream.RFStream.rf` for a more detailed description.
 RFStream provides the possibility to perform moveout correction

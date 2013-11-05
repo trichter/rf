@@ -1,4 +1,3 @@
-# by TR
 import glob
 import os
 from obspy import read
