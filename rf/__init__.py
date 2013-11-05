@@ -118,6 +118,7 @@ Please feel free to request features, report bugs or contribute some code on
 `GitHub <https://github.com/trichter/rf/>`_.
 """
 
+from _version import __version__
 
 try:
     EXAMPLE_CONFIG = False

@@ -12,13 +12,17 @@ For details see the documentation_.
 
 from setuptools import find_packages
 from numpy.distutils.core import Extension, setup
+import os.path
 
 ext = Extension(name='rf._xy',
                 sources=['rf/src/psmout.f', 'rf/src/pspier.f',
                          'rf/src/sppier.f'])
 
+with open(os.path.join('rf', '_version.py')) as f:
+    VERSION = f.read().split('=')[1].strip().strip("'")
+                         
 setup(name='rf',
-      version='0.1.0',
+      version=VERSION,
       description='Receiver function calculation in seismology',
       long_description=__doc__,
       url='https://github.com/trichter/rf',
