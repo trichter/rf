@@ -51,8 +51,6 @@ class RFStream(Stream):
     To initialize a RFStream from a ObsPy stream use
 
     >>> rfstream = RFStream(stream=obspy_stream)
-
-
     """
     def __init__(self, traces=None, stream=None):
         if stream is not None:
@@ -73,6 +71,12 @@ class RFStream(Stream):
         super(RFStream, self).write(filename, format, **kwargs)
 
     def deconvolve(self, *args, **kwargs):
+        """
+        Deconvolve source component of stream from other components.
+
+        All args and kwargs are passed to the function
+        :func:`~rf.deconvolve.deconv`.
+        """
         if len(self) % 3 != 0:
             raise ValueError('For deconvolution a 3 component stream is needed'
                              '. The provied stream is not divisible by 3.')
