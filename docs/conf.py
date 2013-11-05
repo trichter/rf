@@ -39,17 +39,16 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = [
-                'obspy', 'obspy.core', 'obspy.core.util', 'obspy.core.event',
-                'obspy.core.util.geodetics',
-                'obspy.taup', 'obspy.taup.taup',
-                'obspy.signal', 'obspy.signal.util',
-                'toeplitz', 'rf._xy',  #,
-                'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
-                ]
+while True:
+    try:
+        import rf
+    except ImportError as ex:
+        mod_name = ex.message.split()[-1]
+        print('Mocking module ' + mod_name)
+        sys.modules[mod_name] = Mock()
+    else:
+        break
 
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
 
 # -- General configuration -----------------------------------------------------
 
@@ -94,8 +93,7 @@ copyright = u'2013, Tom Richter'
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-with open(os.path.join(root, 'rf', '_version.py')) as f:
-    release = f.read().split('=')[1].strip().strip("'")
+release = rf.__version__
 # The short X.Y version.    
 version = ".".join(release.split(".")[:2])
 
