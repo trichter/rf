@@ -46,10 +46,10 @@ while i < 25:
         import rf
     except ImportError:
         exc_type, exc_value, tb = sys.exc_info()
-        code_line = traceback.extract_tb(tb)[-1][-1]
+        codeline = traceback.extract_tb(tb)[-1][-1]
         print
         print codeline
-        missing_module = code_line.split()[1]
+        missing_module = codeline.split()[1]
         print('Mocking module %s.' % missing_module)
         sys.modules[missing_module] = Mock()
         i += 1
