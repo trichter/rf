@@ -44,7 +44,7 @@ MOCK_MODULES = [
                 'obspy.core.util.geodetics',
                 'obspy.taup', 'obspy.taup.taup',
                 'obspy.signal', 'obspy.signal.util',
-                'toeplitz', 'rf._xy',  #,
+                'toeplitz', 'rf._xy',
                 'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
                 ]
 
@@ -94,8 +94,8 @@ copyright = u'2013, Tom Richter'
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-with open(os.path.join(root, 'rf', '_version.py')) as f:
-    release = f.read().split('=')[1].strip().strip("'")
+import rf
+release = rf.__version__
 # The short X.Y version.    
 version = ".".join(release.split(".")[:2])
 
