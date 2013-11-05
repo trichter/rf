@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys, os, traceback
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -39,17 +39,18 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = [
-                'obspy', 'obspy.core', 'obspy.core.util', 'obspy.core.event',
-                'obspy.core.util.geodetics',
-                'obspy.taup', 'obspy.taup.taup',
-                'obspy.signal', 'obspy.signal.util',
-                'toeplitz', 'rf._xy',
-                'numpy', 'scipy', 'scipy.signal', 'scipy.fftpack'
-                ]
-
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
+# Mock all modules in rf which raise an import error
+while True:
+    try:
+        import rf
+    except ImportError:
+        exc_type, exc_value, tb = sys.exc_info()
+        code_line = traceback.extract_tb(tb)[-1][-1]
+        missing_module = code_line.split()[1]
+        print('Mocking module %s.' % missing_module)
+        sys.modules[missing_module] = Mock()
+    else:
+        break
 
 # -- General configuration -----------------------------------------------------
 
@@ -94,7 +95,6 @@ copyright = u'2013, Tom Richter'
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-import rf
 release = rf.__version__
 # The short X.Y version.    
 version = ".".join(release.split(".")[:2])
