@@ -51,6 +51,8 @@ class RFStream(Stream):
     To initialize a RFStream from a ObsPy stream use
 
     >>> rfstream = RFStream(stream=obspy_stream)
+    
+    Format specific headers are loaded into the stats object of all traces.
     """
     def __init__(self, traces=None, stream=None):
         if stream is not None:
@@ -61,7 +63,7 @@ class RFStream(Stream):
 
     def write(self, filename, format, **kwargs):
         """
-        Saves stream to file including format specific headers.
+        Save stream to file including format specific headers.
 
         See :meth:`Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
         """
@@ -90,11 +92,44 @@ class RFStream(Stream):
             deconv(self[i, i + 3], *args, **kwargs)
             i += 3
 
-    def rf(self, method='P', window=None, downsample=None,
-           filter=None,
+    def rf(self, method='P', filter=None, window=None, downsample=None,
            rotate='ZNE->LQT', deconvolve='time', **deconvolve_kwargs):
-        """
-        TODO: DOC
+        r"""
+        Calculate receiver functions in-place.
+        
+        :param method: 'P' for P receiver functions, 'S' for S receiver
+            functions
+        :type filter: dictionary
+        :param filter: filter stream with its
+            :meth:`~obspy.core.stream.Stream.filter` method and given kwargs
+        :type window: tuple of length 2
+        :param window: trim stream relative to P- or S-onset
+             with :meth:`~obspy.core.stream.Stream.trim` (seconds)
+        :type downsample: float
+        :param downsample: downsample stream with its
+            :meth:`~obspy.core.stream.Stream.decimate` method
+        :param rotate: 'ZNE->LQT' or 'ZNE->ZRT', rotate stream with its
+            :meth:`~obspy.core.stream.Stream.rotate`
+            method with the angles given by the back_azimuth and inclination
+            attributes of the traces stats objects. You can set these to your
+            needs or let them be computed by :func:`rf.rfstream.rfstats`.
+            The first component of the target component is assumed to
+            be the source component for the deconvolution (L or Z).
+        :param deconvolve: 'time' or 'freq' for time or frequency domain
+            deconvolution by the streams
+            :meth:`~rf.rfstream.RFStream.deconvolve`
+            method. See :func:`~rf.deconvolve.deconv`,
+            :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
+            for further documentation. 
+        :param \*\*kwargs: all other kwargs not mentioned here are passed to
+            deconvolve
+        
+        After performing the deconvolution the Q/R and T components are
+        multiplied by -1 to get a positive phase for a Moho-like positive
+        velocity contrast. Furthermore for method='S' all components are
+        mirrored at t=0 for a better comparison with P receiver functions.
+        See source code of this function for the default
+        deconvolution windows.
         """
         if method not in 'PS':
             raise NotImplementedError
@@ -108,7 +143,10 @@ class RFStream(Stream):
                 if downsample <= tr.stats.sampling_rate:
                     tr.decimate(int(tr[0].stats.sampling_rate) // downsample)
         if rotate:
-            self.rotate(rotate)
+            if rotate[-2:] == 'RT':
+                self.rotate(rotate[1:5] + rotate[6:])
+            else:
+                self.rotate(rotate)
             src_comp = rotate.split('->')[-1][0]
         if deconvolve:
             # set standard parameters for deconvolution
@@ -148,23 +186,31 @@ class RFStream(Stream):
         """
         Moveout correction to a slowness of 6.4s/deg.
 
-        The iasp91 model is used.
+        The iasp91 model is used. The correction is independent from the type
+        of receiver function. Needs stats attributes slowness and onset.
         """
         for tr in self:
             tr.moveout()
 
     def ppoint(self, depth, method='P'):
         """
-        Calculate coordinates of piercing point at `depth` by 1D ray tracing.
+        Calculate coordinates of piercing point by 1D ray tracing.
 
         The iasp91 model is used. Piercing point coordinates are stored in the
-        stats attributes `plat` and `plon`.
+        stats attributes `plat` and `plon`. Needs stats attributes
+        station_latitude, station_longitude, slowness and back_azimuth.
+        
+        :param depth: depth of piercing points in km
+        :param method: 'P' or 'S' for P or S waves
         """
         for tr in self:
             tr.piercing_points(depth, method=method)
 
 
 class RFTrace(Trace):
+    """
+    Class providing the Trace object for receiver function calculation.
+    """
     def __init__(self, data=np.array([]), header={}, trace=None):
         if trace is not None:
             data = trace.data
@@ -173,6 +219,11 @@ class RFTrace(Trace):
         self._read_format_specific_header()
 
     def write(self, filename, format, **kwargs):
+        """
+        Save current trace into a file  including format specific headers.
+        
+        See :meth:`Trace.write() <obspy.core.trace.Trace.write>` in ObsPy.
+        """
         RFStream([self]).write(filename, format, **kwargs)
 
     def _read_format_specific_header(self, format=None):
@@ -227,17 +278,33 @@ class RFTrace(Trace):
             st[format][head_format] = val
 
     def moveout(self):
+        """
+        Moveout correction to a slowness of 6.4s/deg.
+
+        The iasp91 model is used. The correction is independent from the type
+        of receiver function. Needs stats attributes slowness and onset.
+        """
         st = self.stats
         self.data = _xy.psmout(self.data, st.slowness,
-                                   st.ponset - st.starttime,
+                                   st.onset - st.starttime,
                                    st.endtime - st.starttime, st.dt, 0)
 
     def ppoint(self, depth, method='P'):
+        """
+        Calculate coordinates of piercing point by 1D ray tracing.
+
+        The iasp91 model is used. Piercing point coordinates are stored in the
+        stats attributes `plat` and `plon`. Needs stats attributes
+        station_latitude, station_longitude, slowness and back_azimuth.
+        
+        :param depth: depth of piercing points in km
+        :param method: 'P' or 'S' for P or S waves
+        """
         if method not in 'PS':
             raise NotImplementedError()
         st = self.stats
-        args = (depth, st.station.latitude, st.station.longitude,
-                st.slowness, st.baz)
+        args = (depth, st.station_latitude, st.station_longitude,
+                st.slowness, st.back_azimuth)
         pier_func = _xy.pspier if method == 'P' else _xy.sppier
         _, lat, lon = pier_func(*args)
         st.plat = lat
@@ -245,6 +312,14 @@ class RFTrace(Trace):
 
 
 def obj2stats(event=None, station=None):
+    """
+    Map event and station object to stats with attributes.
+    
+    :param event: ObsPy :class:`~obspy.core.event.Event` object
+    :param station: station object with attributes latitude, longitude and
+        elevation
+    :return: ``stats`` object with station and event attributes 
+    """
     stats = AttribDict({})
     if event is not None:
         for key, getter in EVENT_GETTER:
@@ -256,13 +331,31 @@ def obj2stats(event=None, station=None):
 
 def rfstats(stats=None, event=None, station=None, phase='P', dist_range=None):
     """
-    Calculate important rf-specific values.
+    Calculate ray specific values like slowness for given event and station.
 
-    TODO: DOC
+    :param stats: stats object with event and/or station attributes. Can be
+        None if both event and station are given.
+    :param event: ObsPy :class:`~obspy.core.event.Event` object
+    :param station: station object with attributes latitude, longitude and
+        elevation
+    :param phase: string with phase to look for in result of
+        :func:`~obspy.taup.taup.getTravelTimes`. Usually this will be 'P' or
+        'S' for P and S receiver functions, respectively.
+    :type dist_range: tuple of length 2
+    :param dist_range: if epicentral of event is not in this intervall, None
+        is returned by this function,
+        
+        if phase == 'P' defaults to (30, 90),
+        
+        if phase == 'S' defaults to (50, 85)
+    
+    :return: ``stats`` object with event and station attributes, distance,
+        back_azimuth, inclination, onset and slowness or None if epicentral
+        distance is not in the given intervall
     """
     phase = phase.upper()
-    if dist_range is None:
-        dist_range = (30, 90) if 'P' in phase else (50, 85)
+    if dist_range is None and phase in 'PS':
+        dist_range = (30, 90) if phase == 'P' else (50, 85)
     if stats is None:
         stats = AttribDict({})
     stats.update(obj2stats(event=event, station=station))

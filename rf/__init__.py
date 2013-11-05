@@ -31,8 +31,10 @@ The tests can be run with the script::
 Usage
 -----
 
-The canonical way to load a waveform file into an RFStream object is to read
-it with ObsPy and pass the Obspy Stream to the generator as a kwarg:
+The canonical way to load a waveform file into an RFStream object is to use
+the :func:`~obspy.core.stream.read` function of ObsPy and pass
+the Obspy Stream to the generator of :class:`~rf.rfstream.RFStream` as a
+parameter for the stream kwarg:
 
 >>> from obspy import read
 >>> from rf import RFStream
@@ -109,10 +111,11 @@ the given kwargs:
     * rotation
     * deconvolution
 
-Please see :func:`~rfstream.RFStream.rf` for a more detailed description.
+Please see :func:`RFStream.rf() <rf.rfstream.RFStream.rf>`
+for a more detailed description.
 RFStream provides the possibility to perform moveout correction
 and piercing point calculation. rf is going to provide a function
-:func:`~batch.rf_batch` which will run all the necessary steps.
+:func:`~rf.batch.rf_batch` which will run all the necessary steps.
 
 
 Please feel free to request features, report bugs or contribute some code on
@@ -132,6 +135,3 @@ except ImportError:
 
 from rfstream import RFStream, rfstats
 from batch import rf_batch
-#from io import convert_dmteventfile, create_rfeventsfile, set_paths
-
-

@@ -1,5 +1,6 @@
-# by TR
-
+"""
+Helper functions.
+"""
 import os
 import pickle
 from obspy import readEvents
@@ -17,8 +18,8 @@ conf.rf_in = conf.rf
 conf.mout_in = conf.mout
 for key, val in CONF_ABBREVS.items():
     conf.data = conf.data.replace(key, '*')
-    conf.rf_in = conf.rf_in.replace(key, '*')  #@UndefinedVariable
-    conf.mout_in = conf.mout_in.replace(key, '*')  #@UndefinedVariable
+    conf.rf_in = conf.rf_in.replace(key, '*')  # @UndefinedVariable
+    conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
     conf.rf = conf.rf.replace(key, val)
     conf.mout = conf.mout.replace(key, val)
     conf.mean = conf.mean.replace(key, val)

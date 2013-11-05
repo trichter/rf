@@ -1,3 +1,7 @@
+"""
+Functions for massive receiver function calculation
+"""
+
 import glob
 import os
 from obspy import read
@@ -6,7 +10,7 @@ from rf.rfstream import rfstats, RFStream
 
 def rf_batch(method='dmt', *args, **kwargs):
     """
-    TODO: !DOC!
+    TODO: DOC
     """
     if ' dist' not in kwargs:
         kwargs['dist'] = ((30, 90) if kwargs.get('method', 'P') == 'P' else
@@ -18,6 +22,9 @@ def rf_batch(method='dmt', *args, **kwargs):
 
 def rf_dmt(events='events_rf.xml', method='P', dist=None,
            **rf_kwargs):
+    """
+    TODO: DOC
+    """
     events = io.read_rfevents(events)
     print events
     for event in events:
@@ -54,6 +61,9 @@ def rf_client(getwaveform, stations, events='events_rf.xml',
                request_window=(-50, 150), method='P', dist=None,
                **rf_kwargs):
                 # S: -300 bis 300
+    """
+    TODO: DOC
+    """
     events = io.read_rfevents(events)
     print events
     if isinstance(stations, basestring):

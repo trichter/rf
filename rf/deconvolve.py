@@ -35,15 +35,13 @@ def deconv(stream, src_comp, method='time', **kwargs):
         default:
         (-10, 30, 5) for method='time',
         (-20, 80, 5) for method='freq'
-
     :param winrsp: data window for response functions, tuple ``(start, end)``,
 
         just for method='time', default: (-20, 80)
-
     :param winrf: data window for results/deconvolution/receiver functions,
 
-        just for method='time', default: (-20, 80)
-
+        just for method='time', default: (-20, 80) 
+    
     Other optional parameters are passed to the underlying deconvolution
     functions :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
     .
@@ -164,27 +162,31 @@ def _add_zeros(a, num, side='both'):
 
 def acorrt(a, num):
     """
-    Return not normalized auto-correlation of signal a.
+    Not normalized auto-correlation of signal a.
 
     Sample 0 corresponds to zero lag time. Auto-correlation will consist of
     num samples. Correlation is performed in time domain by scipy.
 
     :param a: Data
     :param num: Number of returned data points
+    :return: autocorrelation
     """
     return correlate(_add_zeros(a, num, 'right'), a, 'valid')
 
 
 def xcorrt(a, b, num, zero_sample=0):
     """
-    Return not normalized cross-correlation of signals a and b.
+    Not normalized cross-correlation of signals a and b.
 
-    :param a, b: Data
+    :param a,b: data
     :param num: The cross-correlation will consist of 2*num+1 samples.
+    
         The sample with 0 lag time will be in the middle.
     :param zero_sample: Signals a and b are aligned around the middle of their
-        signals. If zero_sample != 0 a will be shifted additionally to the
-        left.
+        signals.
+        
+        If zero_sample != 0 a will be shifted additionally to the left.
+    :return: cross-correlation
     """
     if zero_sample != 0:
         a = _add_zeros(a, 2 * abs(zero_sample),
@@ -203,6 +205,7 @@ def toeplitz_real_sym(a, b):
 
     :param a: first row of Toeplitz matrix A
     :param b: vector b
+    :return: x=A^-1*b
     """
     return sto_sl(np.hstack((a, a[1:])), b, job=0)
 
