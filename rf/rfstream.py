@@ -1,4 +1,6 @@
-# by TR
+"""
+Classes and functions for receiver function calculation.
+"""
 from math import pi, sin
 from operator import attrgetter
 import warnings
@@ -44,8 +46,13 @@ _HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
 
 class RFStream(Stream):
     """
+    Class providing the necessary functions for receiver function calculation.
+
     To initialize a RFStream from a ObsPy stream use
-    RFStream(stream=obspy_stream).
+
+    >>> rfstream = RFStream(stream=obspy_stream)
+
+
     """
     def __init__(self, traces=None, stream=None):
         if stream is not None:
@@ -56,7 +63,9 @@ class RFStream(Stream):
 
     def write(self, filename, format, **kwargs):
         """
-        See `~obspy.core.Stream.write`.
+        Saves stream to file including format specific headers.
+
+        See :meth:`Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
         """
         # Check all traces for masked arrays and raise exception.
         for tr in self:
