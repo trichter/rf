@@ -29,8 +29,8 @@ The tests can be run with the script::
 
     rf-runtests
 
-Usage
------
+Basic Usage
+-----------
 
 The canonical way to load a waveform file into an RFStream object is to use
 the :func:`~obspy.core.stream.read` function of ObsPy and pass
@@ -118,14 +118,23 @@ RFStream provides the possibility to perform moveout correction
 and piercing point calculation. rf is going to provide a function
 :func:`~rf.batch.rf_batch` which will run all the necessary steps.
 
+Batch Usage
+-----------
+
+TODO
+
+Miscellaneous
+-------------
+
 Please feel free to request features, report bugs or contribute code on
-`GitHub <https://github.com/trichter/rf/>`_. The code is tested continiously
+`GitHub <https://github.com/trichter/rf/>`_. The code is continiously tested
 by travis-ci which reports the latest |build hopefully passing|.
 
 .. |build hopefully passing| image::
     https://api.travis-ci.org/trichter/rf.png?branch={version}
     :target: https://travis-ci.org/trichter/rf
 """
+# Suggest people to cite.
 
 from _version import __version__
 

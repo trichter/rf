@@ -1,5 +1,5 @@
 """
-Functions for massive receiver function calculation
+Functions for massive receiver function calculation. Untestet, in development.
 """
 
 import glob
@@ -64,6 +64,7 @@ def rf_client(getwaveform, stations=None, events=None,
               request_window=(-50, 150), method='P', dist=None, **rf_kwargs):
 # S: -300 bis 300
     """
+    TODO: doc rf_client
     """
     events = events or readEvents(conf.events)
     stations = stations or io.read_stations(conf.stations)
