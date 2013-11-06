@@ -83,7 +83,7 @@ specific values like azimuth and epicentral distance. An appropriate stats
 dictionary can be calculated with :func:`~rf.rfstream.rfstats`:
 
 >>> from rf import rfstats
->>> stats = rfstats(station=station, event=event, phase='P', dist_range=(30,90))
+>>> stats = rfstats(station=station, event=event, phase='P',dist_range=(30,90))
 >>> for tr in stream:
 >>>     tr.stats.update(stats)
 

@@ -8,6 +8,7 @@ from obspy import read
 from rf import io, rfconf as conf
 from rf.rfstream import rfstats, RFStream
 
+
 def rf_batch(method='dmt', *args, **kwargs):
     """
     TODO: DOC
@@ -19,6 +20,7 @@ def rf_batch(method='dmt', *args, **kwargs):
         rf_dmt(*args, **kwargs)
     elif method == 'client':
         rf_client(*args, **kwargs)
+
 
 def rf_dmt(events='events_rf.xml', method='P', dist=None,
            **rf_kwargs):
@@ -57,10 +59,10 @@ def rf_dmt(events='events_rf.xml', method='P', dist=None,
                 io.create_dir(output)
                 tr.write(output, 'SAC')
 
+
 def rf_client(getwaveform, stations, events='events_rf.xml',
-               request_window=(-50, 150), method='P', dist=None,
-               **rf_kwargs):
-                # S: -300 bis 300
+              request_window=(-50, 150), method='P', dist=None, **rf_kwargs):
+# S: -300 bis 300
     """
     TODO: DOC
     """

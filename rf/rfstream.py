@@ -1,6 +1,7 @@
 """
 Classes and functions for receiver function calculation.
 """
+
 from math import pi, sin
 from operator import attrgetter
 import warnings
@@ -16,18 +17,29 @@ try:
 except:
     warnings.warn("Error importing Fortran extensions module.")
 
+
+def __get_event_attr(h1, h2):
+    return lambda event: event[h1][0][h2]
+
+
+def __rel2UTC(stats, head):
+    return stats.starttime + stats[head]
+
+
+def __UTC2rel(stats, head):
+    return stats[head] - stats.starttime
+
+
 STATION_GETTER = (('station_latitude', attrgetter('latitude')),
                   ('station_longitude', attrgetter('longitude')),
                   ('station_elevation', attrgetter('elevation')))
-
-def __get(h1, h2): return lambda event: event[h1][0][h2]
-EVENT_GETTER = (('event_latitude', __get('origins', 'latitude')),
-                ('event_longitude', __get('origins', 'longitude')),
-                ('event_depth', __get('origins', 'depth')),
-                ('event_magnitude', __get('magnitudes', 'mag')),
-                ('event_time', __get('origins', 'time')))
+EVENT_GETTER = (('event_latitude', __get_event_attr('origins', 'latitude')),
+                ('event_longitude', __get_event_attr('origins', 'longitude')),
+                ('event_depth', __get_event_attr('origins', 'depth')),
+                ('event_magnitude', __get_event_attr('magnitudes', 'mag')),
+                ('event_time', __get_event_attr('origins', 'time')))
 HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
-              'onset', 'distance', 'back_azimuth', 'inclination', 'slowness')
+    'onset', 'distance', 'back_azimuth', 'inclination', 'slowness')
 FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo', 'evdp', 'mag',
                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1'),
                  # fields 'dcvreg', 'dcvinci' and 'pwdw' are violated for
@@ -35,11 +47,6 @@ FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo', 'evdp', 'mag',
                  'sh': ('DCVREG', 'DCVINCI', 'PWDW', 'LAT', 'LON', 'DEPTH',
                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
                         'AZIMUTH', 'INCI', 'SLOWNESS')}
-
-def __rel2UTC(stats, head):
-    return stats.starttime + stats[head]
-def __UTC2rel(stats, head):
-    return stats[head] - stats.starttime
 _HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
                                'event_time': (__rel2UTC, __UTC2rel)}}
 
@@ -51,7 +58,7 @@ class RFStream(Stream):
     To initialize a RFStream from a ObsPy stream use
 
     >>> rfstream = RFStream(stream=obspy_stream)
-    
+
     Format specific headers are loaded into the stats object of all traces.
     """
     def __init__(self, traces=None, stream=None):
@@ -96,7 +103,7 @@ class RFStream(Stream):
            rotate='ZNE->LQT', deconvolve='time', **deconvolve_kwargs):
         r"""
         Calculate receiver functions in-place.
-        
+
         :param method: 'P' for P receiver functions, 'S' for S receiver
             functions
         :type filter: dictionary
@@ -112,7 +119,7 @@ class RFStream(Stream):
             :meth:`~obspy.core.stream.Stream.rotate`
             method with the angles given by the back_azimuth and inclination
             attributes of the traces stats objects. You can set these to your
-            needs or let them be computed by :func:`rf.rfstream.rfstats`.
+            needs or let them be computed by :func:`~rf.rfstream.rfstats`.
             The first component of the target component is assumed to
             be the source component for the deconvolution (L or Z).
         :param deconvolve: 'time' or 'freq' for time or frequency domain
@@ -120,10 +127,10 @@ class RFStream(Stream):
             :meth:`~rf.rfstream.RFStream.deconvolve`
             method. See :func:`~rf.deconvolve.deconv`,
             :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
-            for further documentation. 
+            for further documentation.
         :param \*\*kwargs: all other kwargs not mentioned here are passed to
             deconvolve
-        
+
         After performing the deconvolution the Q/R and T components are
         multiplied by -1 to get a positive phase for a Moho-like positive
         velocity contrast. Furthermore for method='S' all components are
@@ -181,7 +188,6 @@ class RFStream(Stream):
             if tr.stats.channel[-1] != src_comp:
                 tr.data = -tr.data
 
-
     def moveout(self):
         """
         Moveout correction to a slowness of 6.4s/deg.
@@ -199,7 +205,7 @@ class RFStream(Stream):
         The iasp91 model is used. Piercing point coordinates are stored in the
         stats attributes `plat` and `plon`. Needs stats attributes
         station_latitude, station_longitude, slowness and back_azimuth.
-        
+
         :param depth: depth of piercing points in km
         :param method: 'P' or 'S' for P or S waves
         """
@@ -221,7 +227,7 @@ class RFTrace(Trace):
     def write(self, filename, format, **kwargs):
         """
         Save current trace into a file  including format specific headers.
-        
+
         See :meth:`Trace.write() <obspy.core.trace.Trace.write>` in ObsPy.
         """
         RFStream([self]).write(filename, format, **kwargs)
@@ -286,8 +292,8 @@ class RFTrace(Trace):
         """
         st = self.stats
         self.data = _xy.psmout(self.data, st.slowness,
-                                   st.onset - st.starttime,
-                                   st.endtime - st.starttime, st.dt, 0)
+                               st.onset - st.starttime,
+                               st.endtime - st.starttime, st.dt, 0)
 
     def ppoint(self, depth, method='P'):
         """
@@ -296,7 +302,7 @@ class RFTrace(Trace):
         The iasp91 model is used. Piercing point coordinates are stored in the
         stats attributes `plat` and `plon`. Needs stats attributes
         station_latitude, station_longitude, slowness and back_azimuth.
-        
+
         :param depth: depth of piercing points in km
         :param method: 'P' or 'S' for P or S waves
         """
@@ -314,11 +320,11 @@ class RFTrace(Trace):
 def obj2stats(event=None, station=None):
     """
     Map event and station object to stats with attributes.
-    
+
     :param event: ObsPy :class:`~obspy.core.event.Event` object
     :param station: station object with attributes latitude, longitude and
         elevation
-    :return: ``stats`` object with station and event attributes 
+    :return: ``stats`` object with station and event attributes
     """
     stats = AttribDict({})
     if event is not None:
@@ -328,6 +334,7 @@ def obj2stats(event=None, station=None):
         for key, getter in STATION_GETTER:
             stats[key] = getter(station)
     return stats
+
 
 def rfstats(stats=None, event=None, station=None, phase='P', dist_range=None):
     """
@@ -344,11 +351,11 @@ def rfstats(stats=None, event=None, station=None, phase='P', dist_range=None):
     :type dist_range: tuple of length 2
     :param dist_range: if epicentral of event is not in this intervall, None
         is returned by this function,
-        
+
         if phase == 'P' defaults to (30, 90),
-        
+
         if phase == 'S' defaults to (50, 85)
-    
+
     :return: ``stats`` object with event and station attributes, distance,
         back_azimuth, inclination, onset and slowness or None if epicentral
         distance is not in the given intervall

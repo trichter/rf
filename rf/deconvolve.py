@@ -40,8 +40,8 @@ def deconv(stream, src_comp, method='time', **kwargs):
         just for method='time', default: (-20, 80)
     :param winrf: data window for results/deconvolution/receiver functions,
 
-        just for method='time', default: (-20, 80) 
-    
+        just for method='time', default: (-20, 80)
+
     Other optional parameters are passed to the underlying deconvolution
     functions :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
     .
@@ -180,11 +180,11 @@ def xcorrt(a, b, num, zero_sample=0):
 
     :param a,b: data
     :param num: The cross-correlation will consist of 2*num+1 samples.
-    
+
         The sample with 0 lag time will be in the middle.
     :param zero_sample: Signals a and b are aligned around the middle of their
         signals.
-        
+
         If zero_sample != 0 a will be shifted additionally to the left.
     :return: cross-correlation
     """
