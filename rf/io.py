@@ -1,18 +1,19 @@
 """
-Helper functions.
+Helper functions for data path management.
 """
+
 import os
 import pickle
 from obspy import readEvents
 from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
                               Origin, Magnitude)
 from obspy.core.util import AttribDict
-from rf import rfconf as conf, EXAMPLE_CONFIG
+from rf import conf
 
-CONF_ABBREVS = {'{net}':'{stats.network}',
-                '{sta}':'{stats.station}',
-                '{loc}':'{stats.location}',
-                '{cha}':'{stats.channel}'}
+CONF_ABBREVS = {'{net}': '{stats.network}',
+                '{sta}': '{stats.station}',
+                '{loc}': '{stats.location}',
+                '{cha}': '{stats.channel}'}
 
 conf.rf_in = conf.rf
 conf.mout_in = conf.mout
@@ -24,13 +25,15 @@ for key, val in CONF_ABBREVS.items():
     conf.mout = conf.mout.replace(key, val)
     conf.mean = conf.mean.replace(key, val)
 
-def create_dir(filename):
+
+def _create_dir(filename):
     """
     Create directory of filname if it does not exist.
     """
     head = os.path.dirname(filename)
     if head != '' and not os.path.isdir(head):
         os.makedirs(head)
+
 
 def read_stations(fname):
     """
@@ -51,6 +54,7 @@ def read_stations(fname):
                 ret[vals[0]].elevation = float(vals[3])
     return ret
 
+
 def write_stations(fname, dic, comment='# station  lat  lon  elev\n'):
     """
     Write dictionary of station positions to file
@@ -61,11 +65,6 @@ def write_stations(fname, dic, comment='# station  lat  lon  elev\n'):
             f.write('%s  %s  %s  %s\n' % (key, val['latitude'],
                                           val['longitude'], val['elevation']))
 
-def set_paths(dmt_path, output_path=None):
-    if not output_path:
-        output_path = dmt_path
-    conf.dmt_path = os.path.expanduser(dmt_path)
-    conf.output_path = os.path.expanduser(output_path)
 
 def convert_dmteventfile():
     eventsfile1 = os.path.join(conf.data_path, 'EVENT', 'event_list')
@@ -90,6 +89,7 @@ def convert_dmteventfile():
         events2.append(Event(**evkw))
     events2.write(eventsfile2, 'QUAKEML')
 
+
 def read_rfevents(events):
     if isinstance(events, basestring):
         if not os.path.exists(events):
@@ -97,9 +97,9 @@ def read_rfevents(events):
         events = readEvents(events)
     return events
 
+
 def create_rfeventsfile(events='events.xml',
                         eventsfile='events_rf.xml', filters=None):
-
     if isinstance(events, basestring):
         if not os.path.exists(events):
             events = os.path.join(conf.data_path, 'EVENT', 'events.xml')
@@ -107,8 +107,5 @@ def create_rfeventsfile(events='events.xml',
     if filters:
         events.filter(*filters)
     eventsfile = os.path.join(conf.output_path, 'EVENT', eventsfile)
-    create_dir(eventsfile)
+    _create_dir(eventsfile)
     events.write(eventsfile, 'QUAKEML')
-
-if EXAMPLE_CONFIG:
-    set_paths('~/obspyDMT-data/2010-01-01_2010-01-10_5.5_9.9')

@@ -111,7 +111,7 @@ the given kwargs:
     * rotation
     * deconvolution
 
-Please see :func:`RFStream.rf() <rf.rfstream.RFStream.rf>`
+Please see :meth:`RFStream.rf() <rf.rfstream.RFStream.rf>`
 for a more detailed description.
 RFStream provides the possibility to perform moveout correction
 and piercing point calculation. rf is going to provide a function
@@ -125,13 +125,11 @@ Please feel free to request features, report bugs or contribute some code on
 from _version import __version__
 
 try:
-    EXAMPLE_CONFIG = False
     import rfconf
 except ImportError:
     import warnings
-    warnings.warn("Didn't find file rfconf.py. Using example configuration.")
-    EXAMPLE_CONFIG = True
-    import rfconf_example as rfconf
+    warnings.warn("Didn't find file conf.py. Using test configuration.")
+    import conf_test as conf
 
 from rfstream import RFStream, rfstats
 from batch import rf_batch

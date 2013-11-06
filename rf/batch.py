@@ -4,8 +4,8 @@ Functions for massive receiver function calculation
 
 import glob
 import os
-from obspy import read
-from rf import io, rfconf as conf
+from obspy import read, readEvents
+from rf import io, conf
 from rf.rfstream import rfstats, RFStream
 
 
@@ -22,12 +22,12 @@ def rf_batch(method='dmt', *args, **kwargs):
         rf_client(*args, **kwargs)
 
 
-def rf_dmt(events='events_rf.xml', method='P', dist=None,
+def rf_dmt(events=None, method='P', dist=None,
            **rf_kwargs):
     """
     TODO: doc rf_dmt
     """
-    events = io.read_rfevents(events)
+    events = events or readEvents(conf.events)
     print events
     for event in events:
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
@@ -56,20 +56,17 @@ def rf_dmt(events='events_rf.xml', method='P', dist=None,
             for tr in st:
                 output = os.path.join(conf.output_path, conf.rf)
                 output = output.format(eventid=event_id, stats=tr.stats)
-                io.create_dir(output)
+                io._create_dir(output)
                 tr.write(output, 'SAC')
 
 
-def rf_client(getwaveform, stations, events='events_rf.xml',
+def rf_client(getwaveform, stations=None, events=None,
               request_window=(-50, 150), method='P', dist=None, **rf_kwargs):
 # S: -300 bis 300
     """
-    TODO: doc rf_client
     """
-    events = io.read_rfevents(events)
-    print events
-    if isinstance(stations, basestring):
-        stations = io.read_stations(stations)
+    events = events or readEvents(conf.events)
+    stations = stations or io.read_stations(conf.stations)
     for event in events:
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
         for station in stations:
@@ -79,7 +76,7 @@ def rf_client(getwaveform, stations, events='events_rf.xml',
                 continue
             st = getwaveform(station, stats.onset + request_window[0],
                              stats.onset + request_window[1])
-            st = RFStream(st)
+            st = RFStream(stream=st)
             st.merge()
             if len(st) != 3:
                 import warnings
@@ -94,5 +91,5 @@ def rf_client(getwaveform, stations, events='events_rf.xml',
             for tr in st:
                 output = os.path.join(conf.output_path, conf.rf)
                 output = output.format(eventid=event_id, stats=tr.stats)
-                io.create_dir(output)
+                io._create_dir(output)
                 tr.write(output, 'SAC')

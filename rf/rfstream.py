@@ -33,6 +33,7 @@ def __UTC2rel(stats, head):
 STATION_GETTER = (('station_latitude', attrgetter('latitude')),
                   ('station_longitude', attrgetter('longitude')),
                   ('station_elevation', attrgetter('elevation')))
+# TODO: map event_id
 EVENT_GETTER = (('event_latitude', __get_event_attr('origins', 'latitude')),
                 ('event_longitude', __get_event_attr('origins', 'longitude')),
                 ('event_depth', __get_event_attr('origins', 'depth')),
