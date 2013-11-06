@@ -11,7 +11,7 @@ from rf.rfstream import rfstats, RFStream
 
 def rf_batch(method='dmt', *args, **kwargs):
     """
-    TODO: DOC
+    TODO: doc rf_batch
     """
     if ' dist' not in kwargs:
         kwargs['dist'] = ((30, 90) if kwargs.get('method', 'P') == 'P' else
@@ -25,7 +25,7 @@ def rf_batch(method='dmt', *args, **kwargs):
 def rf_dmt(events='events_rf.xml', method='P', dist=None,
            **rf_kwargs):
     """
-    TODO: DOC
+    TODO: doc rf_dmt
     """
     events = io.read_rfevents(events)
     print events
@@ -47,8 +47,8 @@ def rf_dmt(events='events_rf.xml', method='P', dist=None,
             st.merge()
             if len(st) != 3:
                 import warnings
-                warnings.warn('Need 3 component seismograms. More or less '
-                              'than three components for files %s' % files_tmp)
+                warnings.warn('Need 3 component seismograms. '
+                              'Error for files %s' % files_tmp)
                 continue
             for tr in st:
                 tr.stats.update(stats)
@@ -64,7 +64,7 @@ def rf_client(getwaveform, stations, events='events_rf.xml',
               request_window=(-50, 150), method='P', dist=None, **rf_kwargs):
 # S: -300 bis 300
     """
-    TODO: DOC
+    TODO: doc rf_client
     """
     events = io.read_rfevents(events)
     print events
