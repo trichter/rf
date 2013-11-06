@@ -16,11 +16,12 @@ Installation
 
 After installing `Obspy <http://www.obspy.org/>`_, its dependencies and
 `toeplitz <https://github.com/trichter/toeplitz>`_ the package can be installed
-with pip by running::
+via `pip <http://www.pip-installer.org/>`_ by running::
 
     pip install rf
 
-Alternatively download the source code and run::
+Alternatively to install the development version download the source code and
+run::
 
     python setup.py install
 
@@ -117,9 +118,13 @@ RFStream provides the possibility to perform moveout correction
 and piercing point calculation. rf is going to provide a function
 :func:`~rf.batch.rf_batch` which will run all the necessary steps.
 
+Please feel free to request features, report bugs or contribute code on
+`GitHub <https://github.com/trichter/rf/>`_. The code is tested continiously
+by travis-ci which reports the latest |build hopefully passing|.
 
-Please feel free to request features, report bugs or contribute some code on
-`GitHub <https://github.com/trichter/rf/>`_.
+.. |build hopefully passing| image::
+    https://api.travis-ci.org/trichter/rf.png?branch={version}
+    :target: https://travis-ci.org/trichter/rf
 """
 
 from _version import __version__
@@ -133,3 +138,10 @@ except ImportError:
 
 from rfstream import RFStream, rfstats
 from batch import rf_batch
+
+# get image for this version from travis-ci
+if 'dev' in __version__:
+    travis_version = 'master'
+else:
+    travis_version = 'v' + __version__
+__doc__ = __doc__.format(version=travis_version)

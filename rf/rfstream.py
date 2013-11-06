@@ -75,7 +75,6 @@ class RFStream(Stream):
 
         See :meth:`Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
         """
-        # Check all traces for masked arrays and raise exception.
         for tr in self:
             tr._write_format_specific_header(format)
         super(RFStream, self).write(filename, format, **kwargs)
@@ -351,10 +350,8 @@ def rfstats(stats=None, event=None, station=None, phase='P', dist_range=None):
         'S' for P and S receiver functions, respectively.
     :type dist_range: tuple of length 2
     :param dist_range: if epicentral of event is not in this intervall, None
-        is returned by this function,
-
-        if phase == 'P' defaults to (30, 90),
-
+        is returned by this function,\n
+        if phase == 'P' defaults to (30, 90),\n
         if phase == 'S' defaults to (50, 85)
 
     :return: ``stats`` object with event and station attributes, distance,

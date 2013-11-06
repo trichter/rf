@@ -24,22 +24,20 @@ def deconv(stream, src_comp, method='time', **kwargs):
     :param src_comp: Name of component using for source function
     :param method:
         'time' -> use time domain deconvolution in
-        :func:`~rf.deconvolve.deconvt`,
-
+        :func:`~rf.deconvolve.deconvt`,\n
         'freq' -> use freqeuency domain deconvolution in
         :func:`~rf.deconvolve.deconvf`
-
-    :param winsrc: data window for source function, tuple with
-        ``(start, end, taper)`` in seconds relative to onset,
-
-        default:
-        (-10, 30, 5) for method='time',
+    :type winsrc: tuple (start, end, taper)
+    :param winsrc:
+        data window for source function, in seconds relative to onset,\n
+        default:\n
+        (-10, 30, 5) for method='time',\n
         (-20, 80, 5) for method='freq'
-    :param winrsp: data window for response functions, tuple ``(start, end)``,
-
+    :type winrsp: tuple (start, end)
+    :param winrsp: data window for response functions,\n
         just for method='time', default: (-20, 80)
-    :param winrf: data window for results/deconvolution/receiver functions,
-
+    :type winrf: tuple (start, end)
+    :param winrf: data window for results/deconvolution/receiver functions,\n
         just for method='time', default: (-20, 80)
 
     Other optional parameters are passed to the underlying deconvolution
@@ -99,8 +97,7 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
     :param length: number of data points in results, optional
     :param normalize: if results are normalized
     :param normalize_to_src: True ->  normalized so that the maximum of a
-        deconvolution of the source with itself is 1
-
+        deconvolution of the source with itself is 1\n
         False -> normalized so that the maximum of the deconvolution of the
         first response array in rsp_list is 1
     :param return_dict: return additionally a lot of different parameters in a
@@ -179,12 +176,10 @@ def xcorrt(a, b, num, zero_sample=0):
     Not normalized cross-correlation of signals a and b.
 
     :param a,b: data
-    :param num: The cross-correlation will consist of 2*num+1 samples.
-
+    :param num: The cross-correlation will consist of 2*num+1 samples.\n
         The sample with 0 lag time will be in the middle.
     :param zero_sample: Signals a and b are aligned around the middle of their
-        signals.
-
+        signals.\n
         If zero_sample != 0 a will be shifted additionally to the left.
     :return: cross-correlation
     """
@@ -244,8 +239,7 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
     :param src: array of source function
     :param shift: shift the source by that amount of samples to the left side
         to get onset in RF at the desired time (negative -> shift source to the
-        right side)
-
+        right side)\n
         shift = (middle of rsp window - middle of src window) +
         (0 - middle rf window)
     :param spiking: random noise added to autocorrelation (eg. 1.0, 0.1)
