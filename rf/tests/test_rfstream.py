@@ -12,10 +12,6 @@ from rf.rfstream import obj2stats
 from rf.rfstream import HEADERS, FORMATHEADERS, STATION_GETTER, EVENT_GETTER
 
 
-_HEADERS_EXAMPLE = (50.3, -100.2, 400.3, -20.32, 10., 12.4, 6.5, -40.432,
-                    20.643, 57.6, 90.1, 10.2, 6.4)
-
-
 class RFStreamTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -39,11 +35,7 @@ class RFStreamTestCase(unittest.TestCase):
             for head in HEADERS:
                 self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
         stream = RFStream(stream=read())[:1]
-        st = stream[0].stats
-        for head, val in zip(HEADERS, _HEADERS_EXAMPLE):
-            if head in ('onset', 'event_time'):
-                val = st.starttime + val
-            st[head] = val
+        stream._write_test_header()
         for format in FORMATHEADERS:
             test_io_format(format)
 

@@ -1,5 +1,6 @@
-IASP91 velocity model
-depth    vp      vs     n
+#IASP91 velocity model
+#depth    vp      vs     n
+   0.00  5.800 3.360 0
    0.00  5.800 3.360 0
   10.00  5.800 3.360 4
   20.00  5.800 3.360 4

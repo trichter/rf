@@ -7,7 +7,7 @@ before_install:
   - lsb_release -a # get info on the operating system
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
-  - pip install --use-mirrors obspy toeplitz
+  - pip install --use-mirrors obspy toeplitz geographiclib
 install:
   - pip install . --use-mirrors
 script:

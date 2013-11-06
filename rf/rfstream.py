@@ -50,7 +50,8 @@ FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo', 'evdp', 'mag',
                         'AZIMUTH', 'INCI', 'SLOWNESS')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
                                'event_time': (__rel2UTC, __UTC2rel)}}
-
+_HEADERS_EXAMPLE = (50.3, -100.2, 400.3, -20.32, 10., 12.4, 6.5, -40.432,
+                    20.643, 57.6, 90.1, 10.2, 10.)
 
 class RFStream(Stream):
     """
@@ -68,6 +69,10 @@ class RFStream(Stream):
         if not traces is None and len(traces) > 0:
             traces = [RFTrace(trace=tr) for tr in traces]
         super(RFStream, self).__init__(traces=traces)
+
+    def _write_test_header(self):
+        for tr in self:
+            tr._write_test_header()
 
     def write(self, filename, format, **kwargs):
         """
@@ -210,7 +215,7 @@ class RFStream(Stream):
         :param method: 'P' or 'S' for P or S waves
         """
         for tr in self:
-            tr.piercing_points(depth, method=method)
+            tr.ppoint(depth, method=method)
 
 
 class RFTrace(Trace):
@@ -224,13 +229,12 @@ class RFTrace(Trace):
         super(RFTrace, self).__init__(data=data, header=header)
         self._read_format_specific_header()
 
-    def write(self, filename, format, **kwargs):
-        """
-        Save current trace into a file  including format specific headers.
-
-        See :meth:`Trace.write() <obspy.core.trace.Trace.write>` in ObsPy.
-        """
-        RFStream([self]).write(filename, format, **kwargs)
+    def _write_test_header(self):
+        st = self.stats
+        for head, val in zip(HEADERS, _HEADERS_EXAMPLE):
+            if head in ('onset', 'event_time'):
+                val = st.starttime + val
+            st[head] = val
 
     def _read_format_specific_header(self, format=None):
         st = self.stats
@@ -283,6 +287,14 @@ class RFTrace(Trace):
                 pass
             st[format][head_format] = val
 
+    def write(self, filename, format, **kwargs):
+        """
+        Save current trace into a file  including format specific headers.
+
+        See :meth:`Trace.write() <obspy.core.trace.Trace.write>` in ObsPy.
+        """
+        RFStream([self]).write(filename, format, **kwargs)
+
     def moveout(self):
         """
         Moveout correction to a slowness of 6.4s/deg.
@@ -291,9 +303,10 @@ class RFTrace(Trace):
         of receiver function. Needs stats attributes slowness and onset.
         """
         st = self.stats
+        print st
         self.data = _xy.psmout(self.data, st.slowness,
                                st.onset - st.starttime,
-                               st.endtime - st.starttime, st.dt, 0)
+                               st.endtime - st.starttime, st.delta, 0)
 
     def ppoint(self, depth, method='P'):
         """
