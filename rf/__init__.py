@@ -14,20 +14,34 @@ which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 Installation
 ------------
 
-After installing `Obspy <http://www.obspy.org/>`_, its dependencies and
-`toeplitz <https://github.com/trichter/toeplitz>`_ the package can be installed
-via `pip <http://www.pip-installer.org/>`_ by running::
+Install `Obspy <http://www.obspy.org/>`_, its dependencies and
+`pip <http://www.pip-installer.org/>`_, eg. by ::
 
-    pip install rf
+    sudo apt-get install python-obspy python-pip
 
-Alternatively to install the development version download the source code and
-run::
+rf can then be installed by ::
 
-    python setup.py install
+    sudo pip install rf
 
-The tests can be run with the script::
+The tests can be run with the script ::
 
     rf-runtests
+
+Manual way
+^^^^^^^^^^
+
+Install all dependencies:
+
+    * Obspy and its dependencies,
+    * toeplitz_ for time domain deconvolution,
+    * geographiclib_ for ppoint calculation.
+
+.. _toeplitz: https://github.com/trichter/toeplitz
+.. _geographiclib: https://pypi.python.org/pypi/geographiclib
+
+Then download the source code and install by ::
+
+    python setup.py install    
 
 Basic Usage
 -----------
