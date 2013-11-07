@@ -27,7 +27,7 @@ The tests can be run with the script ::
     rf-runtests
 
 Manual installation of dev
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 Install
 
@@ -35,7 +35,13 @@ Install
     * toeplitz_ for time domain deconvolution,
     * geographiclib_ for ppoint calculation.
 
-Then download the source code and install by ::
+Then download the source code from GitHub_ eg. by ::
+
+    mkdir rf
+    git clone https://github.com/trichter/rf.git rf
+
+Now add the top rf directory to your ``PYTHON_PATH`` variable *or*
+install rf with ::
 
     python setup.py install    
 
@@ -43,6 +49,7 @@ Then download the source code and install by ::
 .. _pip: http://www.pip-installer.org/
 .. _toeplitz: https://github.com/trichter/toeplitz/
 .. _geographiclib: https://pypi.python.org/pypi/geographiclib/
+.. _GitHub: https://github.com/trichter/rf/
     
 Basic Usage
 -----------
@@ -142,14 +149,14 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-`GitHub <https://github.com/trichter/rf/>`_. The code is continiously tested
-by travis-ci which reports the latest |build hopefully passing|.
+GitHub_. The code is continiously tested by travis-ci which reports
+the latest |build hopefully passing|.
 
 .. |build hopefully passing| image::
     https://api.travis-ci.org/trichter/rf.png?branch={travis_version}
     :target: https://travis-ci.org/trichter/rf
 """
-# Suggest people to cite.
+# Suggest people to cite rf.
 
 from _version import __version__
 
@@ -165,7 +172,7 @@ from batch import rf_batch
 
 # get image for this version from travis-ci
 if 'dev' in __version__:
-    travis_version = 'master'
+    _travis_version = 'master'
 else:
-    travis_version = 'v' + __version__
-__doc__ = __doc__.format(travis_version=travis_version)
+    _travis_version = 'v' + __version__
+__doc__ = __doc__.format(travis_version=_travis_version)
