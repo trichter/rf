@@ -20,7 +20,7 @@ def load_model(fname='iasp91'):
     """
     Load model from file.
 
-    :param fname: path to model file or 'iasp91' for this model
+    :param fname: path to model file or 'iasp91'
     :return: :class:`~rf.simple.model.SimpleModel` instance
     """
     try:
@@ -49,7 +49,7 @@ def _interpolate_n(val, n):
 
 class SimpleModel(object):
     """
-    Simple 1D model for module tasks.
+    Simple 1D velocity model.
     """
     def __init__(self, z, vp, vs, n=None):
         assert len(z) == len(vp) == len(vs)
@@ -151,7 +151,7 @@ class SimpleModel(object):
         Calculate horizontal distance of piercing point to station.
 
         :param depth: depth of interface in km
-        :param slowness: horitontal slowness in s/km
+        :param slowness: horitontal slowness in s/deg
         :param phase: 'P' or 'S' for P wave or S wave. Multiples possible.
         :return: horizontal distance in km
         """
@@ -175,8 +175,7 @@ class SimpleModel(object):
         Piercing point calculation.
 
         Piercing point coordinates are saved in the plat and plon attributes of
-        the stats objects. Note that phase='S' is usually wanted for P receiver
-        functions and 'P' for S receiver functions.
+        the stats objects.
 
         :param stream: stream with stats attributes slowness, back_azimuth and
             station coordinates.

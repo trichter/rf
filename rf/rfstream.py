@@ -13,10 +13,6 @@ from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
 from obspy.taup.taup import getTravelTimes
 from rf.deconvolve import deconv
 from rf.simple_model import load_model
-try:
-    from rf import _xy
-except:
-    warnings.warn("Error importing Fortran extensions module.")
 
 
 def __get_event_attr(h1, h2):
@@ -229,7 +225,15 @@ class RFStream(Stream):
         model = load_model(model)
         model.ppoint(self, depth, phase=phase)
 
+    def _moveout_xy(self, *args, **kwargs):
+        for tr in self:
+            tr._moveout_xy(*args, **kwargs)
+        
+    def _ppoint_xy(self, *args, **kwargs):
+        for tr in self:
+            tr._ppoint_xy(*args, **kwargs)
 
+             
 class RFTrace(Trace):
     """
     Class providing the Trace object for receiver function calculation.
@@ -314,6 +318,7 @@ class RFTrace(Trace):
         The iasp91 model is used. The correction is independent from the type
         of receiver function. Needs stats attributes slowness and onset.
         """
+        from rf import _xy
         st = self.stats
         print st
         self.data = _xy.psmout(self.data, st.slowness,
@@ -331,6 +336,7 @@ class RFTrace(Trace):
         :param depth: depth of piercing points in km
         :param method: 'P' or 'S' for P or S waves
         """
+        from rf import _xy
         if method not in 'PS':
             raise NotImplementedError()
         st = self.stats

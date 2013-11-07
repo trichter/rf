@@ -7,7 +7,12 @@ from numpy import max, pi
 from obspy.signal.util import nextpow2
 from scipy.fftpack import fft, ifft
 from scipy.signal import correlate
-from toeplitz import sto_sl
+try:
+    from toeplitz import sto_sl
+except ImportError:
+    import warnings
+    warnings.warn('Toeplitz import error. '
+                  'Time domain deconvolution will not work.')
 
 
 def deconv(stream, src_comp, method='time', **kwargs):
@@ -157,7 +162,7 @@ def _add_zeros(a, num, side='both'):
                      [np.zeros(num)] * (side in ('both', 'right')))
 
 
-def acorrt(a, num):
+def _acorrt(a, num):
     """
     Not normalized auto-correlation of signal a.
 
@@ -171,7 +176,7 @@ def acorrt(a, num):
     return correlate(_add_zeros(a, num, 'right'), a, 'valid')
 
 
-def xcorrt(a, b, num, zero_sample=0):
+def _xcorrt(a, b, num, zero_sample=0):
     """
     Not normalized cross-correlation of signals a and b.
 
@@ -194,7 +199,7 @@ def xcorrt(a, b, num, zero_sample=0):
     return correlate(a, b, 'valid')
 
 
-def toeplitz_real_sym(a, b):
+def _toeplitz_real_sym(a, b):
     """
     Solve linear system Ax=b for real symmetric Toeplitz matrix A.
 
@@ -253,17 +258,17 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
         length = len(src)
     flag = False
     RF_list = []
-    STS = acorrt(src, length)
+    STS = _acorrt(src, length)
     STS = STS / STS[0]
     STS[0] += spiking
     if not isinstance(rsp_list, (list, tuple)):
         flag = True
         rsp_list = [rsp_list]
     for rsp in rsp_list:
-        STR = xcorrt(rsp, src, length // 2, shift)
+        STR = _xcorrt(rsp, src, length // 2, shift)
         if len(STR) > len(STS):
             STR = np.delete(STR, -1)
-        RF = toeplitz_real_sym(STS, STR)
+        RF = _toeplitz_real_sym(STS, STR)
         RF_list.append(RF)
     if normalize:
         norm = 1 / np.max(np.abs(RF_list[0]))

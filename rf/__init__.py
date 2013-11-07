@@ -2,7 +2,7 @@
 rf: Receiver function calculation in seismology
 ===============================================
 
-This module heavily depends on `Obspy <http://www.obspy.org/>`_.
+This module heavily depends on ObsPy_.
 The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
 which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 
@@ -14,8 +14,7 @@ which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 Installation
 ------------
 
-Install `Obspy <http://www.obspy.org/>`_, its dependencies and
-`pip <http://www.pip-installer.org/>`_, eg. by ::
+Install ObsPy_, its dependencies and pip_, eg. by ::
 
     sudo apt-get install python-obspy python-pip
 
@@ -27,22 +26,24 @@ The tests can be run with the script ::
 
     rf-runtests
 
-Manual way
-^^^^^^^^^^
+Manual installation of dev
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Install all dependencies:
+Install
 
-    * Obspy and its dependencies,
+    * ObsPy_ and its dependencies,
     * toeplitz_ for time domain deconvolution,
     * geographiclib_ for ppoint calculation.
-
-.. _toeplitz: https://github.com/trichter/toeplitz
-.. _geographiclib: https://pypi.python.org/pypi/geographiclib
 
 Then download the source code and install by ::
 
     python setup.py install    
 
+.. _ObsPy: http://www.obspy.org/
+.. _pip: http://www.pip-installer.org/
+.. _toeplitz: https://github.com/trichter/toeplitz/
+.. _geographiclib: https://pypi.python.org/pypi/geographiclib/
+    
 Basic Usage
 -----------
 
@@ -145,7 +146,7 @@ Please feel free to request features, report bugs or contribute code on
 by travis-ci which reports the latest |build hopefully passing|.
 
 .. |build hopefully passing| image::
-    https://api.travis-ci.org/trichter/rf.png?branch={version}
+    https://api.travis-ci.org/trichter/rf.png?branch={travis_version}
     :target: https://travis-ci.org/trichter/rf
 """
 # Suggest people to cite.
@@ -167,4 +168,4 @@ if 'dev' in __version__:
     travis_version = 'master'
 else:
     travis_version = 'v' + __version__
-__doc__ = __doc__.format(version=travis_version)
+__doc__ = __doc__.format(travis_version=travis_version)

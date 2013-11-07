@@ -27,6 +27,7 @@ Welcome to rf's documentation!
        batch
        io
        deconvolve
+       simple_model
 
     .. comment to end block
 
@@ -53,3 +54,8 @@ Module Reference
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: rf.deconvolve
+
+:mod:`simple_model` Module
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: rf.simple_model
