@@ -1,6 +1,7 @@
 Welcome to rf's documentation!
 ===============================
 
+.. currentmodule:: rf
 .. automodule:: rf
 
     .. comment to end block

@@ -109,14 +109,12 @@ class RFStream(Stream):
 
         :param method: 'P' for P receiver functions, 'S' for S receiver
             functions
-        :type filter: dictionary
-        :param filter: filter stream with its
+        :param dictionary filter: filter stream with its
             :meth:`~obspy.core.stream.Stream.filter` method and given kwargs
         :type window: tuple of length 2
         :param window: trim stream relative to P- or S-onset
              with :meth:`~obspy.core.stream.Stream.trim` (seconds)
-        :type downsample: float
-        :param downsample: downsample stream with its
+        :param float downsample: downsample stream with its
             :meth:`~obspy.core.stream.Stream.decimate` method
         :param rotate: 'ZNE->LQT' or 'ZNE->ZRT', rotate stream with its
             :meth:`~obspy.core.stream.Stream.rotate`

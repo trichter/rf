@@ -149,8 +149,8 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-GitHub_. The code is continiously tested by travis-ci which reports
-the latest |build hopefully passing|.
+GitHub_. The code is continiously tested by travis-ci
+which reports the latest |build hopefully passing|.
 
 .. |build hopefully passing| image::
     https://api.travis-ci.org/trichter/rf.png?branch={travis_version}
