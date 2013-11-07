@@ -9,8 +9,8 @@ try:
     from geographiclib.geodesic import Geodesic
 except ImportError:
     import warnings
-    warnings.warn('Geographiclib import error. '
-                  'Ppoint calculation will not work.')
+    msg = 'Geographiclib import error. Ppoint calculation will not work.'
+    warnings.warn(msg)
 
 
 _model_cache = {}
@@ -33,10 +33,10 @@ def load_model(fname='iasp91'):
     values = np.loadtxt(fname, unpack=True)
     try:
         z, vp, vs, n = values
+        n.astype(int)
     except ValueError:
         n = None
         z, vp, vs = values
-    n.astype(int)
     _model_cache[fname_key] = model = SimpleModel(z, vp, vs, n)
     return model
 
@@ -151,7 +151,7 @@ class SimpleModel(object):
         Calculate horizontal distance of piercing point to station.
 
         :param depth: depth of interface in km
-        :param slowness: horitontal slowness in s/deg
+        :param slowness: ray parameter in s/deg
         :param phase: 'P' or 'S' for P wave or S wave. Multiples possible.
         :return: horizontal distance in km
         """
@@ -185,7 +185,7 @@ class SimpleModel(object):
         """
         for tr in stream:
             st = tr.stats
-            dr = self.ppoint(depth, st.slowness, phase=phase)
+            dr = self.ppoint_distance(depth, st.slowness, phase=phase)
             lat = st.station_latitude
             lon = st.station_longitude
             az = st.back_azimuth

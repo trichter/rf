@@ -11,8 +11,8 @@ try:
     from toeplitz import sto_sl
 except ImportError:
     import warnings
-    warnings.warn('Toeplitz import error. '
-                  'Time domain deconvolution will not work.')
+    msg = 'Toeplitz import error. Time domain deconvolution will not work.'
+    warnings.warn(msg)
 
 
 def deconv(stream, src_comp, method='time', **kwargs):
