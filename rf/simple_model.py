@@ -170,25 +170,25 @@ class SimpleModel(object):
         return x[index] + ((x[index + 1] - x[index]) *
                            (depth - z[index]) / (z[index + 1] - z[index]))
 
-    def ppoint(self, stream, depth, phase='S'):
+    def ppoint(self, stats, depth, phase='S'):
         """
         Piercing point calculation.
 
         Piercing point coordinates are saved in the plat and plon attributes of
         the stats objects.
 
-        :param stream: stream with stats attributes slowness, back_azimuth and
+        :param stats: Stats object with attributes slowness, back_azimuth and
             station coordinates.
         :param depth: depth of interface in km
         :param phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave. Multiples are possible, too.
+        :return: piercing point latitude and longitude
         """
-        for tr in stream:
-            st = tr.stats
-            dr = self.ppoint_distance(depth, st.slowness, phase=phase)
-            lat = st.station_latitude
-            lon = st.station_longitude
-            az = st.back_azimuth
-            result = Geodesic.WGS84.Direct(lat, lon, az, 1000 * dr)
-            st.plat = result['lat2']
-            st.plon = result['lon2']
+        dr = self.ppoint_distance(depth, stats.slowness, phase=phase)
+        lat = stats.station_latitude
+        lon = stats.station_longitude
+        az = stats.back_azimuth
+        result = Geodesic.WGS84.Direct(lat, lon, az, 1000 * dr)
+        stats.plat = result['lat2']
+        stats.plon = result['lon2']
+        return stats.plat, stats.plon

@@ -103,7 +103,7 @@ class RFStream(Stream):
             i += 3
 
     def rf(self, method='P', filter=None, window=None, downsample=None,
-           rotate='ZNE->LQT', deconvolve='time', **deconvolve_kwargs):
+           rotate='ZNE->LQT', deconvolve='time', **deconv_kwargs):
         r"""
         Calculate receiver functions in-place.
 
@@ -129,8 +129,8 @@ class RFStream(Stream):
             method. See :func:`~rf.deconvolve.deconv`,
             :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
             for further documentation.
-        :param \*\*kwargs: all other kwargs not mentioned here are passed to
-            deconvolve
+        :param \*\*deconv_kwargs: all other kwargs not mentioned here are
+            passed to deconvolve
 
         After performing the deconvolution the Q/R and T components are
         multiplied by -1 to get a positive phase for a Moho-like positive
@@ -173,7 +173,7 @@ class RFStream(Stream):
             else:
                 kwargs.set_default('winsrc', (-20, 80, 5))
                 kwargs.set_default('tshift', 90)
-            self.deconvolve(src_comp, method=deconvolve, **deconvolve_kwargs)
+            self.deconvolve(src_comp, method=deconvolve, **deconv_kwargs)
         for tr in self:
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
         # comparison with P-receiver method (converted Sp wave arrives before
@@ -207,21 +207,24 @@ class RFStream(Stream):
         Calculate coordinates of piercing point by 1D ray tracing.
 
         The iasp91 model is used. Piercing point coordinates are stored in the
-        stats attributes `plat` and `plon`. Needs stats attributes
+        stats attributes plat and plon. Needs stats attributes
         station_latitude, station_longitude, slowness and back_azimuth.
 
         :param depth: depth of interface in km
-        :param phase:  'P' for piercing points of P wave, 'S' for piercing
+        :param phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave. Multiples are possible, too.
         :param model: path to model file or 'iasp91'
+        :return: NumPy array with coordinates of piercing points
 
         .. note::
 
-            phase='S' is usually wanted for P receiver functions and 'P' for
-            S receiver functions.
+            `phase='S'` is usually wanted for P receiver functions and 'P'
+            for S receiver functions.
         """
         model = load_model(model)
-        model.ppoint(self, depth, phase=phase)
+        for tr in self:
+            model.ppoint(tr.stats, depth, phase=phase)
+        return np.array([(tr.stats.plat, tr.stats.plon) for tr in self])
 
     def _moveout_xy(self, *args, **kwargs):
         for tr in self:

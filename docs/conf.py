@@ -15,6 +15,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 root = os.path.abspath('../')
 sys.path.insert(0, root)
 
+
 class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
