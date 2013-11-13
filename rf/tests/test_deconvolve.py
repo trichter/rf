@@ -22,7 +22,7 @@ class DeconvolveTestCase(unittest.TestCase):
         rsp = random(50) - 0.5
         toep = scipy.linalg.toeplitz(src)
         x = np.dot(scipy.linalg.inv(toep), rsp)  # compare to scipy.linalg
-        x2 = rf.deconvolve.toeplitz_real_sym(src, rsp)
+        x2 = rf.deconvolve._toeplitz_real_sym(src, rsp)
         np.testing.assert_array_almost_equal(x, x2, decimal=3)
 
     def test_deconvolution(self):
