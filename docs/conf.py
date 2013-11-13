@@ -38,6 +38,7 @@ class Mock(object):
 for i in range(20):
     try:
         import rf
+        import rf.batch
     except ImportError:
         exc_type, exc_value, tb = sys.exc_info()
         codeline = traceback.extract_tb(tb)[-1][-1]
