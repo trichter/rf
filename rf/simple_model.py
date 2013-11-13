@@ -1,5 +1,8 @@
 """
 Simple move out and piercing point calculation.
+
+This module will probably be replaced by something more sophisticated in
+future.
 """
 import os.path
 from math import floor
