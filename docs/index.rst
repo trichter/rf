@@ -25,7 +25,6 @@ Welcome to rf's documentation!
 
        rfstream
        batch
-       io
        deconvolve
        simple_model
 
@@ -43,12 +42,6 @@ Module Reference
 ^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: rf.batch
-
-:mod:`io` Module
-^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: rf.io
-
 
 :mod:`deconvolve` Module
 ^^^^^^^^^^^^^^^^^^^^^^^^
