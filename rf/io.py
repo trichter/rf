@@ -8,22 +8,27 @@ from obspy import readEvents
 from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
                               Origin, Magnitude)
 from obspy.core.util import AttribDict
-from rf import conf
 
 CONF_ABBREVS = {'{net}': '{stats.network}',
                 '{sta}': '{stats.station}',
                 '{loc}': '{stats.location}',
                 '{cha}': '{stats.channel}'}
 
-conf.rf_in = conf.rf
-conf.mout_in = conf.mout
-for key, val in CONF_ABBREVS.items():
-    conf.data = conf.data.replace(key, '*')
-    conf.rf_in = conf.rf_in.replace(key, '*')  # @UndefinedVariable
-    conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
-    conf.rf = conf.rf.replace(key, val)
-    conf.mout = conf.mout.replace(key, val)
-    conf.mean = conf.mean.replace(key, val)
+
+try:
+    from rf.batch import conf
+except ImportError:
+    pass
+else:
+    conf.rf_in = conf.rf
+    conf.mout_in = conf.mout
+    for key, val in CONF_ABBREVS.items():
+        conf.data = conf.data.replace(key, '*')
+        conf.rf_in = conf.rf_in.replace(key, '*')  # @UndefinedVariable
+        conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
+        conf.rf = conf.rf.replace(key, val)
+        conf.mout = conf.mout.replace(key, val)
+        conf.mean = conf.mean.replace(key, val)
 
 
 def _create_dir(filename):
