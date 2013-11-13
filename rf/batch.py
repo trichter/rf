@@ -2,10 +2,18 @@
 Functions for massive receiver function calculation. Untestet, in development.
 """
 
+try:
+    import conf
+except ImportError:
+    import warnings
+    warnings.warn("Didn't find file conf.py. Using test configuration.")
+    import rf.conf_test as conf
+
+import argparse
 import glob
 import os
 from obspy import read, readEvents
-from rf import io, conf
+from rf import io
 from rf.rfstream import rfstats, RFStream
 
 
@@ -94,3 +102,11 @@ def rf_client(getwaveform, stations=None, events=None,
                 output = output.format(eventid=event_id, stats=tr.stats)
                 io._create_dir(output)
                 tr.write(output, 'SAC')
+
+def main():
+    parser = argparse.ArgumentParser()
+    print('Batch utility is not yet implemented')
+
+if __name__ == '__main__':
+    main()
+

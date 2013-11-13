@@ -43,14 +43,14 @@ Then download the source code from GitHub_ eg. by ::
 Now add the top rf directory to your ``PYTHON_PATH`` variable *or*
 install rf with ::
 
-    python setup.py install    
+    python setup.py install
 
 .. _ObsPy: http://www.obspy.org/
 .. _pip: http://www.pip-installer.org/
 .. _toeplitz: https://github.com/trichter/toeplitz/
 .. _geographiclib: https://pypi.python.org/pypi/geographiclib/
 .. _GitHub: https://github.com/trichter/rf/
-    
+
 Basic Usage
 -----------
 
@@ -159,16 +159,7 @@ which reports the latest |build hopefully passing|.
 # Suggest people to cite rf.
 
 from _version import __version__
-
-try:
-    import rfconf
-except ImportError:
-    import warnings
-    warnings.warn("Didn't find file conf.py. Using test configuration.")
-    import conf_test as conf
-
 from rfstream import RFStream, rfstats
-from batch import rf_batch
 
 # get image for this version from travis-ci
 if 'dev' in __version__:

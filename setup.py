@@ -28,7 +28,8 @@ setup(name='rf',
       packages=find_packages(),
       requires=['obspy', 'toeplitz', 'geographiclib'],
       entry_points={'console_scripts':
-                    ['rf-runtests = rf.tests.suite:main']},
+                    ['rf-runtests = rf.tests.suite:main',
+                     'rf = rf.batch:main']},
       package_data={'rf': ['data/*.dat']},
       zip_safe=False
       )

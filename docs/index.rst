@@ -14,7 +14,6 @@ Welcome to rf's documentation!
 
        ~rfstream.RFStream
        ~rfstream.rfstats
-       ~batch.rf_batch
 
     .. comment to end block
 
