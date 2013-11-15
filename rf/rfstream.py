@@ -150,12 +150,14 @@ class RFStream(Stream):
             for tr in self:
                 if downsample <= tr.stats.sampling_rate:
                     tr.decimate(int(tr[0].stats.sampling_rate) // downsample)
-        if rotate:
+        if isinstance(rotate, basestring):
             if rotate[-2:] == 'RT':
                 self.rotate(rotate[1:5] + rotate[6:])
             else:
                 self.rotate(rotate)
             src_comp = rotate.split('->')[-1][0]
+        elif rotate:
+            src_comp = rotate(self)
         if deconvolve:
             # set standard parameters for deconvolution
             kwargs = deconvolve_kwargs
@@ -229,12 +231,12 @@ class RFStream(Stream):
     def _moveout_xy(self, *args, **kwargs):
         for tr in self:
             tr._moveout_xy(*args, **kwargs)
-        
+
     def _ppoint_xy(self, *args, **kwargs):
         for tr in self:
             tr._ppoint_xy(*args, **kwargs)
 
-             
+
 class RFTrace(Trace):
     """
     Class providing the Trace object for receiver function calculation.
