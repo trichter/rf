@@ -9,6 +9,8 @@
 # to the data
 method = 'client'
 
+phase = 'P'
+
 # File names of events and station files .
 # This files have to exist for method 'client', but not necessarily for 'dmt'.
 # If files do not exist, they will be created.

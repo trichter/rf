@@ -4,6 +4,7 @@ Functions for massive receiver function calculation. Untestet, in development.
 import argparse
 import glob
 import os
+import shutil
 from obspy import read, readEvents
 from rf.rfstream import rfstats, RFStream
 
@@ -16,7 +17,6 @@ except ImportError:
 #import rf.conf_test as conf
 
 ##### start ex rf.io #####
-import os
 import pickle
 from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
                               Origin, Magnitude)
@@ -31,7 +31,7 @@ def _manipulate_conf():
         conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
         conf.rf = conf.rf.replace(key, val)
         conf.mout = conf.mout.replace(key, val)
-        conf.mean = conf.mean.replace(key, val)    
+        conf.mean = conf.mean.replace(key, val)
 
 
 def _create_dir(filename):
@@ -134,7 +134,7 @@ def rf_batch(method='dmt', *args, **kwargs):
         rf_client(*args, **kwargs)
 
 
-def rf_dmt(events=None, method='P', dist=None,
+def rf_dmt(events=None, phase='P', dist=None,
            **rf_kwargs):
     """
     TODO: doc rf_dmt
@@ -151,7 +151,7 @@ def rf_dmt(events=None, method='P', dist=None,
                 inputs.remove(f)
             st = RFStream(read(files_tmp, headonly=True))
             st.read_sac_header()
-            stats = rfstats(stats=st[0].stats, event=event, phase=method,
+            stats = rfstats(stats=st[0].stats, event=event, phase=phase,
                             dist_range=dist)
             if not stats:
                 continue
@@ -164,7 +164,7 @@ def rf_dmt(events=None, method='P', dist=None,
                 continue
             for tr in st:
                 tr.stats.update(stats)
-            st.rf(**rf_kwargs)
+            st.rf(method=phase[0], **rf_kwargs)
             for tr in st:
                 output = os.path.join(conf.output_path, conf.rf)
                 output = output.format(eventid=event_id, stats=tr.stats)
@@ -172,8 +172,8 @@ def rf_dmt(events=None, method='P', dist=None,
                 tr.write(output, 'SAC')
 
 
-def rf_client(getwaveform, stations=None, events=None,
-              request_window=(-50, 150), method='P', dist=None, **rf_kwargs):
+def rf_client(get_waveform, stations=None, events=None,
+              request_window=(-50, 150), phase='P', dist=None, **rf_kwargs):
 # S: -300 bis 300
     """
     TODO: doc rf_client
@@ -184,10 +184,10 @@ def rf_client(getwaveform, stations=None, events=None,
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
         for station in stations:
             stats = rfstats(station=stations[station], event=event,
-                            phase=method, dist_range=dist)
+                            phase=phase, dist_range=dist)
             if not stats:
                 continue
-            st = getwaveform(station, stats.onset + request_window[0],
+            st = get_waveform(station, stats.onset + request_window[0],
                              stats.onset + request_window[1])
             st = RFStream(stream=st)
             st.merge()
@@ -199,7 +199,7 @@ def rf_client(getwaveform, stations=None, events=None,
                 continue
             for tr in st:
                 tr.stats.update(stats)
-            st.rf(**rf_kwargs)
+            st.rf(method=phase[0], **rf_kwargs)
             st.write_sac_header()
             for tr in st:
                 output = os.path.join(conf.output_path, conf.rf)
@@ -208,8 +208,42 @@ def rf_client(getwaveform, stations=None, events=None,
                 tr.write(output, 'SAC')
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=
+                                     'rf batch command line utility')
+    subparsers = parser.add_subparsers(title='subcommands', dest='subcommand')
+    parser_init = subparsers.add_parser('init', help='initialize new project')
+    parser_init.add_argument('path', help='path for new rf project')
+    parser_calc = subparsers.add_parser('calc', help='calculate receiver '
+                                                     'functions')
+    parser_calc.add_argument('-c', '--conf', default='conf.py',
+                             help='config file name')
+
+    args = parser.parse_args()
+    if args.subcommand == 'init':
+        path = args.path
+        if os.path.exists(path):
+            print(('Directory %s exists already. To create a new rf project '
+                   'please delete the directory beforehand.') % path)
+            return
+        os.mkdir(path)
+        src = os.path.join(os.path.dirname(__file__), 'conf_test.py')
+        dst = os.path.join(path, 'conf.py')
+        shutil.copyfile(src, dst)
+        print('New rf project initialized in directory %s' % path)
+        return
+    conf = {}
+    execfile(args.conf, conf)
+    conf['window'] = conf['window' + conf['phase'][0].upper()]
     print('Batch utility is not yet implemented.')
+    valid_options = ['phase', 'window']
+    conf = {k: v for k, v in conf.items() if k in valid_options}
+    print conf
+    return
+    if conf['method'] == 'dmt':
+        rf_dmt(**conf)
+    else:
+        rf_client(**conf)
+
 
 if __name__ == '__main__':
     main()
