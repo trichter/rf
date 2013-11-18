@@ -1,0 +1,11 @@
+dev:
+  * TODO: new batch module and command line utility
+  * TODO: boost in test coverage
+  * a lot more docs
+  * simple_model for ppoint and move out calculation
+  * major refactoring
+
+v0.1.1:
+  * creation of docs with sphinx is simplified
+v0.1.0:
+  * initial release
