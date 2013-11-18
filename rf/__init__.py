@@ -20,7 +20,7 @@ Install ObsPy_, its dependencies and pip_, eg. by ::
 
 rf can then be installed by ::
 
-    sudo pip install rf
+    pip install rf
 
 The tests can be run with the script ::
 
@@ -40,8 +40,7 @@ Then download the source code from GitHub_ eg. by ::
     mkdir rf
     git clone https://github.com/trichter/rf.git rf
 
-Now add the top rf directory to your ``PYTHON_PATH`` variable *or*
-install rf with ::
+Now install rf with ::
 
     python setup.py install
 
