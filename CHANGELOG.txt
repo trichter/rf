@@ -4,6 +4,7 @@ dev:
   * a lot more docs
   * simple_model for ppoint and move out calculation
   * major refactoring
+  * bug fix: include all source files when publishing on pypi
 
 v0.1.1:
   * creation of docs with sphinx is simplified
