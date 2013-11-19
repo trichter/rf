@@ -8,30 +8,22 @@ import shutil
 from obspy import read, readEvents
 from rf.rfstream import rfstats, RFStream
 
-try:
-    import conf
-except ImportError:
-    pass
-#import warnings
-#warnings.warn("Didn't find file conf.py. Using test configuration.")
-#import rf.conf_test as conf
-
 ##### start ex rf.io #####
 import pickle
 from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
                               Origin, Magnitude)
 from obspy.core.util import AttribDict
 
-def _manipulate_conf():
-    conf.rf_in = conf.rf
-    conf.mout_in = conf.mout
-    for key, val in CONF_ABBREVS.items():
-        conf.data = conf.data.replace(key, '*')
-        conf.rf_in = conf.rf_in.replace(key, '*')  # @UndefinedVariable
-        conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
-        conf.rf = conf.rf.replace(key, val)
-        conf.mout = conf.mout.replace(key, val)
-        conf.mean = conf.mean.replace(key, val)
+#def _manipulate_conf(conf):
+#    conf.rf_in = conf.rf
+#    conf.mout_in = conf.mout
+#    for key, val in CONF_ABBREVS.items():
+#        conf.data = conf.data.replace(key, '*')
+#        conf.rf_in = conf.rf_in.replace(key, '*')  # @UndefinedVariable
+#        conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
+#        conf.rf = conf.rf.replace(key, val)
+#        conf.mout = conf.mout.replace(key, val)
+#        conf.mean = conf.mean.replace(key, val)
 
 
 def _create_dir(filename):
@@ -74,49 +66,40 @@ def _write_stations(fname, dic, comment='# station  lat  lon  elev\n'):
                                           val['longitude'], val['elevation']))
 
 
-def _convert_dmteventfile():
-    eventsfile1 = os.path.join(conf.data_path, 'EVENT', 'event_list')
-    eventsfile2 = os.path.join(conf.data_path, 'EVENT', 'events.xml')
-    with open(eventsfile1) as f:
-        events1 = pickle.load(f)
-    events2 = Catalog()
-    for ev in events1:
-        orkw = {'time': ev['datetime'],
-                'latitude': ev['latitude'],
-                'longitude': ev['longitude'],
-                'depth': ev['depth']}
-        magkw = {'mag': ev['magnitude'],
-                 'magnitude_type': ev['magnitude_type']}
-        evdesargs = (ev['flynn_region'], 'Flinn-Engdahl region')
-        evkw = {'resource_id': ev['event_id'],
-                'event_type': 'earthquake',
-                'creation_info': CreationInfo(author=ev['author']),
-                'event_descriptions': [EventDescription(*evdesargs)],
-                'origins': [Origin(**orkw)],
-                'magnitudes': [Magnitude(**magkw)]}
-        events2.append(Event(**evkw))
-    events2.write(eventsfile2, 'QUAKEML')
-
-
-def _read_rfevents(events):
-    if isinstance(events, basestring):
-        if not os.path.exists(events):
-            events = os.path.join(conf.output_path, 'EVENT', events)
-        events = readEvents(events)
-    return events
-
-
-def _create_rfeventsfile(events='events.xml',
-                        eventsfile='events_rf.xml', filters=None):
-    if isinstance(events, basestring):
-        if not os.path.exists(events):
-            events = os.path.join(conf.data_path, 'EVENT', 'events.xml')
-        events = readEvents(events)
-    if filters:
-        events.filter(*filters)
-    eventsfile = os.path.join(conf.output_path, 'EVENT', eventsfile)
-    _create_dir(eventsfile)
-    events.write(eventsfile, 'QUAKEML')
+#def _convert_dmteventfile():
+#    eventsfile1 = os.path.join(conf.data_path, 'EVENT', 'event_list')
+#    eventsfile2 = os.path.join(conf.data_path, 'EVENT', 'events.xml')
+#    with open(eventsfile1) as f:
+#        events1 = pickle.load(f)
+#    events2 = Catalog()
+#    for ev in events1:
+#        orkw = {'time': ev['datetime'],
+#                'latitude': ev['latitude'],
+#                'longitude': ev['longitude'],
+#                'depth': ev['depth']}
+#        magkw = {'mag': ev['magnitude'],
+#                 'magnitude_type': ev['magnitude_type']}
+#        evdesargs = (ev['flynn_region'], 'Flinn-Engdahl region')
+#        evkw = {'resource_id': ev['event_id'],
+#                'event_type': 'earthquake',
+#                'creation_info': CreationInfo(author=ev['author']),
+#                'event_descriptions': [EventDescription(*evdesargs)],
+#                'origins': [Origin(**orkw)],
+#                'magnitudes': [Magnitude(**magkw)]}
+#        events2.append(Event(**evkw))
+#    events2.write(eventsfile2, 'QUAKEML')
+#
+#def _create_rfeventsfile(events='events.xml',
+#                        eventsfile='events_rf.xml', filters=None):
+#    if isinstance(events, basestring):
+#        if not os.path.exists(events):
+#            events = os.path.join(conf.data_path, 'EVENT', 'events.xml')
+#        events = readEvents(events)
+#    if filters:
+#        events.filter(*filters)
+#    eventsfile = os.path.join(conf.output_path, 'EVENT', eventsfile)
+#    _create_dir(eventsfile)
+#    events.write(eventsfile, 'QUAKEML')
 
 ##### end ex rf.io #####
 
@@ -134,17 +117,17 @@ def rf_batch(method='dmt', *args, **kwargs):
         rf_client(*args, **kwargs)
 
 
-def rf_dmt(events=None, phase='P', dist=None,
+def rf_dmt(data_path, rf, events=None, phase='P', dist=None,
            **rf_kwargs):
     """
     TODO: doc rf_dmt
     """
-    events = events or readEvents(conf.events)
+    events = readEvents(events)
     print events
     for event in events:
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
-        inputs = conf.data.format(eventid=event_id)
-        inputs = glob.glob(os.path.join(conf.data_path, conf.data))
+        inputs = data_path.format(eventid=event_id)
+        inputs = glob.glob(data_path)
         while len(inputs) > 0:
             files_tmp = inputs[0][:-1] + '?'
             for f in glob.glob(files_tmp):
@@ -166,20 +149,20 @@ def rf_dmt(events=None, phase='P', dist=None,
                 tr.stats.update(stats)
             st.rf(method=phase[0], **rf_kwargs)
             for tr in st:
-                output = os.path.join(conf.output_path, conf.rf)
-                output = output.format(eventid=event_id, stats=tr.stats)
+                output = rf.format(eventid=event_id, stats=tr.stats)
                 _create_dir(output)
                 tr.write(output, 'SAC')
 
 
-def rf_client(get_waveform, stations=None, events=None,
-              request_window=(-50, 150), phase='P', dist=None, **rf_kwargs):
+def rf_client(get_waveform, rf, stations=None, events=None,
+              request_window=(-50, 150), phase='P', dist=None,
+              **rf_kwargs):
 # S: -300 bis 300
     """
     TODO: doc rf_client
     """
-    events = events or readEvents(conf.events)
-    stations = stations or _read_stations(conf.stations)
+    events = readEvents(events)
+    stations = _read_stations(stations)
     for event in events:
         event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
         for station in stations:
@@ -202,10 +185,31 @@ def rf_client(get_waveform, stations=None, events=None,
             st.rf(method=phase[0], **rf_kwargs)
             st.write_sac_header()
             for tr in st:
-                output = os.path.join(conf.output_path, conf.rf)
-                output = output.format(eventid=event_id, stats=tr.stats)
+                output = rf.format(eventid=event_id, stats=tr.stats)
                 _create_dir(output)
                 tr.write(output, 'SAC')
+
+
+def _filter_config(config):
+    method = config['method']
+    deconvolve = config['deconvolve']
+    settings = ['method', 'phase', 'events', 'stations', 'rf', 'mout', 'mean',
+               'format', 'filter', 'window', 'downsample', 'rotate',
+               'deconvolve']
+    options = ['winsrc']
+    if method == 'dmt':
+        settings.append('data_path')
+    else:
+        settings.extend(['get_waveform', 'request_window'])
+    if deconvolve == 'freq':
+        settings.extend(['water', 'gauss'])
+        options.append('tshift')
+    else:
+        settings.append('spiking')
+        options.extend(['winrsp', 'winrf'])
+    for key in config:
+        if key not in settings and key not in options:
+            config.pop(key)
 
 def main():
     parser = argparse.ArgumentParser(description=
@@ -217,8 +221,9 @@ def main():
                                                      'functions')
     parser_calc.add_argument('-c', '--conf', default='conf.py',
                              help='config file name')
-
     args = parser.parse_args()
+    print('Batch utility is not yet implemented.')
+    return
     if args.subcommand == 'init':
         path = args.path
         if os.path.exists(path):
@@ -233,13 +238,12 @@ def main():
         return
     conf = {}
     execfile(args.conf, conf)
-    conf['window'] = conf['window' + conf['phase'][0].upper()]
-    print('Batch utility is not yet implemented.')
-    valid_options = ['phase', 'window']
-    conf = {k: v for k, v in conf.items() if k in valid_options}
-    print conf
-    return
-    if conf['method'] == 'dmt':
+    try:
+        conf['window'] = conf['window' + conf['phase'][0].upper()]
+    except KeyError:
+        pass
+    _filter_config(conf)
+    if conf.pop('method') == 'dmt':
         rf_dmt(**conf)
     else:
         rf_client(**conf)

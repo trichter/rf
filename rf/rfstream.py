@@ -103,7 +103,7 @@ class RFStream(Stream):
             i += 3
 
     def rf(self, method='P', filter=None, window=None, downsample=None,
-           rotate='ZNE->LQT', deconvolve='time', **deconv_kwargs):
+           rotate='ZNE->LQT', deconvolve='time', **kwargs):
         r"""
         Calculate receiver functions in-place.
 
@@ -129,7 +129,7 @@ class RFStream(Stream):
             method. See :func:`~rf.deconvolve.deconv`,
             :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
             for further documentation.
-        :param \*\*deconv_kwargs: all other kwargs not mentioned here are
+        :param \*\*kwargs: all other kwargs not mentioned here are
             passed to deconvolve
 
         After performing the deconvolution the Q/R and T components are
@@ -160,7 +160,6 @@ class RFStream(Stream):
             src_comp = rotate(self)
         if deconvolve:
             # set standard parameters for deconvolution
-            kwargs = deconvolve_kwargs
             if method == 'P' and deconvolve == 'time':
                 kwargs.set_default('winsrc', (-10, 30, 5))
                 kwargs.set_default('winrsp', (-20, 80))
@@ -175,7 +174,7 @@ class RFStream(Stream):
             else:
                 kwargs.set_default('winsrc', (-20, 80, 5))
                 kwargs.set_default('tshift', 90)
-            self.deconvolve(src_comp, method=deconvolve, **deconv_kwargs)
+            self.deconvolve(src_comp, method=deconvolve, **kwargs)
         for tr in self:
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
         # comparison with P-receiver method (converted Sp wave arrives before
