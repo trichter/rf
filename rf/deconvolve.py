@@ -52,12 +52,12 @@ def deconv(stream, src_comp, method='time', **kwargs):
     if method not in ('time', 'freq'):
         raise NotImplementedError()
     if method == 'time':
-        winsrc = kwargs.get('winsrc', (-10, 30, 5))
-        winrsp = kwargs.get('winrsp', (-20, 80))
-        winrf = kwargs.get('winrf', (-20, 80))
+        winsrc = kwargs.pop('winsrc', (-10, 30, 5))
+        winrsp = kwargs.pop('winrsp', (-20, 80))
+        winrf = kwargs.pop('winrf', (-20, 80))
     else:
-        winsrc = kwargs.get('winsrc', (-20, 80, 5))
-        tshift = kwargs.get('tshift', 10)
+        winsrc = kwargs.pop('winsrc', (-20, 80, 5))
+        tshift = kwargs.pop('tshift', 10)
     st = stream
     samp = st[0].stats.sampling_rate
     onset = st[0].stats.onset
@@ -75,12 +75,12 @@ def deconv(stream, src_comp, method='time', **kwargs):
         length = int(time_rf * samp)
         rf_resp = deconvt(rsp, src, shift, length=length, **kwargs)
         tshift = -winrf[0]
+        for tr in st:
+            tr.stats.tshift = tshift
     else:
         rf_resp = deconvf(rsp, src, samp, **kwargs)
     for i in range(3):
         st[(i + src_index) % 3].data = rf_resp[i].real
-    for tr in st:
-        tr.stats.tshift = tshift
 
 
 def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,

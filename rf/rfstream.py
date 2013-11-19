@@ -63,9 +63,9 @@ class RFStream(Stream):
     """
     def __init__(self, traces=None, stream=None):
         if stream is not None:
-            traces = stream.traces
-        if not traces is None and len(traces) > 0:
-            traces = [RFTrace(trace=tr) for tr in traces]
+            traces = [RFTrace(trace=tr) for tr in stream.traces]
+        #elif not traces is None and len(traces) > 0:
+        #    traces = [RFTrace(trace=tr) for tr in traces]
         super(RFStream, self).__init__(traces=traces)
 
     def _write_test_header(self):
@@ -94,12 +94,12 @@ class RFStream(Stream):
                              '. The provied stream is not divisible by 3.')
         i = 0
         while i < len(self):
-            comps = ''.join(tr.stats.component for tr in self[i, i + 3])
+            comps = ''.join(tr.stats.channel[-1] for tr in self[i:i + 3])
             if i == 0:
                 comps0 = comps
             elif comps != comps0:
                 raise ValueError('Error')
-            deconv(self[i, i + 3], *args, **kwargs)
+            deconv(self[i:i + 3], *args, **kwargs)
             i += 3
 
     def rf(self, method='P', filter=None, window=None, downsample=None,
@@ -161,19 +161,19 @@ class RFStream(Stream):
         if deconvolve:
             # set standard parameters for deconvolution
             if method == 'P' and deconvolve == 'time':
-                kwargs.set_default('winsrc', (-10, 30, 5))
-                kwargs.set_default('winrsp', (-20, 80))
-                kwargs.set_default('winrf', (-20, 80))
+                kwargs.setdefault('winsrc', (-10, 30, 5))
+                kwargs.setdefault('winrsp', (-20, 80))
+                kwargs.setdefault('winrf', (-20, 80))
             elif method == 'S' and deconvolve == 'time':
-                kwargs.set_default('winsrc', (-10, 30, 5))
-                kwargs.set_default('winrsp', (-80, 20))
-                kwargs.set_default('winrf', (-80, 20))
+                kwargs.setdefault('winsrc', (-10, 30, 5))
+                kwargs.setdefault('winrsp', (-80, 20))
+                kwargs.setdefault('winrf', (-80, 20))
             elif method == 'P':
-                kwargs.set_default('winsrc', (-20, 80, 5))
-                kwargs.set_default('tshift', 10)
+                kwargs.setdefault('winsrc', (-20, 80, 5))
+                kwargs.setdefault('tshift', 10)
             else:
-                kwargs.set_default('winsrc', (-20, 80, 5))
-                kwargs.set_default('tshift', 90)
+                kwargs.setdefault('winsrc', (-20, 80, 5))
+                kwargs.setdefault('tshift', 90)
             self.deconvolve(src_comp, method=deconvolve, **kwargs)
         for tr in self:
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
