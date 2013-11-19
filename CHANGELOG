@@ -2,7 +2,7 @@ dev:
   * TODO: boost in test coverage
   * TODO: new batch module and command line utility
   * TODO: introduce plot method
-v0.1.2b:
+v0.1.3:
   * distribute with data files
 v0.1.2:
   * a lot of bugs fixed
