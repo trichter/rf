@@ -26,9 +26,11 @@ setup(name='rf',
       author_email='richter@gfz-potsdam.de',
       license='MIT',
       packages=find_packages(),
+      package_dir={'rf': 'rf'},
       requires=['obspy', 'toeplitz', 'geographiclib'],
       entry_points={'console_scripts':
                     ['rf-runtests = rf.tests.suite:main',
                      'rf = rf.batch:main']},
+      include_package_data=True,
       zip_safe=False
       )

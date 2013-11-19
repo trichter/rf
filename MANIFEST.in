@@ -1,4 +1,4 @@
 include README.md
-include CHANGELOG.txt
 include LICENSE
-recursive-include rf *.dat
+include CHANGELOG
+include rf/data/*.dat
