@@ -30,6 +30,5 @@ setup(name='rf',
       entry_points={'console_scripts':
                     ['rf-runtests = rf.tests.suite:main',
                      'rf = rf.batch:main']},
-      package_data={'rf': ['data/*.dat']},
       zip_safe=False
       )
