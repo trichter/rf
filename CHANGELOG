@@ -3,14 +3,11 @@ dev:
   * TODO: new batch module and command line utility
   * TODO: introduce plot method
 v0.1.3:
-  * distribute with data files
-v0.1.2:
-  * a lot of bugs fixed
-  * a lot more docs
+  * lots of bugs fixed
+  * major improvement of docs
   * simple_model for ppoint and move out calculation
   * major refactoring
-  * bug fix: include all source files when publishing on pypi
-
+  * bug fix: include data files when publishing on pypi
 v0.1.1:
   * creation of docs with sphinx is simplified
 v0.1.0:
