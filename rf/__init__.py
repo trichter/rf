@@ -6,10 +6,18 @@ This module heavily depends on ObsPy_.
 The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
 which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 
-:copyright:
-    Tom Richter
-:license:
-    MIT
+:Copyright: Tom Richter
+:License: MIT
+:Documentation: http://rf.readthedocs.org/ (installation instructions, usage,
+    examples and module reference)
+:Project page: https://github.com/trichter/rf (bug reports and feature requests
+    via issue tracker)
+:Pypi page: https://pypi.python.org/pypi/rf
+:Test status: |buildstatus|
+
+.. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
+    branch=master
+   :target: https://travis-ci.org/trichter/rf
 
 Installation
 ------------
@@ -148,21 +156,13 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-GitHub_. The code is continiously tested by travis-ci
-which reports the latest |build hopefully passing|.
-
-.. |build hopefully passing| image::
-    https://api.travis-ci.org/trichter/rf.png?branch={travis_version}
-    :target: https://travis-ci.org/trichter/rf
+GitHub_. The code is continiously tested by travis-ci.
 """
 # Suggest people to cite rf.
 
 from _version import __version__
 from rfstream import RFStream, rfstats
 
-# get image for this version from travis-ci
-if 'dev' in __version__:
-    _travis_version = 'master'
-else:
+if 'dev' not in __version__: # get image for correct version from travis-ci
     _travis_version = 'v' + __version__
-__doc__ = __doc__.format(travis_version=_travis_version)
+    __doc__ = __doc__.replace('branch=master', 'branch=v%s' % __version__)
