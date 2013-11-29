@@ -15,10 +15,6 @@ which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 :Pypi page: https://pypi.python.org/pypi/rf
 :Test status: |buildstatus|
 
-.. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
-    branch=master
-   :target: https://travis-ci.org/trichter/rf
-
 Installation
 ------------
 
@@ -51,12 +47,6 @@ Then download the source code from GitHub_ eg. by ::
 Now install rf with ::
 
     python setup.py install
-
-.. _ObsPy: http://www.obspy.org/
-.. _pip: http://www.pip-installer.org/
-.. _toeplitz: https://github.com/trichter/toeplitz/
-.. _geographiclib: https://pypi.python.org/pypi/geographiclib/
-.. _GitHub: https://github.com/trichter/rf/
 
 Basic Usage
 -----------
@@ -157,6 +147,16 @@ Miscellaneous
 
 Please feel free to request features, report bugs or contribute code on
 GitHub_. The code is continiously tested by travis-ci.
+
+
+.. _ObsPy: http://www.obspy.org/
+.. _pip: http://www.pip-installer.org/
+.. _toeplitz: https://github.com/trichter/toeplitz/
+.. _geographiclib: https://pypi.python.org/pypi/geographiclib/
+.. _GitHub: https://github.com/trichter/rf/
+.. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
+    branch=master
+   :target: https://travis-ci.org/trichter/rf
 """
 # Suggest people to cite rf.
 
