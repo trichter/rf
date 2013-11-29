@@ -5,6 +5,8 @@ Receiver function calculation in seismology
 
 Welcome!
 
+:Author: Tom Richter
+:License: MIT
 :Documentation: http://rf.readthedocs.org/ (installation instructions, usage,
     examples and module reference)
 :Project page: https://github.com/trichter/rf (bug reports and feature requests

@@ -6,7 +6,7 @@ This module heavily depends on ObsPy_.
 The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
 which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 
-:Copyright: Tom Richter
+:Author: Tom Richter
 :License: MIT
 :Documentation: http://rf.readthedocs.org/ (installation instructions, usage,
     examples and module reference)
