@@ -12,7 +12,7 @@ if not 'dev' in VERSION: # get image for correct version from travis-ci
 
 setup(name='rf',
       version=VERSION,
-      description='Receiver function calculation in seismology',
+      description=README.split('\n')[2],
       long_description=README,
       url='https://github.com/trichter/rf',
       author='Tom Richter',

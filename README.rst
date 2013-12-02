@@ -5,14 +5,12 @@ Receiver function calculation in seismology
 
 Welcome!
 
-:Author: Tom Richter
-:License: MIT
-:Documentation: http://rf.readthedocs.org/ (installation instructions, usage,
-    examples and module reference)
-:Project page: https://github.com/trichter/rf (bug reports and feature requests
-    via issue tracker)
-:Pypi page: https://pypi.python.org/pypi/rf
-:Test status: |buildstatus|
+| **Author**: Tom Richter
+| **License**: MIT
+| **Documentation**: http://rf.readthedocs.org/
+| **Project page**: https://github.com/trichter/rf
+| **Pypi page**: https://pypi.python.org/pypi/rf
+| **Test status**: |buildstatus|
 
 .. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
     branch=master
