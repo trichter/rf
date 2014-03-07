@@ -51,14 +51,17 @@ Now install rf with ::
 Basic Usage
 -----------
 
-The canonical way to load a waveform file into an RFStream object is to use
-the :func:`~obspy.core.stream.read` function of ObsPy and pass
-the Obspy Stream to the generator of :class:`~rf.rfstream.RFStream` as a
-parameter for the stream kwarg:
+The canonical way to load a waveform file into a RFStream is to use
+the :func:`~rf.rfstream.read_rf` function.
 
->>> from obspy import read
+>>> from rf import read_rf
+>>> stream = read_rf('myfile.SAC')
+
+If you already have an ObsPy Stream and you want to turn it into a RFStream
+use the generator of :class:`~rf.rfstream.RFStream` with the stream kwarg:
+
 >>> from rf import RFStream
->>> stream = RFStream(stream=read('infile.SAC'))
+>>> stream = RFStream(stream=obspy_stream)
 
 The stream is again written to disc as usual by its write method:
 
@@ -161,8 +164,8 @@ GitHub_. The code is continiously tested by travis-ci.
 # Suggest people to cite rf.
 
 from _version import __version__
-from rfstream import RFStream, rfstats
+from rfstream import read_rf, RFStream, rfstats
 
-if 'dev' not in __version__: # get image for correct version from travis-ci
+if 'dev' not in __version__:  # get image for correct version from travis-ci
     _travis_version = 'v' + __version__
     __doc__ = __doc__.replace('branch=master', 'branch=v%s' % __version__)

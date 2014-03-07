@@ -1,7 +1,9 @@
 dev:
+  * TODO: refactor and dont use dmt anymore
   * TODO: boost in test coverage
   * TODO: new batch module and command line utility
   * TODO: introduce plot method
+  * read_rf function added
 v0.1.3:
   * lots of bugs fixed
   * major improvement of docs

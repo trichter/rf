@@ -7,6 +7,7 @@ from operator import attrgetter
 import warnings
 
 import numpy as np
+from obspy import read
 from obspy.core import Stream, Trace
 from obspy.core.util import AttribDict
 from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
@@ -51,6 +52,15 @@ _HEADERS_EXAMPLE = (50.3, -100.2, 400.3, -20.32, 10., 12.4, 6.5, -40.432,
                     20.643, 57.6, 90.1, 10.2, 10.)
 
 
+def read_rf(fname=None, format_=None, **kwargs):
+    """
+    Read waveform files into an RFStream object.
+
+    See :func:`read() <obspy.core.stream.read>` in ObsPy.
+    """
+    return RFStream(stream=read(fname, format=format_, **kwargs))
+
+
 class RFStream(Stream):
     """
     Class providing the necessary functions for receiver function calculation.
@@ -58,6 +68,10 @@ class RFStream(Stream):
     To initialize a RFStream from a ObsPy stream use
 
     >>> rfstream = RFStream(stream=obspy_stream)
+
+    To initialize a RFStream from a file use
+
+    >>> rfstream = read_rf('test.SAC')
 
     Format specific headers are loaded into the stats object of all traces.
     """

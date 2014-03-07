@@ -15,9 +15,9 @@ class SimpleModelTestCase(unittest.TestCase):
 
     def test_ppoint(self):
         xy_plat_P = 50.29670878  # 200km sppier
-        xy_plon_P = -97.24776461  #200km sppier
+        xy_plon_P = -97.24776461  # 200km sppier
         xy_plat_S = 50.29862202  # 200km pspier
-        xy_plon_S = -98.96394212  #200km pspier
+        xy_plon_S = -98.96394212  # 200km pspier
 
         st = self.stream[0].stats
         ppoint(self.stream, 200, phase='P')
@@ -57,7 +57,6 @@ class SimpleModelTestCase(unittest.TestCase):
 #        st = st1 + st2
 #        st.plot(automerge=False)
         moveout(self.stream)
-
 
 
 def suite():

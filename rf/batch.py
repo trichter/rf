@@ -1,5 +1,5 @@
 """
-Functions for massive receiver function calculation. Untestet, in development.
+Functions for massive receiver function calculation. Untested, in development.
 """
 import argparse
 import glob

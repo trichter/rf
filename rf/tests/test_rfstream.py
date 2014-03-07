@@ -1,13 +1,12 @@
 """
 Tests for rfstream module.
 """
-import os.path
-import tempfile
 import unittest
 
-from obspy import read, readEvents
+from obspy import readEvents
 from obspy.core import AttribDict
-from rf import RFStream, rfstats
+from obspy.core.util import NamedTemporaryFile
+from rf import read_rf, RFStream, rfstats
 from rf.rfstream import obj2stats
 from rf.rfstream import HEADERS, FORMATHEADERS, STATION_GETTER, EVENT_GETTER
 
@@ -19,22 +18,26 @@ class RFStreamTestCase(unittest.TestCase):
         self.station = AttribDict({'latitude': 41.818 - 66.7,
                                    'longitude': 79.689,
                                    'elevation': 365.4})
-        self.temp = os.path.join(tempfile.gettempdir(), 'RF_TEST')
+
+    def test_read_rf(self):
+        self.assertIsInstance(read_rf(), RFStream)
 
     def test_io_header(self):
         def test_io_format(format):
             stream1 = stream.copy()
-            fname = self.temp + '_IO_FORMAT.' + format.upper()
+            suffix = '.' + format.upper()
             if format == 'sh':
                 format = 'q'
-                fname = self.temp + '.QHD'
-            stream1.write(fname, format.upper())
-            stream2 = RFStream(stream=read(fname))
+                suffix = '.QHD'
+            with NamedTemporaryFile(suffix=suffix) as ft:
+                fname = ft.name
+                stream1.write(fname, format.upper())
+                stream2 = read_rf(fname)
             st1 = stream1[0].stats
             st2 = stream2[0].stats
             for head in HEADERS:
                 self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
-        stream = RFStream(stream=read())[:1]
+        stream = read_rf()[:1]
         stream._write_test_header()
         for format in FORMATHEADERS:
             test_io_format(format)
@@ -54,7 +57,7 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertTrue(abs(stats.slowness - 6.4) < 0.1)
 
     def test_simple(self):
-        stream = RFStream(stream=read())
+        stream = read_rf()
         stream._write_test_header()
         stream.rf()
         stream.moveout()
