@@ -7,11 +7,10 @@ before_install:
   - lsb_release -a # get info on the operating system
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
-  - pip install --use-mirrors toeplitz geographiclib
-  - pip install --use-mirrors obspy --allow-external obspy --allow-insecure obspy
+  - pip install toeplitz geographiclib
 
 install:
-  - pip install . --use-mirrors
+  - pip install --allow-external obspy --allow-insecure obspy .
 script:
   - rf-runtests
 after_success:
