@@ -23,7 +23,7 @@ setup(name='rf',
       license='MIT',
       packages=find_packages(),
       package_dir={'rf': 'rf'},
-      requires=['obspy==dev', 'toeplitz', 'geographiclib'],
+      install_requires=['obspy==dev', 'toeplitz', 'geographiclib'],
       entry_points=ENTRY_POINTS,
       include_package_data=True,
       zip_safe=False
