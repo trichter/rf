@@ -1,6 +1,8 @@
 """
 Tests for batch module.
 """
+import matplotlib
+matplotlib.use('Agg')
 import unittest
 import os
 import shutil
