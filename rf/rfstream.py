@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 """
 Classes and functions for receiver function calculation.
 """
 
 from math import pi, sin
-from operator import attrgetter
+from operator import itemgetter
 import warnings
 
 import numpy as np
@@ -16,8 +17,8 @@ from rf.deconvolve import deconv
 from rf.simple_model import load_model
 
 
-def __get_event_attr(h1, h2):
-    return lambda event: event[h1][0][h2]
+def __get_event_origin(h):
+    return lambda event: event.preferred_origin()[h]
 
 
 def __rel2UTC(stats, head):
@@ -28,46 +29,65 @@ def __UTC2rel(stats, head):
     return stats[head] - stats.starttime
 
 
-STATION_GETTER = (('station_latitude', attrgetter('latitude')),
-                  ('station_longitude', attrgetter('longitude')),
-                  ('station_elevation', attrgetter('elevation')))
-# TODO: map event_id
-EVENT_GETTER = (('event_latitude', __get_event_attr('origins', 'latitude')),
-                ('event_longitude', __get_event_attr('origins', 'longitude')),
-                ('event_depth', __get_event_attr('origins', 'depth')),
-                ('event_magnitude', __get_event_attr('magnitudes', 'mag')),
-                ('event_time', __get_event_attr('origins', 'time')))
+STATION_GETTER = (('station_latitude', itemgetter('latitude')),
+                  ('station_longitude', itemgetter('longitude')),
+                  ('station_elevation', itemgetter('elevation')))
+EVENT_GETTER = (
+    #('event_id', lambda event: _get_event_id(event)),
+    ('event_latitude', __get_event_origin('latitude')),
+    ('event_longitude', __get_event_origin('longitude')),
+    ('event_depth', lambda event: event.preferred_origin()['depth'] / 1000.),
+    ('event_magnitude', lambda event: event.preferred_magnitude()['mag']),
+    ('event_time', __get_event_origin('time')))
 HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
     'onset', 'distance', 'back_azimuth', 'inclination', 'slowness')
-FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo', 'evdp', 'mag',
+FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
+                         'evdp', 'mag',
                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1'),
                  # fields 'dcvreg', 'dcvinci' and 'pwdw' are violated for
                  # station information
-                 'sh': ('DCVREG', 'DCVINCI', 'PWDW', 'LAT', 'LON', 'DEPTH',
+                 'sh': ('DCVREG', 'DCVINCI', 'PWDW',
+                        'LAT', 'LON', 'DEPTH',
                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
                         'AZIMUTH', 'INCI', 'SLOWNESS')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
                                'event_time': (__rel2UTC, __UTC2rel)}}
-_HEADERS_EXAMPLE = (50.3, -100.2, 400.3, -20.32, 10., 12.4, 6.5, -40.432,
+_HEADERS_EXAMPLE = (50.3, -100.2, 400.3,
+                    -20.32, 10., 12.4, 6.5, -40.432,
                     20.643, 57.6, 90.1, 10.2, 10.)
+
+_TF = '.datetime:%Y-%m-%dT%H:%M:%S'
+H5INDEX = ('{network}.{station}.{location}/{event_time%s}/' % _TF +
+           '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF))
+H5INDEX_STACK = '{network}.{station}.{location}/{channel}'
+
+
+def set_index(index='rf'):
+    import obspyh5
+    if index == 'rf':
+        index = H5INDEX
+    elif index == 'rf_stack':
+        index = H5INDEX_STACK
+    obspyh5.set_index(index)
 
 
 def read_rf(fname=None, format_=None, **kwargs):
     """
-    Read waveform files into an RFStream object.
+    Read waveform files into RFStream object.
 
     See :func:`read() <obspy.core.stream.read>` in ObsPy.
     """
-    return RFStream(stream=read(fname, format=format_, **kwargs))
+    return RFStream(read(fname, format=format_, **kwargs))
 
 
 class RFStream(Stream):
+
     """
     Class providing the necessary functions for receiver function calculation.
 
-    To initialize a RFStream from a ObsPy stream use
+    To initialize a RFStream from a Stream object use
 
-    >>> rfstream = RFStream(stream=obspy_stream)
+    >>> rfstream = RFStream(stream)
 
     To initialize a RFStream from a file use
 
@@ -75,12 +95,16 @@ class RFStream(Stream):
 
     Format specific headers are loaded into the stats object of all traces.
     """
-    def __init__(self, traces=None, stream=None):
-        if stream is not None:
-            traces = [RFTrace(trace=tr) for tr in stream.traces]
-        #elif not traces is None and len(traces) > 0:
-        #    traces = [RFTrace(trace=tr) for tr in traces]
-        super(RFStream, self).__init__(traces=traces)
+
+    def __init__(self, traces=None, warn=True):
+        self.traces = []
+        if isinstance(traces, Trace):
+            traces = [traces]
+        if traces:
+            for tr in traces:
+                if not isinstance(tr, RFTrace):
+                    tr = RFTrace(trace=tr, warn=warn)
+                self.traces.append(tr)
 
     def _write_test_header(self):
         for tr in self:
@@ -94,9 +118,14 @@ class RFStream(Stream):
         """
         for tr in self:
             tr._write_format_specific_header(format)
+            if format.upper() == 'Q':
+                tr.stats.station = tr.id
         super(RFStream, self).write(filename, format, **kwargs)
+        if format.upper() == 'Q':
+            for tr in self:
+                tr.stats.station = tr.stats.station.split('.')[1]
 
-    def deconvolve(self, *args, **kwargs):
+    def deconvolve(self, method='P', deconvolve_method='time', **kwargs):
         """
         Deconvolve source component of stream from other components.
 
@@ -113,11 +142,40 @@ class RFStream(Stream):
                 comps0 = comps
             elif comps != comps0:
                 raise ValueError('Error')
-            deconv(self[i:i + 3], *args, **kwargs)
+            # set standard parameters for deconvolution
+            stats = self[i].stats
+            lensec = stats.endtime - stats.starttime
+            onset = stats.onset - stats.starttime
+            if method == 'P' and deconvolve_method == 'time':
+                def_kwargs = {'winsrc': (-10, 30, 5),
+                              'winrsp': (-onset, lensec - onset),
+                              'winrf': (-onset, lensec - onset)}
+            elif method == 'S' and deconvolve_method == 'time':
+                def_kwargs = {'winsrc': (-10, 30, 5),
+                              'winrsp': (onset - lensec, onset),
+                              'winrf': (onset - lensec, onset)}
+            elif method == 'P':
+                def_kwargs = {'winsrc': (-onset + 5, lensec - onset - 5, 5),
+                              'tshift': onset}
+            else:
+                def_kwargs = {'winsrc': (onset - lensec + 5, onset - 5),
+                              'tshift': lensec - onset}
+            nkwargs = kwargs.copy()
+            for k in def_kwargs:
+                if k not in kwargs:
+                    nkwargs[k] = def_kwargs[k]
+            try:
+                deconv(self[i:i + 3], method=deconvolve_method, **nkwargs)
+            except:
+                print('error while calculating the deconvolution')
+                for tr in self[i:i + 3]:
+                    self.remove(tr)
+                continue
             i += 3
 
     def rf(self, method='P', filter=None, window=None, downsample=None,
-           rotate='ZNE->LQT', deconvolve='time', **kwargs):
+           rotate='ZNE->LQT', source_component='L',
+           deconvolve='time', **kwargs):
         r"""
         Calculate receiver functions in-place.
 
@@ -130,13 +188,13 @@ class RFStream(Stream):
              with :meth:`~obspy.core.stream.Stream.trim` (seconds)
         :param float downsample: downsample stream with its
             :meth:`~obspy.core.stream.Stream.decimate` method
-        :param rotate: 'ZNE->LQT' or 'ZNE->ZRT', rotate stream with its
+        :param rotate: 'ZNE->LQT' or 'NE->RT', rotate stream with its
             :meth:`~obspy.core.stream.Stream.rotate`
             method with the angles given by the back_azimuth and inclination
             attributes of the traces stats objects. You can set these to your
             needs or let them be computed by :func:`~rf.rfstream.rfstats`.
-            The first component of the target component is assumed to
-            be the source component for the deconvolution (L or Z).
+        :param source_component: character of the source component
+            (i.e. 'L' or 'Z' depending on rotaion)
         :param deconvolve: 'time' or 'freq' for time or frequency domain
             deconvolution by the streams
             :meth:`~rf.rfstream.RFStream.deconvolve`
@@ -163,32 +221,14 @@ class RFStream(Stream):
         if downsample:
             for tr in self:
                 if downsample <= tr.stats.sampling_rate:
-                    tr.decimate(int(tr[0].stats.sampling_rate) // downsample)
+                    tr.decimate(int(tr.stats.sampling_rate) // downsample)
         if isinstance(rotate, basestring):
-            if rotate[-2:] == 'RT':
-                self.rotate(rotate[1:5] + rotate[6:])
-            else:
-                self.rotate(rotate)
-            src_comp = rotate.split('->')[-1][0]
+            self.rotate(rotate)
         elif rotate:
-            src_comp = rotate(self)
+            rotate(self)
         if deconvolve:
-            # set standard parameters for deconvolution
-            if method == 'P' and deconvolve == 'time':
-                kwargs.setdefault('winsrc', (-10, 30, 5))
-                kwargs.setdefault('winrsp', (-20, 80))
-                kwargs.setdefault('winrf', (-20, 80))
-            elif method == 'S' and deconvolve == 'time':
-                kwargs.setdefault('winsrc', (-10, 30, 5))
-                kwargs.setdefault('winrsp', (-80, 20))
-                kwargs.setdefault('winrf', (-80, 20))
-            elif method == 'P':
-                kwargs.setdefault('winsrc', (-20, 80, 5))
-                kwargs.setdefault('tshift', 10)
-            else:
-                kwargs.setdefault('winsrc', (-20, 80, 5))
-                kwargs.setdefault('tshift', 90)
-            self.deconvolve(src_comp, method=deconvolve, **kwargs)
+            self.deconvolve(method=method, deconvolve_method=deconvolve,
+                            source_component=source_component, **kwargs)
         for tr in self:
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
         # comparison with P-receiver method (converted Sp wave arrives before
@@ -201,7 +241,7 @@ class RFStream(Stream):
         # towards the event after the rotation. For a positive phase at
         # a Moho-like velocity contrast, the Q/R component has to
         # point away from the event.
-            if tr.stats.channel[-1] != src_comp:
+            if tr.stats.channel[-1] != source_component:
                 tr.data = -tr.data
 
     def moveout(self, phase='Ps', ref=6.4, model='iasp91'):
@@ -241,6 +281,151 @@ class RFStream(Stream):
             model.ppoint(tr.stats, depth, phase=phase)
         return np.array([(tr.stats.plat, tr.stats.plon) for tr in self])
 
+    def stack(self):
+        """
+        Stack traces with the same id.
+
+        Traces with same id need to have the same number of datapoints.
+        """
+        ids = set(tr.id for tr in self)
+        traces = []
+        for id in ids:
+            net, sta, loc, cha = id.split('.')
+            data = np.mean([tr.data for tr in self if tr.id == id], axis=0)
+            header = {'network': net, 'station': sta, 'location': loc,
+                      'channel': cha, 'sampling_rate': tr.stats.sampling_rate}
+            onset = tr.stats.onset - tr.stats.starttime
+            tr = RFTrace(data=data, header=header)
+            tr.stats['onset'] = tr.stats['starttime'] + onset
+            traces.append(tr)
+        self.traces = traces
+
+    def plot_rf(self, fname=None, norm=1., fig_width=7., trace_height=0.5,
+                stack_height=0.5,
+                fill=False, window=None, downsample=None, title=True,
+                info=[('back_azimuth', u'baz (°)', 'b'),
+                      ('distance', u'dist (°)', 'r')]):
+        """
+        Create receiver function plot.
+
+        :param fname: Filename to save plot to. Can be None. In this case
+            the figure is left open.
+        :param fig_width: Width of figure in inches.
+        :param trace_height: Height of one trace in inches.
+        :param fill: Waether to fill receiver functions or not.
+        :param downsample: Downsample to frequency (in Hz) with
+            Stream.decimate. Filtering is not performed. When saving in a
+            vector format the plot size can be reduced in this way.
+        :param title: Print seed id as a title.
+        :param info: Plot one additional axes showing maximal two entries of
+            the stats object. Each entry in this list is a list consisting of
+            three entries: key, label and color.
+            info can be None. In this case no additional axes is plotted.
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib.ticker import AutoMinorLocator, MaxNLocator
+        if len(self) == 0:
+            return
+        if window:
+            for tr in self:
+                tr.trim(tr.stats.onset + window[0], tr.stats.onset + window[1])
+        if downsample:
+            for tr in self:
+                tr.decimate(int(round(tr.stats.sampling_rate)) // downsample,
+                            no_filter=True)
+        # calculate lag times
+        stats = self[0].stats
+        N = len(self)
+        t0 = stats.onset - stats.starttime
+        t2 = stats.endtime - stats.starttime
+        times = np.linspace(-t0, t2 - t0, stats.npts, endpoint=True)
+        # calculate axes and figure dimensions
+        # big letters: inches, small letters: figure fraction
+        H = trace_height
+        HS = stack_height
+        FB = 0.5
+        FT = 0.2
+        DW = 0.1
+        FH = H * (N + 2) + HS + FB + FT + DW
+        h = H / FH
+        hs = HS / FH
+        fb = FB / FH
+        ft = FT / FH
+        FL = 0.5
+        FR = 0.2
+        FW = fig_width
+        FW3 = 0.8
+        FW2 = FW - FL - FR - (DW + FW3) * bool(info)
+        fl = FL / FW
+        fr = FR / FW
+        fw2 = FW2 / FW
+        fw3 = FW3 / FW
+        # init figure and axes
+        fig = plt.figure(figsize=(FW, FH))
+        ax1 = fig.add_axes([fl, fb, fw2, h * (N + 2)])
+        ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
+        if info:
+            ax3 = fig.add_axes(
+                [1 - fr - fw3, fb, fw3, h * (N + 2)], sharey=ax1)
+            info = list(info)
+            info[0] = [ax3] + list(info[0])
+            if len(info) > 1:
+                ax4 = ax3.twiny()
+                info[1] = [ax4] + list(info[1])
+        # plot stack and individual receiver functions
+        stack = self.copy()
+        stack.stack()
+        if len(stack) > 1:
+            warnings.warn('Different stations in one RF plot.')
+
+        def _rf_fill(ax, t, d, i):
+            ax.fill_between(t, d + i, i, where=d >= 0, lw=0., facecolor='k')
+            ax.fill_between(t, d + i, i, where=d < 0, lw=0, facecolor='grey')
+
+        def _plot(ax, t, d, i):
+            if fill:
+                _rf_fill(ax, t, d, i)
+                ax.plot(t, d + i, 'k')
+            else:
+                ax.plot(t, d + i, 'k')
+        _plot(ax2, times, stack[0].data, 0)
+        for i, tr in enumerate(self):
+            _plot(ax1, times, tr.data * norm, i + 1)
+        # plot right axes with header information
+        for ax, header, label, color in info:
+            data = [tr.stats[header] for tr in self]
+            ax.plot(data, 1 + np.arange(len(self)), '.' + color, mec=color)
+            ax.set_xlabel(label, color=color, size='small')
+            if header == 'back_azimuth':
+                ax.set_xticks(np.arange(5) * 90)
+                ax.set_xticklabels(['0', '', '180', '', '360'], size='small')
+            else:
+                ax.xaxis.set_major_locator(MaxNLocator(4))
+                for l in ax.get_xticklabels():
+                    l.set_fontsize('small')
+            ax.xaxis.set_minor_locator(AutoMinorLocator())
+        # set x and y limits
+        ax1.set_xlim(times[0], times[-1])
+        ax1.set_ylim(-0.5, N + 1.5)
+        ax1.set_yticklabels('')
+        ax1.set_xlabel('time (s)')
+        ax1.xaxis.set_minor_locator(AutoMinorLocator())
+        for l in ax2.get_xticklabels():
+            l.set_visible(False)
+        ax2.yaxis.set_major_locator(MaxNLocator(4))
+        for l in ax2.get_yticklabels():
+            l.set_fontsize('small')
+        # plot title and save plot
+        if title:
+            bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
+            text = '%s traces  %s' % (len(self), stack[0].id)
+            ax2.annotate(text, (1 - 0.5 * fr, 1 - 0.5 * ft),
+                         xycoords='figure fraction', va='top', ha='right',
+                         bbox=bbox, clip_on=False)
+        if fname:
+            fig.savefig(fname)
+            plt.close(fig)
+
     def _moveout_xy(self, *args, **kwargs):
         for tr in self:
             tr._moveout_xy(*args, **kwargs)
@@ -251,15 +436,29 @@ class RFStream(Stream):
 
 
 class RFTrace(Trace):
+
     """
     Class providing the Trace object for receiver function calculation.
     """
-    def __init__(self, data=np.array([]), header={}, trace=None):
+
+    def __init__(self, data=np.array([]), header={}, trace=None, warn=True):
         if trace is not None:
             data = trace.data
             header = trace.stats
         super(RFTrace, self).__init__(data=data, header=header)
-        self._read_format_specific_header()
+        st = self.stats
+        if '_format'in st and st._format.upper() == 'Q':
+            st.network, st.station, st.location = st.station.split('.')[:3]
+        self._read_format_specific_header(warn=warn)
+
+    def __str__(self, id_length=None):
+        out = (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
+               u'baz:{back_azimuth:.1f}')
+        try:
+            out = out.format(**self.stats)
+        except KeyError:
+            out = ''
+        return super(RFTrace, self).__str__(id_length=id_length) + out
 
     def _write_test_header(self):
         st = self.stats
@@ -268,7 +467,7 @@ class RFTrace(Trace):
                 val = st.starttime + val
             st[head] = val
 
-    def _read_format_specific_header(self, format=None):
+    def _read_format_specific_header(self, format=None, warn=True):
         st = self.stats
         if format is None:
             if '_format' not in st:
@@ -277,11 +476,14 @@ class RFTrace(Trace):
         format = format.lower()
         if format == 'q':
             format = 'sh'
+        if format == 'h5':
+            return
         try:
             header_map = zip(HEADERS, FORMATHEADERS[format])
         except KeyError:
-            warnings.warn('Reading header of a file with this format is not '
-                          'supported.')
+            if warn:
+                warnings.warn('Reading rf header of a file with this format '
+                              'is not supported.')
             return
         for head, head_format in header_map:
             try:
@@ -299,11 +501,15 @@ class RFTrace(Trace):
         format = format.lower()
         if format == 'q':
             format = 'sh'
+        if format == 'h5':
+            return
         try:
             header_map = zip(HEADERS, FORMATHEADERS[format])
         except KeyError:
-            warnings.warn('Reading header of a file with this format is not '
-                          'supported.')
+            if format != 'h5':
+                msg = ("rf in-/output of file format '%s' is not supported" %
+                       format)
+                warnings.warn(msg)
             return
         if format not in st:
             st[format] = AttribDict({})
@@ -336,7 +542,6 @@ class RFTrace(Trace):
         """
         from rf import _xy
         st = self.stats
-        print st
         self.data = _xy.psmout(self.data, st.slowness,
                                st.onset - st.starttime,
                                st.endtime - st.starttime, st.delta, 0)

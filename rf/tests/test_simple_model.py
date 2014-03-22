@@ -2,7 +2,7 @@
 Tests for simple_model module.
 """
 import unittest
-from rf.simple_model import moveout, ppoint
+from rf.simple_model import load_model
 from obspy import read
 from rf import RFStream
 
@@ -12,6 +12,7 @@ class SimpleModelTestCase(unittest.TestCase):
     def setUp(self):
         self.stream = RFStream(read())
         self.stream._write_test_header()
+        self.model = load_model()
 
     def test_ppoint(self):
         xy_plat_P = 50.29670878  # 200km sppier
@@ -20,7 +21,7 @@ class SimpleModelTestCase(unittest.TestCase):
         xy_plon_S = -98.96394212  # 200km pspier
 
         st = self.stream[0].stats
-        ppoint(self.stream, 200, phase='P')
+        self.model.ppoint(st, 200, phase='P')
         self.assertLess(abs((st.plat - xy_plat_P) /
                             (st.plat - st.station_latitude)), 1)  # very big
         self.assertLess(abs((st.plon - xy_plon_P) /
@@ -35,7 +36,7 @@ class SimpleModelTestCase(unittest.TestCase):
 #        print 'model lat P ', st.plat
 #        print
 
-        ppoint(self.stream, 200, phase='S')
+        self.model.ppoint(st, 200, phase='S')
         self.assertLess(abs((st.plat - xy_plat_S) /
                             (st.plat - st.station_latitude)), 1)  # very big
         self.assertLess(abs((st.plon - xy_plon_S) /
@@ -50,13 +51,12 @@ class SimpleModelTestCase(unittest.TestCase):
 #        print 'model lat S ', st.plat
 
     def test_moveout(self):
-#        st1 = self.stream.copy()
-#        moveout(self.stream)
-#        st2 = self.stream
-#        st = st1[:1] + st2[:1]
-#        st = st1 + st2
-#        st.plot(automerge=False)
-        moveout(self.stream)
+        self.model.moveout(self.stream)
+        i = 20
+        for tr in self.stream:
+            tr.stats.distance = i
+            i = i + 50
+        self.model.moveout(self.stream)
 
 
 def suite():

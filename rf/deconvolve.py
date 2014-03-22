@@ -15,7 +15,7 @@ except ImportError:
     warnings.warn(msg)
 
 
-def deconv(stream, src_comp, method='time', **kwargs):
+def deconv(stream, source_component, method='time', **kwargs):
     """
     Deconvolve one component of a stream from all components.
 
@@ -26,7 +26,7 @@ def deconv(stream, src_comp, method='time', **kwargs):
     for determining the data windows.
 
     :param stream: Stream object including response and source
-    :param src_comp: Name of component using for source function
+    :param source_component: Name of component using for source function
     :param method:
         'time' -> use time domain deconvolution in
         :func:`~rf.deconvolve.deconvt`,\n
@@ -61,7 +61,7 @@ def deconv(stream, src_comp, method='time', **kwargs):
     st = stream
     samp = st[0].stats.sampling_rate
     onset = st[0].stats.onset
-    src = st.select(component=src_comp)[0]
+    src = st.select(component=source_component)[0]
     src_index = st.traces.index(src)
     src = src.copy()
     src.trim(onset + winsrc[0], onset + winsrc[1])
@@ -70,9 +70,10 @@ def deconv(stream, src_comp, method='time', **kwargs):
     rsp = [st[(i + src_index) % 3].data for i in range(3)]
     if method == 'time':
         time_rf = winrf[1] - winrf[0]
-        shift = int(samp * ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
-                             time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0]))
-        length = int(time_rf * samp)
+        shift = int(round(samp *
+                          ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
+                            time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0])))
+        length = int(round(time_rf * samp)) + 1
         rf_resp = deconvt(rsp, src, shift, length=length, **kwargs)
         tshift = -winrf[0]
         for tr in st:
@@ -173,7 +174,7 @@ def _acorrt(a, num):
     :param num: Number of returned data points
     :return: autocorrelation
     """
-    return correlate(_add_zeros(a, num, 'right'), a, 'valid')
+    return correlate(_add_zeros(a, num - 1, 'right'), a, 'valid')
 
 
 def _xcorrt(a, b, num, zero_sample=0):

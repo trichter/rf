@@ -58,10 +58,10 @@ the :func:`~rf.rfstream.read_rf` function.
 >>> stream = read_rf('myfile.SAC')
 
 If you already have an ObsPy Stream and you want to turn it into a RFStream
-use the generator of :class:`~rf.rfstream.RFStream` with the stream kwarg:
+use the generator of :class:`~rf.rfstream.RFStream`:
 
 >>> from rf import RFStream
->>> stream = RFStream(stream=obspy_stream)
+>>> stream = RFStream(obspy_stream)
 
 The stream is again written to disc as usual by its write method:
 
@@ -137,13 +137,37 @@ the given kwargs:
 Please see :meth:`RFStream.rf() <rf.rfstream.RFStream.rf>`
 for a more detailed description.
 RFStream provides the possibility to perform moveout correction
-and piercing point calculation. rf is going to provide a function
-:func:`~rf.batch.rf_batch` which will run all the necessary steps.
+and piercing point calculation. 
 
 Batch Usage
 -----------
 
-TODO
+rf provides a command line utility 'rf' which runs all the necessary steps
+to perform receiver function calculation. All you need is a StationXML
+file with your stations as an inventory and a QuakeML file with the events
+you want to analyze.
+
+The command ::
+
+    rf init test
+
+initializes a new rf project in a new folder with an example configuration
+file conf.py. You will have to edit this file so that the program finds your
+data (events, stations and waveforms). After that you can use the various
+subcommands of rf to perform different tasks (e.g. receiver function
+calculation, plotting).
+
+To init a project with a small included dataset and working configuration
+you can use ::
+
+    rf init -t test2
+
+Now switch to the newly created directy and start using rf... ::
+
+    cd test2
+    rf calc P
+    rf moveout Prf Ps
+    rf plot Prf_Ps
 
 Miscellaneous
 -------------

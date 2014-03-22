@@ -37,7 +37,10 @@ class RFStreamTestCase(unittest.TestCase):
             st2 = stream2[0].stats
             for head in HEADERS:
                 self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
+            self.assertEqual(stream1[0].id, stream2[0].id)
         stream = read_rf()[:1]
+        for tr in stream:
+            tr.stats.location = '11'
         stream._write_test_header()
         for format in FORMATHEADERS:
             test_io_format(format)
@@ -62,14 +65,9 @@ class RFStreamTestCase(unittest.TestCase):
         stream.rf()
         stream.moveout()
         stream.ppoint(50)
+        self.assertEqual(len(stream[0]), len(read_rf()[0]))
 
     def test_rf(self):
-        pass
-
-    def test_moveout(self):
-        pass
-
-    def test_piercing_points(self):
         pass
 
 

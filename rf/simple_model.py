@@ -4,7 +4,7 @@ Simple move out and piercing point calculation.
 This module will probably be replaced by something more sophisticated in
 future.
 """
-import os.path
+from pkg_resources import resource_filename
 from math import floor
 import numpy as np
 from obspy.core.util.geodetics import kilometer2degrees
@@ -32,7 +32,7 @@ def load_model(fname='iasp91'):
         pass
     fname_key = fname
     if fname == 'iasp91':
-        fname = os.path.join(os.path.dirname(__file__), 'data', 'iasp91.dat')
+        fname = resource_filename('rf', 'data/iasp91.dat')
     values = np.loadtxt(fname, unpack=True)
     try:
         z, vp, vs, n = values
@@ -110,7 +110,12 @@ class SimpleModel(object):
         if phase[0] == 'S':
             t_ref = -t_ref
             t = -t
-        index = np.nonzero(np.isnan(t))[0][0] - 1
+        try:
+            index = np.nonzero(np.isnan(t))[0][0] - 1
+        except IndexError:
+            # slowness and phase do not match
+            # return
+            index = len(t)
         t = t[:index]
         t_ref = t_ref[:index]
         return (np.hstack((-t[1:10][::-1], t)),
@@ -127,8 +132,12 @@ class SimpleModel(object):
         for tr in stream:
             st = tr.stats
             index0 = int(floor((st.onset - st.starttime) * st.sampling_rate))
-            t0, t1 = self.calculate_phase_delays(st.slowness, phase=phase,
-                                                 ref=ref)
+            temp = self.calculate_phase_delays(st.slowness, phase=phase,
+                                               ref=ref)
+            if temp is None:
+                stream.remove(tr)
+                continue
+            t0, t1 = temp
             S_multiple = phase[0].upper() == 'S' and len(phase) > 3
             if S_multiple:
                 time0 = st.starttime - st.onset + index0 * st.delta

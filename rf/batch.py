@@ -1,29 +1,61 @@
 """
-Functions for massive receiver function calculation. Untested, in development.
+rf batch command line utility
 """
+
 import argparse
-import glob
 import os
+from os.path import join
 import shutil
-from obspy import read, readEvents
-from rf.rfstream import rfstats, RFStream
+import sys
+from obspy import read_inventory, readEvents
+from rf.rfstream import read_rf, rfstats, RFStream, set_index
+from pkg_resources import resource_filename
+try:
+    from progressbar import ProgressBar
+except ImportError:
+    ProgressBar = None
 
-##### start ex rf.io #####
-import pickle
-from obspy.core.event import (Catalog, Event, CreationInfo, EventDescription,
-                              Origin, Magnitude)
-from obspy.core.util import AttribDict
+_TF = '.datetime:%Y-%m-%dT%H:%M:%S'
 
-#def _manipulate_conf(conf):
-#    conf.rf_in = conf.rf
-#    conf.mout_in = conf.mout
-#    for key, val in CONF_ABBREVS.items():
-#        conf.data = conf.data.replace(key, '*')
-#        conf.rf_in = conf.rf_in.replace(key, '*')  # @UndefinedVariable
-#        conf.mout_in = conf.mout_in.replace(key, '*')  # @UndefinedVariable
-#        conf.rf = conf.rf.replace(key, val)
-#        conf.mout = conf.mout.replace(key, val)
-#        conf.mean = conf.mean.replace(key, val)
+FNAMES = {
+    'Q': join('{root}', '{network}.{station}.{location}',
+              '{network}.{station}.{location}_{event_time%s}.QHD' % _TF),
+    'SAC': join('{root}', '{network}.{station}.{location}',
+                '{network}.{station}.{location}.{channel}_'
+                '{event_time%s}.SAC' % _TF),
+    'H5': '{root}.h5'}
+PLOT_FNAMES = join('{root}', '{network}.{station}.{location}.{channel}.pdf')
+STACK_FNAMES = {
+    'Q': join('{root}', '{network}.{station}.{location}.QHD'),
+    'SAC': join('{root}', '{network}.{station}.{location}.{channel}.SAC'),
+    'H5': '{root}.h5'}
+
+
+def _no_pbar():
+    """Turn off progressbar"""
+    global ProgressBar
+    ProgressBar = None
+
+
+class _DummyDateTime(object):
+
+    def __format__(self, *args, **kwargs):
+        return '*'
+
+
+class _DummyUTC(object):
+
+    """Dummy UTCDateTime class returning '*' when formating"""
+
+    def __init__(self):
+        self.datetime = _DummyDateTime()
+
+
+def _check_path(path):
+    if os.path.exists(path):
+        print(('Directory %s exists already. You have to delete it '
+               'beforehand to perform this action.') % path)
+        sys.exit()
 
 
 def _create_dir(filename):
@@ -35,220 +67,268 @@ def _create_dir(filename):
         os.makedirs(head)
 
 
-def _read_stations(fname):
-    """
-    Read station positions from whitespace delimited file
-
-    Example file:
-    # station  lat  lon  elev
-    STN  10.0  -50.0  160
-    """
-    ret = AttribDict()
-    with open(fname) as f:
-        for line in f.readlines():
-            if not line[0].startswith('#'):
-                vals = line.split()
-                ret[vals[0]] = AttribDict()
-                ret[vals[0]].latitude = float(vals[1])
-                ret[vals[0]].longitude = float(vals[2])
-                ret[vals[0]].elevation = float(vals[3])
-    return ret
+def _fname(fname, **kwargs):
+    fname = fname.format(**kwargs)
+    _create_dir(fname)
+    return fname
 
 
-def _write_stations(fname, dic, comment='# station  lat  lon  elev\n'):
-    """
-    Write dictionary of station positions to file
-    """
-    with open(fname, "w") as f:
-        f.write(comment)
-        for key, val in sorted(dic.items()):
-            f.write('%s  %s  %s  %s\n' % (key, val['latitude'],
-                                          val['longitude'], val['elevation']))
+def _write(stream, path, root, format, stack=False):
+    fnames = STACK_FNAMES if stack else FNAMES
+    fname = join(path, fnames[format])
+    if format == 'H5':
+        set_index('rf_stack' if stack else 'rf')
+        stream.write(_fname(fname, root=root), format, mode='a')
+    elif format == 'Q':
+        stream.write(_fname(fname, root=root, **stream[0].stats), format)
+    elif format == 'SAC':
+        for tr in stream:
+            tr.write(_fname(fname, root=root, **tr.stats), format)
 
 
-#def _convert_dmteventfile():
-#    eventsfile1 = os.path.join(conf.data_path, 'EVENT', 'event_list')
-#    eventsfile2 = os.path.join(conf.data_path, 'EVENT', 'events.xml')
-#    with open(eventsfile1) as f:
-#        events1 = pickle.load(f)
-#    events2 = Catalog()
-#    for ev in events1:
-#        orkw = {'time': ev['datetime'],
-#                'latitude': ev['latitude'],
-#                'longitude': ev['longitude'],
-#                'depth': ev['depth']}
-#        magkw = {'mag': ev['magnitude'],
-#                 'magnitude_type': ev['magnitude_type']}
-#        evdesargs = (ev['flynn_region'], 'Flinn-Engdahl region')
-#        evkw = {'resource_id': ev['event_id'],
-#                'event_type': 'earthquake',
-#                'creation_info': CreationInfo(author=ev['author']),
-#                'event_descriptions': [EventDescription(*evdesargs)],
-#                'origins': [Origin(**orkw)],
-#                'magnitudes': [Magnitude(**magkw)]}
-#        events2.append(Event(**evkw))
-#    events2.write(eventsfile2, 'QUAKEML')
-#
-#def _create_rfeventsfile(events='events.xml',
-#                        eventsfile='events_rf.xml', filters=None):
-#    if isinstance(events, basestring):
-#        if not os.path.exists(events):
-#            events = os.path.join(conf.data_path, 'EVENT', 'events.xml')
-#        events = readEvents(events)
-#    if filters:
-#        events.filter(*filters)
-#    eventsfile = os.path.join(conf.output_path, 'EVENT', eventsfile)
-#    _create_dir(eventsfile)
-#    events.write(eventsfile, 'QUAKEML')
-
-##### end ex rf.io #####
+def _read(stats, path, root, format):
+    fname = os.path.join(path, FNAMES[format])
+    if format == 'H5':
+        stats.pop('channel')
+        if isinstance(stats['event_time'], _DummyUTC):
+            stats.pop('event_time')
+    fname = fname.format(root=root, **stats)
+    kwargs = {}
+    if format == 'H5':
+        set_index()
+        kwargs['readonly'] = stats
+    try:
+        return read_rf(fname, format, **kwargs)
+    except:
+        pass
 
 
-def rf_batch(method='dmt', *args, **kwargs):
-    """
-    TODO: doc rf_batch
-    """
-    if ' dist' not in kwargs:
-        kwargs['dist'] = ((30, 90) if kwargs.get('method', 'P') == 'P' else
-                          (60, 85))
-    if method == 'dmt':
-        rf_dmt(*args, **kwargs)
-    elif method == 'client':
-        rf_client(*args, **kwargs)
-
-
-def rf_dmt(data_path, rf, events=None, phase='P', dist=None,
-           **rf_kwargs):
-    """
-    TODO: doc rf_dmt
-    """
-    events = readEvents(events)
-    print events
-    for event in events:
-        event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
-        inputs = data_path.format(eventid=event_id)
-        inputs = glob.glob(data_path)
-        while len(inputs) > 0:
-            files_tmp = inputs[0][:-1] + '?'
-            for f in glob.glob(files_tmp):
-                inputs.remove(f)
-            st = RFStream(read(files_tmp, headonly=True))
-            st.read_sac_header()
-            stats = rfstats(stats=st[0].stats, event=event, phase=phase,
-                            dist_range=dist)
-            if not stats:
-                continue
-            st = RFStream(read(files_tmp))
-            st.merge()
-            if len(st) != 3:
-                import warnings
-                warnings.warn('Need 3 component seismograms. '
-                              'Error for files %s' % files_tmp)
-                continue
-            for tr in st:
-                tr.stats.update(stats)
-            st.rf(method=phase[0], **rf_kwargs)
-            for tr in st:
-                output = rf.format(eventid=event_id, stats=tr.stats)
-                _create_dir(output)
-                tr.write(output, 'SAC')
-
-
-def rf_client(get_waveform, rf, stations=None, events=None,
-              request_window=(-50, 150), phase='P', dist=None,
-              **rf_kwargs):
-# S: -300 bis 300
-    """
-    TODO: doc rf_client
-    """
-    events = readEvents(events)
-    stations = _read_stations(stations)
-    for event in events:
-        event_id = event.resource_id.getQuakeMLURI().split('/')[-1]
-        for station in stations:
-            stats = rfstats(station=stations[station], event=event,
-                            phase=phase, dist_range=dist)
-            if not stats:
-                continue
-            st = get_waveform(station, stats.onset + request_window[0],
-                             stats.onset + request_window[1])
-            st = RFStream(stream=st)
-            st.merge()
-            if len(st) != 3:
-                import warnings
-                warnings.warn('Need 3 component seismograms. More or less '
-                              'than three components for event %s, station %s.'
-                              % (event_id, station))
-                continue
-            for tr in st:
-                tr.stats.update(stats)
-            st.rf(method=phase[0], **rf_kwargs)
-            st.write_sac_header()
-            for tr in st:
-                output = rf.format(eventid=event_id, stats=tr.stats)
-                _create_dir(output)
-                tr.write(output, 'SAC')
-
-
-def _filter_config(config):
-    method = config['method']
-    deconvolve = config['deconvolve']
-    settings = ['method', 'phase', 'events', 'stations', 'rf', 'mout', 'mean',
-               'format', 'filter', 'window', 'downsample', 'rotate',
-               'deconvolve']
-    options = ['winsrc']
-    if method == 'dmt':
-        settings.append('data_path')
+def _iter(*args, **kwargs):
+    """Return _Iter iterable with optional progressbar support"""
+    if ProgressBar:
+        return ProgressBar()(_Iter(*args, **kwargs))
     else:
-        settings.extend(['get_waveform', 'request_window'])
+        return _Iter(*args, **kwargs)
+
+
+class _Iter(object):
+
+    """Iterable wrapping _generator with length"""
+
+    def __init__(self, *args, **kwargs):
+        self.gen = _generator(*args, **kwargs)
+        self.length = next(self.gen)
+
+    def __len__(self):
+        return self.length
+
+    def __iter__(self):
+        return self.gen
+
+
+def _generator(events, inventory, rf=False):
+    """Generator yielding length at first and then station/event information"""
+    inventory = read_inventory(inventory)
+    channels = inventory.get_contents()['channels']
+    stations = list(set(ch.rsplit('.', 1)[0] for ch in channels))
+    one_channel = {ch.rsplit('.', 1)[0]: ch for ch in channels}
+    if events is not None:
+        events = readEvents(events)
+        yield len(stations) * len(events)
+        for event in events:
+            for station in stations:
+                seed_id = one_channel[station][:-1] + '?'
+                net, sta, loc, cha = seed_id.split('.')
+                stats = {'network': net, 'station': sta, 'location': loc,
+                         'channel': cha}
+                if rf:
+                    stats['event'] = event
+                    stats['seed_id'] = seed_id
+                    coords = inventory.get_coordinates(one_channel[station])
+                    yield stats, event, coords
+                else:
+                    stats['event_time'] = event.preferred_origin()['time']
+                    yield stats
+    else:
+        yield len(stations)
+        for station in stations:
+            net, sta, loc, cha = one_channel[station].split('.')
+            stats = {'network': net, 'station': sta, 'location': loc,
+                     'channel': cha[:-1] + '?',
+                     'event_time': _DummyUTC()}
+            yield stats
+
+
+def batch_rf(init, events, inventory, path, format='H5',
+             request_window=None, phase='P', dist_range=None, **rf_kwargs):
+    get_waveform = init()
+    root = phase + 'rf'
+    _check_path(join(path, root))
+    method = phase[-1]
+    if dist_range is None:
+        dist_range = (30, 90) if method == 'P' else (60, 85)
+    if request_window is None:
+        request_window = (-50, 150) if method == 'P' else (-80, 50)
+    for kwargs, event, coords in _iter(events, inventory, rf=True):
+        stats = rfstats(station=coords, event=event,
+                        phase=phase, dist_range=dist_range)
+        if not stats:
+            continue
+        kwargs.update({'starttime': stats.onset + request_window[0],
+                       'endtime': stats.onset + request_window[1]})
+        stream = get_waveform(**kwargs)
+        if stream is None:
+            continue
+        stream = RFStream(stream, warn=False)
+        stream.merge()
+        if len(stream) != 3:
+            import warnings
+            warnings.warn('Need 3 component seismograms. More or less '
+                          'than three components for event %s, station %s.'
+                          % (stats.event_id, kwargs['seed_id']))
+            continue
+        for tr in stream:
+            tr.stats.update(stats)
+        stream.rf(method=method, **rf_kwargs)
+        if len(stream) != 3:
+            continue
+        _write(stream, path, root, format)
+
+
+def batch_moveout(phase, events, inventory, path, root, format,
+                  kwargs_moveout, **kwargs):
+    if root is None:
+        root = phase[0] + 'rf'
+    for stats in _iter(events, inventory):
+        stream = _read(stats, path, root, format)
+        if stream is None:
+            continue
+        stream.moveout(phase, **kwargs_moveout)
+        if len(stream) > 0:
+            _write(stream, path, '%s_%s' % (root, phase), format)
+
+
+def batch_convert(events, inventory, path, root, newformat, format, **kwargs):
+    for stats in _iter(events, inventory):
+        stream = _read(stats, path, root, format)
+        if stream is None:
+            continue
+        _write(stream, path, join(newformat, root), newformat)
+
+
+def batch_plot(events, inventory, path, root, format, kwargs_plot, **kwargs):
+    for stats in _iter(None, inventory):
+        stream = _read(stats, path, root, format)
+        if stream is None:
+            continue
+        channels = set(tr.stats.channel for tr in stream)
+        for ch in channels:
+            st2 = stream.select(channel=ch)
+            stats['channel'] = ch
+            fname = PLOT_FNAMES.format(root='plot_%s' % root, **stats)
+            fname = join(path, fname)
+            _create_dir(fname)
+            st2.sort(['back_azimuth'])
+            st2.plot_rf(fname, **kwargs_plot)
+
+
+def batch_stack(inventory, path, root, format, **kwargs):
+    for stats in _iter(None, inventory):
+        stream = _read(stats, path, root, format)
+        stream.stack()
+        _write(stream, path, 'stack_%s' % root, format, stack=True)
+
+
+def _slice_config(config):
+    deconvolve = config['deconvolve']
+    settings = ['events', 'inventory', 'init', 'request_window',
+                'dist_range',
+                'path', 'format',
+                'phase', 'filter', 'window', 'downsample', 'rotate',
+                'deconvolve', 'source_component']
+    options = ['winsrc']
     if deconvolve == 'freq':
         settings.extend(['water', 'gauss'])
         options.append('tshift')
     else:
         settings.append('spiking')
         options.extend(['winrsp', 'winrf'])
-    for key in config:
-        if key not in settings and key not in options:
-            config.pop(key)
+    return {k: config[k] for k in settings + options if k in config}
 
-def main():
-    parser = argparse.ArgumentParser(description=
-                                     'rf batch command line utility')
+
+def main(args=None):
+    parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(title='subcommands', dest='subcommand')
     parser_init = subparsers.add_parser('init', help='initialize new project')
     parser_init.add_argument('path', help='path for new rf project')
-    parser_calc = subparsers.add_parser('calc', help='calculate receiver '
-                                                     'functions')
-    parser_calc.add_argument('-c', '--conf', default='conf.py',
-                             help='config file name')
-    args = parser.parse_args()
-    print('Batch utility is not yet implemented.')
-    return
+
+    help = 'calculate receiver functions'
+    parser_calc = subparsers.add_parser('calc', help=help)
+    help = 'check events, station and configuration file'
+    parser_check = subparsers.add_parser('check', help=help)
+    help = 'move out correction'
+    parser_mout = subparsers.add_parser('moveout', help=help)
+    help = 'convert files to different format'
+    parser_conv = subparsers.add_parser('convert', help=help)
+    help = 'plot receiver functions'
+    parser_plot = subparsers.add_parser('plot', help=help)
+    help = 'stack receiver functions'
+    parser_stack = subparsers.add_parser('stack', help=help)
+    help = 'init project with example files for a tutorial'
+    parser_init.add_argument('-t', '--tutorial', help=help,
+                             action='store_true')
+    help = 'path with config file name (default: config.py)'
+    for p in [parser_calc, parser_check, parser_mout, parser_conv, parser_plot,
+              parser_stack]:
+        p.add_argument('-c', '--conf', default='conf.py', help=help)
+    for p in [parser_mout, parser_conv, parser_plot, parser_stack]:
+        p.add_argument('root', help='directory or basename of file')
+    help = ('Phase (P, S, PP, etc.). The last letter (P or S) is used as a'
+            'specification of the used method (P or S receiver function).'
+            'E.g. PP means use PP phase for P-receiver function calculation')
+    parser_calc.add_argument('phase', help=help)
+    parser_mout.add_argument('phase', help='phase to align (Ps, Ppps, etc.)')
+    help = 'convert to other format (supported: Q, SAC or H5)'
+    parser_conv.add_argument('format', help=help)
+
+    args = parser.parse_args(args)
     if args.subcommand == 'init':
         path = args.path
-        if os.path.exists(path):
-            print(('Directory %s exists already. To create a new rf project '
-                   'please delete the directory beforehand.') % path)
-            return
+        _check_path(path)
         os.mkdir(path)
-        src = os.path.join(os.path.dirname(__file__), 'conf_test.py')
-        dst = os.path.join(path, 'conf.py')
-        shutil.copyfile(src, dst)
+        fnames = ['conf.py']
+        if args.tutorial:
+            fnames.extend(['example_events.xml', 'example_inventory.xml',
+                           'example_data.mseed'])
+        for fname in fnames:
+            src = resource_filename('rf', 'example/%s' % fname)
+            dst = os.path.join(path, fname)
+            shutil.copyfile(src, dst)
         print('New rf project initialized in directory %s' % path)
-        return
-    conf = {}
-    execfile(args.conf, conf)
-    try:
-        conf['window'] = conf['window' + conf['phase'][0].upper()]
-    except KeyError:
-        pass
-    _filter_config(conf)
-    if conf.pop('method') == 'dmt':
-        rf_dmt(**conf)
     else:
-        rf_client(**conf)
+        if args.subcommand == 'calc':
+            conf = {'phase': args.phase, 'method': args.phase[-1].upper()}
+        else:
+            conf = {'phase': 'P', 'method': 'P'}
+        execfile(args.conf, conf)
+        if args.subcommand == 'calc':
+            conf = _slice_config(conf)
+            batch_rf(**conf)
+        elif args.subcommand == 'check':
+            print('Check %s' % readEvents(conf['events']).__str__(True))
+            print('Check %s' % read_inventory(conf['inventory']))
+        elif args.subcommand == 'moveout':
+            conf.pop('phase')
+            batch_moveout(phase=args.phase, root=args.root, **conf)
+        elif args.subcommand == 'convert':
+            batch_convert(root=args.root, newformat=args.format, **conf)
+        elif args.subcommand == 'plot':
+            batch_plot(root=args.root, **conf)
+        elif args.subcommand == 'stack':
+            batch_stack(root=args.root, **conf)
+        else:
+            print('Subcommand not availlable')
 
 
 if __name__ == '__main__':
     main()
-

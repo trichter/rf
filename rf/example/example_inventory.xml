@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<FDSNStationXML schemaVersion="1.0" xmlns="http://www.fdsn.org/xml/station/1">
+  <Source>SeisComP3</Source>
+  <Sender>GFZ</Sender>
+  <Module/>
+  <ModuleURI/>
+  <Created>2014-03-21T14:50:50+00:00</Created>
+  <Network startDate="1980-01-01T00:00:00+00:00" code="CX" restrictedStatus="open">
+    <Description>Plate Boundary Project, GFZ Potsdam, Germany</Description>
+    <Station startDate="2006-02-21T00:00:00+00:00" code="PB01" restrictedStatus="open">
+      <Latitude unit="DEGREES">-21.04323</Latitude>
+      <Longitude unit="DEGREES">-69.4874</Longitude>
+      <Elevation>900.0</Elevation>
+      <Site>
+        <Name>Plate Boundary Station Plate Boundary Station PB01, Chile</Name>
+        <Country>Chile</Country>
+      </Site>
+      <CreationDate>2006-02-21T00:00:00+00:00</CreationDate>
+      <Channel startDate="2006-02-21T00:00:00+00:00" code="BHE" locationCode="" restrictedStatus="open">
+        <Latitude unit="DEGREES">-21.04323</Latitude>
+        <Longitude unit="DEGREES">-69.4874</Longitude>
+        <Elevation>900.0</Elevation>
+        <Depth>2.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">20.0</SampleRate>
+        <SampleRateRatio>
+          <NumberSamples>20</NumberSamples>
+          <NumberSeconds>1</NumberSeconds>
+        </SampleRateRatio>
+        <StorageFormat>Steim2</StorageFormat>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+        <Sensor resourceId="Sensor#20131212105717.371279.5">
+          <Type>VBB</Type>
+          <Description>GFZ:CX1980:STS-2/N/g=1500</Description>
+          <Manufacturer>Streckeisen</Manufacturer>
+          <Model>STS-2/N</Model>
+          <SerialNumber>90523</SerialNumber>
+        </Sensor>
+        <DataLogger resourceId="Datalogger#20131212105717.384802.16">
+          <Type>Quanterra Q330</Type>
+          <Description>GFZ:CX1980:Q330/N/g=419430</Description>
+          <Manufacturer>Quanterra</Manufacturer>
+          <Model>Q330</Model>
+          <SerialNumber>1621</SerialNumber>
+        </DataLogger>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>629145000.0</Value>
+            <Frequency>0.02</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>None</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>None</Name>
+              <Description>None</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+        </Response>
+      </Channel>
+      <Channel startDate="2006-02-21T00:00:00+00:00" code="BHN" locationCode="" restrictedStatus="open">
+        <Latitude unit="DEGREES">-21.04323</Latitude>
+        <Longitude unit="DEGREES">-69.4874</Longitude>
+        <Elevation>900.0</Elevation>
+        <Depth>2.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">20.0</SampleRate>
+        <SampleRateRatio>
+          <NumberSamples>20</NumberSamples>
+          <NumberSeconds>1</NumberSeconds>
+        </SampleRateRatio>
+        <StorageFormat>Steim2</StorageFormat>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+        <Sensor resourceId="Sensor#20131212105717.371279.5">
+          <Type>VBB</Type>
+          <Description>GFZ:CX1980:STS-2/N/g=1500</Description>
+          <Manufacturer>Streckeisen</Manufacturer>
+          <Model>STS-2/N</Model>
+          <SerialNumber>90523</SerialNumber>
+        </Sensor>
+        <DataLogger resourceId="Datalogger#20131212105717.384802.16">
+          <Type>Quanterra Q330</Type>
+          <Description>GFZ:CX1980:Q330/N/g=419430</Description>
+          <Manufacturer>Quanterra</Manufacturer>
+          <Model>Q330</Model>
+          <SerialNumber>1621</SerialNumber>
+        </DataLogger>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>629145000.0</Value>
+            <Frequency>0.02</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>None</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>None</Name>
+              <Description>None</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+        </Response>
+      </Channel>
+      <Channel startDate="2006-02-21T00:00:00+00:00" code="BHZ" locationCode="" restrictedStatus="open">
+        <Latitude unit="DEGREES">-21.04323</Latitude>
+        <Longitude unit="DEGREES">-69.4874</Longitude>
+        <Elevation>900.0</Elevation>
+        <Depth>2.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate unit="SAMPLES/S">20.0</SampleRate>
+        <SampleRateRatio>
+          <NumberSamples>20</NumberSamples>
+          <NumberSeconds>1</NumberSeconds>
+        </SampleRateRatio>
+        <StorageFormat>Steim2</StorageFormat>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+        <Sensor resourceId="Sensor#20131212105717.371279.5">
+          <Type>VBB</Type>
+          <Description>GFZ:CX1980:STS-2/N/g=1500</Description>
+          <Manufacturer>Streckeisen</Manufacturer>
+          <Model>STS-2/N</Model>
+          <SerialNumber>90523</SerialNumber>
+        </Sensor>
+        <DataLogger resourceId="Datalogger#20131212105717.384802.16">
+          <Type>Quanterra Q330</Type>
+          <Description>GFZ:CX1980:Q330/N/g=419430</Description>
+          <Manufacturer>Quanterra</Manufacturer>
+          <Model>Q330</Model>
+          <SerialNumber>1621</SerialNumber>
+        </DataLogger>
+        <Response>
+          <InstrumentSensitivity>
+            <Value>629145000.0</Value>
+            <Frequency>0.02</Frequency>
+            <InputUnits>
+              <Name>M/S</Name>
+              <Description>None</Description>
+            </InputUnits>
+            <OutputUnits>
+              <Name>None</Name>
+              <Description>None</Description>
+            </OutputUnits>
+          </InstrumentSensitivity>
+        </Response>
+      </Channel>
+    </Station>
+  </Network>
+</FDSNStationXML>
