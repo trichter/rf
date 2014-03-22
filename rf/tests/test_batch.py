@@ -1,8 +1,6 @@
 """
 Tests for batch module.
 """
-import matplotlib
-matplotlib.use('Agg')
 import unittest
 import os
 import shutil
@@ -33,6 +31,7 @@ class BatchTestCase(unittest.TestCase):
             pass
 
     def test_batch_command_interface(self):
+        travis = os.environ.get('TRAVIS') == 'true'
         def substitute(old, new):
             fname = os.path.join(temp_path, 'conf.py')
             with open(fname) as f:
@@ -53,7 +52,8 @@ class BatchTestCase(unittest.TestCase):
         if obspyh5:
             script(['convert', 'Prf_Ps', 'H5'])
         script(['stack', 'Prf_Ps'])
-        script(['plot', 'Prf_Ps'])
+        if not travis:
+            script(['plot', 'Prf_Ps'])
 
         # SAC
         if os.path.exists(temp_path):
@@ -67,7 +67,8 @@ class BatchTestCase(unittest.TestCase):
         if obspyh5:
             script(['convert', 'Prf_Ps', 'H5'])
         script(['stack', 'Prf_Ps'])
-        script(['plot', 'Prf'])
+        if not travis:
+            script(['plot', 'Prf'])
 
         # H5
         if obspyh5:
@@ -81,7 +82,8 @@ class BatchTestCase(unittest.TestCase):
             script(['convert', 'Prf_Ps', 'Q'])
             script(['convert', 'Prf_Ps', 'SAC'])
             script(['stack', 'Prf_Ps'])
-            script(['plot', 'Prf'])
+            if not travis:
+                script(['plot', 'Prf'])
 
 
 def suite():
