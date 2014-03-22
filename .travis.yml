@@ -8,9 +8,10 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
   - pip install toeplitz geographiclib
+  - pip install --allow-external obspy --allow-insecure obspy obspy==dev
 
 install:
-  - pip install --allow-external obspy --allow-insecure obspy .
+  - pip install .
 script:
   - rf-runtests
 after_success:

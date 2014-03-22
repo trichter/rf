@@ -18,7 +18,7 @@ which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 Installation
 ------------
 
-Install ObsPy_, its dependencies and pip_, eg. by ::
+Install ObsPy_, its dependencies and pip_, e.g. by (Ubuntu) ::
 
     sudo apt-get install python-obspy python-pip
 
@@ -29,6 +29,12 @@ rf can then be installed by ::
 The tests can be run with the script ::
 
     rf-runtests
+
+
+.. note::
+    At the moment rf is only working with the development version of obspy.
+    Install obspy by e.g. 
+    pip install --allow-external obspy --allow-insecure obspy obspy==dev
 
 Manual installation of dev
 --------------------------
