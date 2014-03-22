@@ -30,12 +30,6 @@ The tests can be run with the script ::
 
     rf-runtests
 
-
-.. note::
-    At the moment rf is only working with the development version of obspy.
-    Install obspy by e.g. 
-    pip install --allow-external obspy --allow-insecure obspy obspy==dev
-
 Manual installation of dev
 --------------------------
 
@@ -53,6 +47,12 @@ Then download the source code from GitHub_ eg. by ::
 Now install rf with ::
 
     python setup.py install
+    
+.. note::
+    At the moment rf-dev is only working with the development version of obspy.
+    Install obspy-dev by e.g. 
+    pip install --allow-external obspy --allow-insecure obspy obspy==dev
+
 
 Basic Usage
 -----------
