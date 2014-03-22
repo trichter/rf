@@ -13,6 +13,7 @@ before_install:
   # XXX: Replace once a new future version has been released!
   - pip install https://github.com/PythonCharmers/python-future/archive/master.zip
   # XXX: At the moment rf is working only with obspy master
+  - pip install flake8
   - pip install --allow-external obspy --allow-insecure obspy obspy==dev
   - pip freeze
 
