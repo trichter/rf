@@ -30,6 +30,8 @@ The tests can be run with the script ::
 
     rf-runtests
 
+Hdf5 file support can be installed with the obspyh5_ package.
+
 Manual installation of dev
 --------------------------
 
@@ -37,7 +39,8 @@ Install
 
     * ObsPy_ and its dependencies,
     * toeplitz_ for time domain deconvolution,
-    * geographiclib_ for ppoint calculation.
+    * geographiclib_ for ppoint calculation,
+    * optionally obspyh5_ for hdf5 file support.
 
 Then download the source code from GitHub_ eg. by ::
 
@@ -106,6 +109,11 @@ slowness           SLOWNESS   user1
 .. note::
     Q-file headers DCVREG DCVINCI PWDW are used for the station
     information, because the Q format has a shortage of predefined headers.
+
+.. note::
+    Alternatively the hdf5 file format can be used. It is supported via the
+    obspyh5 package. In this case all supported stats
+    entries are automatically attached to the stored data.
 
 The first task when calculating receiver functions is calculating some ray
 specific values like azimuth and epicentral distance. An appropriate stats
@@ -184,6 +192,7 @@ GitHub_. The code is continiously tested by travis-ci.
 
 .. _ObsPy: http://www.obspy.org/
 .. _pip: http://www.pip-installer.org/
+.. _obspyh5: https://github.com/trichter/obspyh5/
 .. _toeplitz: https://github.com/trichter/toeplitz/
 .. _geographiclib: https://pypi.python.org/pypi/geographiclib/
 .. _GitHub: https://github.com/trichter/rf/
