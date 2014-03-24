@@ -8,6 +8,8 @@ with open('README.rst') as f:
     README = f.read()
 if not 'dev' in VERSION:  # get image for correct version from travis-ci
     README = README.replace('branch=master', 'branch=v%s' % VERSION)
+DESCRIPTION = README.split('\n')[2]
+LONG_DESCRIPTION = '\n'.join(README.split('\n')[5:])
 
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests.suite:main',
@@ -15,8 +17,8 @@ ENTRY_POINTS = {
 
 setup(name='rf',
       version=VERSION,
-      description=README.split('\n')[2],
-      long_description=README,
+      description=DESCRIPTION,
+      long_description=LONG_DESCRIPTION,
       url='https://github.com/trichter/rf',
       author='Tom Richter',
       author_email='richter@gfz-potsdam.de',
