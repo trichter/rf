@@ -1,13 +1,17 @@
 language: python
 python:
   - "2.7"
+env:
+  -
+  - USE_OBSPYH5=true
 virtualenv:
   system_site_packages: true
 before_install:
   - lsb_release -a # get info on the operating system
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
-  - pip install toeplitz geographiclib obspyh5
+  - pip install toeplitz geographiclib
+  - if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq libhdf5-dev; pip install obspyh5; fi
   # XXX: At the moment rf is working only with obspy master
   - pip install --allow-external obspy --allow-insecure obspy obspy==dev
   - pip freeze
