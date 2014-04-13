@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
   - pip install toeplitz geographiclib
-  - if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq libhdf5-serial-dev; pip install cython h5py obspyh5; fi
+  - if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq python-h5py; pip install obspyh5; fi
   # XXX: At the moment rf is working only with obspy master
   - pip install --allow-external obspy --allow-insecure obspy obspy==dev
   - pip freeze
