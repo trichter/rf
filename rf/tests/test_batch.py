@@ -6,11 +6,11 @@ import os
 from pkg_resources import load_entry_point
 import shutil
 from subprocess import check_call
-import tempfile
+
 import warnings
 
 from rf.batch import _no_pbar, main as script
-from rf.tests.util import quiet
+from rf.tests.util import quiet, tempdir
 try:
     import obspyh5
 except ImportError:
@@ -45,57 +45,56 @@ class BatchTestCase(unittest.TestCase):
                 f.write(text)
 
         # QHD
-        temp_path = os.path.join(tempfile.gettempdir(), 'RF_test')
-        if os.path.exists(temp_path):
+        with tempdir() as temp_path:
             shutil.rmtree(temp_path)
-        with quiet():
-            script(['init', '-t', temp_path])
-            os.chdir(temp_path)
-            script(['calc', 'P'])
-            script(['moveout', 'Prf', 'Ps'])
-            script(['convert', 'Prf_Ps', 'SAC'])
-            if obspyh5:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    script(['convert', 'Prf_Ps', 'H5'])
-            script(['stack', 'Prf_Ps'])
-            if not travis:
-                script(['plot', 'Prf_Ps'])
+            with quiet():
+                script(['init', '-t', temp_path])
+                os.chdir(temp_path)
+                script(['calc', 'P'])
+                script(['moveout', 'Prf', 'Ps'])
+                script(['convert', 'Prf_Ps', 'SAC'])
+                if obspyh5:
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        script(['convert', 'Prf_Ps', 'H5'])
+                script(['stack', 'Prf_Ps'])
+                if not travis:
+                    script(['plot', 'Prf_Ps'])
 
-        # SAC
-        if os.path.exists(temp_path):
-            shutil.rmtree(temp_path)
-        with quiet():
-            script(['init', '-t', temp_path])
-            substitute("format = 'Q'", "format = 'SAC'")
-            os.chdir(temp_path)
-            script(['calc', 'P'])
-            script(['moveout', 'Prf', 'Ps'])
-            script(['convert', 'Prf_Ps', 'Q'])
-            if obspyh5:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    script(['convert', 'Prf_Ps', 'H5'])
-            script(['stack', 'Prf_Ps'])
-            if not travis:
-                script(['plot', 'Prf'])
-
-        # H5
-        if obspyh5:
+            # SAC
             if os.path.exists(temp_path):
                 shutil.rmtree(temp_path)
-            with quiet(), warnings.catch_warnings():
-                warnings.simplefilter("ignore")
+            with quiet():
                 script(['init', '-t', temp_path])
-                substitute("format = 'Q'", "format = 'H5'")
+                substitute("format = 'Q'", "format = 'SAC'")
                 os.chdir(temp_path)
                 script(['calc', 'P'])
                 script(['moveout', 'Prf', 'Ps'])
                 script(['convert', 'Prf_Ps', 'Q'])
-                script(['convert', 'Prf_Ps', 'SAC'])
+                if obspyh5:
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        script(['convert', 'Prf_Ps', 'H5'])
                 script(['stack', 'Prf_Ps'])
                 if not travis:
                     script(['plot', 'Prf'])
+
+            # H5
+            if obspyh5:
+                if os.path.exists(temp_path):
+                    shutil.rmtree(temp_path)
+                with quiet(), warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    script(['init', '-t', temp_path])
+                    substitute("format = 'Q'", "format = 'H5'")
+                    os.chdir(temp_path)
+                    script(['calc', 'P'])
+                    script(['moveout', 'Prf', 'Ps'])
+                    script(['convert', 'Prf_Ps', 'Q'])
+                    script(['convert', 'Prf_Ps', 'SAC'])
+                    script(['stack', 'Prf_Ps'])
+                    if not travis:
+                        script(['plot', 'Prf'])
 
 
 def suite():
