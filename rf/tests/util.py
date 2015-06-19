@@ -26,9 +26,9 @@ def quiet():
 @contextlib.contextmanager
 def tempdir(delete=True, change_dir=True):
     if delete:
-        tempdir = tempfile.mkdtemp(prefix='qopen_test')
+        tempdir = tempfile.mkdtemp(prefix='rf_test')
     else:
-        tempdir = os.path.join(tempfile.gettempdir(), 'qopen_test_permanent')
+        tempdir = os.path.join(tempfile.gettempdir(), 'rf_test_permanent')
         if not os.path.exists(tempdir):
             os.mkdir(tempdir)
     if change_dir:
