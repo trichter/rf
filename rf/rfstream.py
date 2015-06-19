@@ -613,7 +613,8 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         is returned by this function,\n
         if phase == 'P' defaults to (30, 90),\n
         if phase == 'S' defaults to (50, 85)
-    :param model: model for travel time calculation. See :mod:`~obspy.taup`
+    :param model: model for travel time calculation. See the :mod:`obspy.taup`
+        module.
     :return: ``stats`` object with event and station attributes, distance,
         back_azimuth, inclination, onset and slowness or None if epicentral
         distance is not in the given intervall
