@@ -87,7 +87,7 @@ class BatchTestCase(unittest.TestCase):
                     script(['plot', 'Prf'])
 
     def test_plugin_option(self):
-        f = init_data('plugin', plugin='qopen.tests.test_core : gw_test')
+        f = init_data('plugin', plugin='rf.tests.test_batch : gw_test')
         self.assertEqual(f(nework=4, station=2), 42)
 
 def gw_test(**kwargs):
