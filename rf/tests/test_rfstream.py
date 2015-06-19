@@ -3,7 +3,7 @@ Tests for rfstream module.
 """
 import unittest
 
-from obspy import readEvents
+from obspy import read, readEvents
 from obspy.core import AttribDict
 from obspy.core.util import NamedTemporaryFile
 from rf import read_rf, RFStream, rfstats
@@ -45,6 +45,23 @@ class RFStreamTestCase(unittest.TestCase):
         for format in FORMATHEADERS:
             test_io_format(format)
 
+    def test_io_header_no_eventtime(self):
+       def test_io_format(format):
+            stream1 = stream.copy()
+            suffix = '.' + format.upper()
+            if format == 'sh':
+                format = 'q'
+                suffix = '.QHD'
+            with NamedTemporaryFile(suffix=suffix) as ft:
+                fname = ft.name
+                stream1.write(fname, format.upper())
+                stream2 = read_rf(fname)
+            st2 = stream2[0].stats
+            self.assertNotIn('event_time', st2)
+       stream = read()[:1]
+       for format in FORMATHEADERS:
+           test_io_format(format)
+
     def test_obj2stats(self):
         stats = obj2stats(event=self.event, station=self.station)
         for head, _ in STATION_GETTER + EVENT_GETTER:
@@ -69,7 +86,6 @@ class RFStreamTestCase(unittest.TestCase):
 
     def test_rf(self):
         pass
-
 
 def suite():
     return unittest.makeSuite(RFStreamTestCase, 'test')

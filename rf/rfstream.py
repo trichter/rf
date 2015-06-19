@@ -447,8 +447,9 @@ class RFTrace(Trace):
             header = trace.stats
         super(RFTrace, self).__init__(data=data, header=header)
         st = self.stats
-        if '_format'in st and st._format.upper() == 'Q':
-            st.network, st.station, st.location = st.station.split('.')[:3]
+        if ('_format'in st and st._format.upper() == 'Q' and
+            st.station.count('.') > 0):
+                st.network, st.station, st.location = st.station.split('.')[:3]
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
@@ -487,9 +488,14 @@ class RFTrace(Trace):
             return
         for head, head_format in header_map:
             try:
-                st[head] = st[format][head_format]
+                value = st[format][head_format]
             except KeyError:
                 continue
+            else:
+                if format == 'sac' and '-12345' in str(value):
+                    pass
+                else:
+                    st[head] = value
             try:
                 convert = _HEADER_CONVERSIONS[format][head][0]
                 st[head] = convert(st, head)
