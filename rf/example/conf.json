@@ -1,0 +1,123 @@
+### Configuration file for rf package in json format
+# Comments are indicated with "#" and ignored while parsing
+
+{
+    
+### Options for input and output ###
+
+# Filename of events file (QuakeML format)
+"events": "example_events.xml",
+
+# Filename of inventory of stations (StationXML format)
+"inventory": "example_inventory.xml",
+
+# Data can be 
+#   1. a glob expression of files. All files are read at once. If you have
+#      a huge dataset think about using one of the other two available
+#      options.
+#   2. one of "arclink", "seishub" or "fdsn" for getting the data from
+#      a webservice. Option "client_options" is available.
+#   3. "plugin" for a heterogeneus dataset. You have the freedom to get your
+#       data from different locations. In this case the option "plugin" is
+#       availlable
+"data": "example_data.mseed",
+
+# Options for the webservices which are passed to Client.__init__.
+# See the documentation of the clients in ObsPy for availlable options.
+"client_options": {"user": "name@insitution.com"},                    
+
+# Where to find the plugin in the form "module : func"
+# 'module' has to be importable (located in current path or PYTHON_PATH
+# environment variable). 
+# 'func' has to be the function which delivers the data, e.g. for a
+# FSDN client:
+#     # in module.py
+#     from obspy.fsdn import Client
+#     client = Client()
+#     def func(**kwargs):
+#         kwargs.pop('event')  # event kwarg is not needed by client
+#         return client.get_waveforms(**kwargs)
+# Kwargs passed to func are: network, station, location, channel,
+# starttime, endtime and event
+"plugin": "module : func",
+
+# Directory for optional waveform caching from webservice or plugin.
+# This works only if the waveforms are requested with the exact same
+# parameters (start and end time) i.e. if options
+# events and request_window are left untouched.
+# This option needs the module joblib. 
+"cache_waveforms": null,
+
+# Possibility to define your own logging configuration. This dictionary
+# will be passed to logging.config.dictConfig.
+# null will log to a file and stdout depending on 'logfile', 'loglevel'
+# and '-v' flag (logging is quite sparse at the moment)
+"logging": null,
+
+# Log file or null. Output to stdout can be configured with the -v flag
+"logfile": "example.log",
+
+# The higher the log level the more verbose is the logging to the file (1-3)
+"loglevel": 3,
+
+# File format for receiver functions (one of "Q", "SAC" or "H5")
+"format": "Q",
+
+# All receiver functions and plots are stored relative to this path
+"path": ".",
+
+### Options for rf ###
+
+# Phase to use (e.g. "P", "PP", "S"), last letter will determine
+# if P- or S-receiver functions are calculated.
+"phase": "P", 
+"options_by_phase": {
+    "P": {      
+        # Request window of data in s relative to origin time
+        "request_window":  [-50, 150],
+        # Events with an epicentral distance not in dist_range will be discarded
+        # for a specific station        
+        "dist_range": [30, 90],
+        "filter":   {"type": "bandpass", "freqmin": 0.01, "freqmax": 2.0},
+        # Trim window around P-onset
+        "window": [-30, 100]
+    },    
+    "S": {
+        "request_window":  [-100, 50],
+        "filter": {"type": "bandpass", "freqmin": 0.01, "freqmax": 0.5},
+        # Trim window around S-onset
+        "window": [-80, 50]
+    }
+},    
+          
+# Downsample stream to this frequency in Hz.
+"downsample": 10,
+# Roate stream with this method.
+# rotate should be one of 'ZNE->LQT', 'NE->RT'
+"rotate": "ZNE->LQT",
+
+# Deconvolve stream with this method.
+# deconvolve is one of 'time' or 'freq' for time or
+# frequency domain deconvolution.
+# source_component is the component used as source for the deconvolution.
+"deconvolve": "time",
+"source_component" : "L",
+
+# time domain deconvolution options
+"spiking": 1.0,  # spiking factor for noise suppression
+
+# frequency domain deconvolution options
+"water": 0.05,  # water level for noise suppression
+"gauss": 2.0,  # low pass Gauss filter with corner frequency in Hz
+
+# window for source function relative to onset, (start, end, tapering)
+"winsrc" : [-10, 30, 5],
+
+### Options for other routines defined as dictionaries ###
+
+"moveout": "Ps",
+"kwargs_moveout": {},  # See documentation of RFStream.moveout
+
+"kwargs_plot": {"trace_height": 0.2, "norm": 4.0, "fill": true,
+                "window": [-5, 22]}  # See documentation of RFStream.plot_rf
+}
