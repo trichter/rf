@@ -1,10 +1,13 @@
 """
 Tests for simple_model module.
 """
-import unittest
-from rf.simple_model import load_model
+import numpy as np
 from obspy import read
+from obspy.core.util.geodetics import degrees2kilometers
+from obspy.taup import TauPyModel
 from rf import RFStream
+from rf.simple_model import load_model
+import unittest
 
 
 class SimpleModelTestCase(unittest.TestCase):
@@ -49,6 +52,33 @@ class SimpleModelTestCase(unittest.TestCase):
 #        print 'station lat ', st.station_latitude
 #        print 'xy lat    S ', xy_plat_S
 #        print 'model lat S ', st.plat
+
+    def test_ppointvsobspytaup_S2P(self):
+        slowness = 12.33
+        evdep = 12.4
+        evdist = 67.7
+        pp1 = self.model.ppoint_distance(200, slowness, phase='P')
+        model = TauPyModel(model='iasp91')
+        arrivals = model.get_ray_paths(evdep, evdist, ('S250p',))
+        arrival = arrivals[0]
+        index = np.searchsorted(arrival.path['depth'][::-1], 200)
+        pdist = arrival.path['dist']
+        pp2 = degrees2kilometers((pdist[-1] - pdist[-index-1]) * 180 / np.pi)
+        self.assertLess(abs(pp1-pp2)/pp2, 0.2)
+
+    def test_ppointvsobspytaup_P2S(self):
+        slowness = 6.28
+        evdep = 12.4
+        evdist = 67.7
+        depth = 200
+        pp1 = self.model.ppoint_distance(depth, slowness)
+        model = TauPyModel(model='iasp91')
+        arrivals = model.get_ray_paths(evdep, evdist, ('P250s',))
+        arrival = arrivals[0]
+        index = np.searchsorted(arrival.path['depth'][::-1], depth)
+        pdist = arrival.path['dist']
+        pp2 = degrees2kilometers((pdist[-1] - pdist[-index-1]) * 180 / np.pi)
+        self.assertLess(abs(pp1-pp2)/pp2, 0.1)
 
     def test_moveout(self):
         self.model.moveout(self.stream)
