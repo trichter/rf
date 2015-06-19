@@ -238,22 +238,24 @@ def batch_stack(inventory, path, root, format, **kwargs):
         stream.stack()
         _write(stream, path, 'stack_%s' % root, format, stack=True)
 
+CONFIG = ['events', 'inventory', 'init', 'request_window',
+          'dist_range', 'path', 'format',
+          'phase', 'filter', 'window', 'downsample', 'rotate',
+          'deconvolve', 'source_component', 'winsrc']
+CONFIG_FREQ = ['water', 'gauss', 'tschift']
+CONFIG_TIME = ['winrsp', 'winrf', 'spiking']
 
-def _slice_config(config):
-    deconvolve = config['deconvolve']
-    settings = ['events', 'inventory', 'init', 'request_window',
-                'dist_range',
-                'path', 'format',
-                'phase', 'filter', 'window', 'downsample', 'rotate',
-                'deconvolve', 'source_component']
-    options = ['winsrc']
-    if deconvolve == 'freq':
-        settings.extend(['water', 'gauss'])
-        options.append('tshift')
+def _read_config(fname, conf={}):
+    with open(fname) as f:
+        exec(compile(f.read(), fname, 'exec'), conf)
+    return conf
+
+def _slice_config(conf):
+    if conf['deconvolve'] == 'freq':
+        CONFIG.extend(CONFIG_FREQ)
     else:
-        settings.append('spiking')
-        options.extend(['winrsp', 'winrf'])
-    return {k: config[k] for k in settings + options if k in config}
+        CONFIG.extend(CONFIG_TIME)
+    return {k: conf[k] for k in CONFIG if k in conf}
 
 
 def main(args=None):
@@ -310,7 +312,7 @@ def main(args=None):
             conf = {'phase': args.phase, 'method': args.phase[-1].upper()}
         else:
             conf = {'phase': 'P', 'method': 'P'}
-        execfile(args.conf, conf)
+        conf = _read_config(args.conf, conf)
         if args.subcommand == 'calc':
             conf = _slice_config(conf)
             batch_rf(**conf)
