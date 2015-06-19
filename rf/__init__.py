@@ -51,8 +51,8 @@ Now install rf with ::
 
     python setup.py install
 
-Basic Usage
------------
+Using the underlying Python module
+-----------------------------------
 
 The canonical way to load a waveform file into a RFStream is to use
 the :func:`~rf.rfstream.read_rf` function.
@@ -157,25 +157,26 @@ you want to analyze.
 
 The command ::
 
-    rf init test
+    rf create
 
-initializes a new rf project in a new folder with an example configuration
-file conf.py. You will have to edit this file so that the program finds your
-data (events, stations and waveforms). After that you can use the various
+creates a template configuration file in the current directory. This file is
+in JSON format and well documented.
+After adapting the file to your needs you can use the various
 subcommands of rf to perform different tasks (e.g. receiver function
 calculation, plotting).
 
-To init a project with a small included dataset and working configuration
+To init a tutorial with a small included dataset and working configuration
 you can use ::
 
-    rf init -t test2
+    rf create --tutorial
 
-Now switch to the newly created directy and start using rf... ::
+Now start using rf ..., e.g. ::
 
-    cd test2
     rf calc P
-    rf moveout Prf Ps
+    rf moveout
     rf plot Prf_Ps
+    rf --moveout Psss moveout
+    rf plot Prf_Psss
 
 Miscellaneous
 -------------
