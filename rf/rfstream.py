@@ -633,8 +633,13 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     model = TauPyModel(model=model)
     arrivals = model.get_travel_times(stats.event_depth, dist, (phase,))
     if len(arrivals) == 0:
-        raise Exception('Taup does not return phase %s at event distance %s' %
+        raise Exception('TauPy does not return phase %s at distance %s' %
                         (phase, dist))
+    if len(arrivals) > 1:
+        from warnings import warn
+        msg = ('TauPy returns more than one arrival for phase %s at '
+               'distance -> take first arrival' )
+        warn(msg % (phase, dist))
     arrival = arrivals[0]
     onset = stats.event_time + arrival.time
     inc = arrival.incident_angle
