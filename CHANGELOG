@@ -2,8 +2,9 @@ v0.2.0:
   * new batch module and command line utility
   * new plot_rf method
   * read_rf function added
+  * change config format to json
   * refactored and bugs fixed
-  * obspyDMT is not supported anymore
+  * drop direct support of obspyDMT
 v0.1.3:
   * lots of bugs fixed
   * major improvement of docs
