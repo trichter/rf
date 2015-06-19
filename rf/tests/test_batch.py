@@ -3,10 +3,12 @@ Tests for batch module.
 """
 import unittest
 import os
-import shutil
-import tempfile
-from subprocess import check_call
 from pkg_resources import load_entry_point
+import shutil
+from subprocess import check_call
+import tempfile
+import warnings
+
 from rf.batch import _no_pbar, main as script
 from rf.tests.util import quiet
 try:
@@ -53,7 +55,9 @@ class BatchTestCase(unittest.TestCase):
             script(['moveout', 'Prf', 'Ps'])
             script(['convert', 'Prf_Ps', 'SAC'])
             if obspyh5:
-                script(['convert', 'Prf_Ps', 'H5'])
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    script(['convert', 'Prf_Ps', 'H5'])
             script(['stack', 'Prf_Ps'])
             if not travis:
                 script(['plot', 'Prf_Ps'])
@@ -69,7 +73,9 @@ class BatchTestCase(unittest.TestCase):
             script(['moveout', 'Prf', 'Ps'])
             script(['convert', 'Prf_Ps', 'Q'])
             if obspyh5:
-                script(['convert', 'Prf_Ps', 'H5'])
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    script(['convert', 'Prf_Ps', 'H5'])
             script(['stack', 'Prf_Ps'])
             if not travis:
                 script(['plot', 'Prf'])
@@ -78,7 +84,8 @@ class BatchTestCase(unittest.TestCase):
         if obspyh5:
             if os.path.exists(temp_path):
                 shutil.rmtree(temp_path)
-            with quiet():
+            with quiet(), warnings.catch_warnings():
+                warnings.simplefilter("ignore")
                 script(['init', '-t', temp_path])
                 substitute("format = 'Q'", "format = 'H5'")
                 os.chdir(temp_path)
