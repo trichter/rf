@@ -13,7 +13,7 @@ DESCRIPTION = readme[2]
 LONG_DESCRIPTION = '\n'.join(readme[5:7] + readme[9:10] + readme[12:])
 
 ENTRY_POINTS = {
-    'console_scripts': ['rf-runtests = rf.tests.suite:main',
+    'console_scripts': ['rf-runtests = rf.tests:run',
                         'rf = rf.batch:run_cli']}
 
 setup(name='rf',
