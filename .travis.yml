@@ -24,7 +24,7 @@ before_install:
   - conda install python=$TRAVIS_PYTHON_VERSION obspy
   - pip install toeplitz geographiclib
   - pip install geographiclib toeplitz
-  -  if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq python-h5py; pip install obspyh5; fi  
+  - if [[ $USE_OBSPYH5 == true ]]; then conda install python=$TRAVIS_PYTHON_VERSION cython h5py; pip install obspyh5; fi  
 install:
   - pip install .
 script:
