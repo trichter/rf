@@ -2,6 +2,6 @@ include README.rst
 include LICENSE
 include CHANGELOG
 include rf/data/*.dat
-include rf/example/*.py
+include rf/example/*.json
 include rf/example/*.mseed
 include rf/example/*.xml
