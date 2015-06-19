@@ -1,3 +1,8 @@
+v0.2.0:
+  * new command line interface for batch processing
+    - configuration file in JSON format
+    - logging support (still needs some useful log messages)
+    - fetch data directly from webservices
 v0.1.4:
   * read_rf function added
   * new plot_rf method
