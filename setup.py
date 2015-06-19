@@ -8,8 +8,9 @@ with open('README.rst') as f:
     README = f.read()
 if not 'dev' in VERSION:  # get image for correct version from travis-ci
     README = README.replace('branch=master', 'branch=v%s' % VERSION)
-DESCRIPTION = README.split('\n')[2]
-LONG_DESCRIPTION = '\n'.join(README.split('\n')[5:])
+readme = README.split('\n')
+DESCRIPTION = readme[2]
+LONG_DESCRIPTION = '\n'.join(readme[5:7] + readme[9:10] + readme[12:])
 
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests.suite:main',
