@@ -6,7 +6,7 @@ This module heavily depends on ObsPy_.
 The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
 which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 
-:Author: Tom Richter
+:Author: Tom Eulenfeld
 :License: MIT
 :Documentation: http://rf.readthedocs.org/ (installation instructions, usage,
     examples and module reference)
@@ -50,12 +50,6 @@ Then download the source code from GitHub_ eg. by ::
 Now install rf with ::
 
     python setup.py install
-    
-.. note::
-    At the moment rf-dev is only working with the development version of obspy.
-    Install obspy-dev by e.g. 
-    pip install --allow-external obspy --allow-insecure obspy obspy==dev
-
 
 Basic Usage
 -----------
@@ -151,7 +145,7 @@ the given kwargs:
 Please see :meth:`RFStream.rf() <rf.rfstream.RFStream.rf>`
 for a more detailed description.
 RFStream provides the possibility to perform moveout correction
-and piercing point calculation. 
+and piercing point calculation.
 
 Batch Usage
 -----------
