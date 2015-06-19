@@ -622,19 +622,21 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     if stream is not None:
         assert stats is None
         for tr in stream:
-            rfstats(tr.stats, event, station, None, phase, dist_range)
+            rfstats(tr.stats, event, station, None, phase, dist_range, model)
         return
     phase = phase.upper()
     if dist_range is None and phase in 'PS':
         dist_range = (30, 90) if phase == 'P' else (50, 85)
     if stats is None:
         stats = AttribDict({})
-    stats.update(obj2stats(event=event, station=station))
+    if event is not None and station is not None:
+        stats.update(obj2stats(event=event, station=station))
     dist, baz, _ = gps2DistAzimuth(stats.station_latitude,
                                    stats.station_longitude,
                                    stats.event_latitude,
                                    stats.event_longitude)
     dist = kilometer2degrees(dist / 1000)
+    print dist
     if dist_range and not dist_range[0] <= dist <= dist_range[1]:
         return
     model = TauPyModel(model=model)
