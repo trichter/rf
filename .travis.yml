@@ -20,8 +20,8 @@ before_install:
   - conda update -q conda
   - conda info -a
   - conda config --add channels obspy
-  - conda install python=$TRAVIS_PYTHON_VERSION obspy geographiclib
-  - pip install toeplitz
+  - conda install python=$TRAVIS_PYTHON_VERSION obspy
+  - pip install geographiclib toeplitz
   -  if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq python-h5py; pip install obspyh5; fi  
 install:
   - pip install .
