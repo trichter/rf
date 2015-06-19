@@ -3,7 +3,7 @@
 Classes and functions for receiver function calculation.
 """
 
-from math import pi, sin
+import logging
 from operator import itemgetter
 import warnings
 
@@ -15,7 +15,6 @@ from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
 from obspy.taup import TauPyModel
 from rf.deconvolve import deconv
 from rf.simple_model import load_model
-
 
 def __get_event_origin(h):
     return lambda event: event.preferred_origin()[h]
@@ -636,7 +635,6 @@ def rfstats(stats=None, event=None, station=None, stream=None,
                                    stats.event_latitude,
                                    stats.event_longitude)
     dist = kilometer2degrees(dist / 1000)
-    print dist
     if dist_range and not dist_range[0] <= dist <= dist_range[1]:
         return
     model = TauPyModel(model=model)
