@@ -1,5 +1,6 @@
 v0.1.4:
   * read_rf function added
+  * new plot_rf method
   * fixed som bugs: rf is now working with obspy 0.10
   * drop direct support of obspyDMT
   * experimental batch support (work in progress)
