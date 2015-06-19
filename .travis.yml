@@ -7,15 +7,22 @@ env:
 virtualenv:
   system_site_packages: true
 before_install:
-  - lsb_release -a # get info on the operating system
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq python-dev python-setuptools python-numpy python-scipy python-matplotlib python-lxml python-sqlalchemy python-suds gfortran
-  - pip install toeplitz geographiclib
-  - if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq python-h5py; pip install obspyh5; fi
-  # XXX: At the moment rf is working only with obspy master
-  - pip install --allow-external obspy --allow-insecure obspy obspy==dev
-  - pip freeze
-
+  - sudo apt-get update
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"  
+  - hash -r
+  - conda config --set always_yes yes
+  - conda update -q conda
+  - conda info -a
+  - conda config --add channels obspy
+  - conda install python=$TRAVIS_PYTHON_VERSION obspy geographiclib
+  - pip install toeplitz
+  -  if [[ $USE_OBSPYH5 == true ]]; then sudo apt-get install -qq python-h5py; pip install obspyh5; fi  
 install:
   - pip install .
 script:
