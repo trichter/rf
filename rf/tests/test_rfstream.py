@@ -76,13 +76,13 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertTrue(abs(stats.back_azimuth % 360.) < 0.1)
         self.assertTrue(abs(stats.slowness - 6.4) < 0.1)
 
-    def test_simple(self):
-        stream = read_rf()
-        stream._write_test_header()
-        stream.rf()
-        stream.moveout()
-        stream.ppoint(50)
-        self.assertEqual(len(stream[0]), len(read_rf()[0]))
+#    def test_simple(self):
+#        stream = read_rf()
+#        stream._write_test_header()
+#        stream.rf()
+#        stream.moveout()
+#        stream.ppoint(50)
+#        self.assertEqual(len(stream[0]), len(read_rf()[0]))
 
     def test_rf(self):
         pass
