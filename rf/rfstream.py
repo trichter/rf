@@ -12,7 +12,7 @@ from obspy import read
 from obspy.core import Stream, Trace
 from obspy.core.util import AttribDict
 from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
-from obspy.taup.taup import getTravelTimes
+from obspy.taup import TauPyModel
 from rf.deconvolve import deconv
 from rf.simple_model import load_model
 
@@ -589,7 +589,7 @@ def obj2stats(event=None, station=None):
 
 
 def rfstats(stats=None, event=None, station=None, stream=None,
-            phase='P', dist_range=None):
+            phase='P', dist_range=None, model='iasp91'):
     """
     Calculate ray specific values like slowness for given event and station.
 
@@ -600,15 +600,14 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         elevation
     :param stream: If a stream is given, stats has to be None. In this case
         rfstats will be called for every stats object in the stream.
-    :param phase: string with phase to look for in result of
-        :func:`~obspy.taup.taup.getTravelTimes`. Usually this will be 'P' or
+    :param phase: string with phase. Usually this will be 'P' or
         'S' for P and S receiver functions, respectively.
     :type dist_range: tuple of length 2
     :param dist_range: if epicentral of event is not in this intervall, None
         is returned by this function,\n
         if phase == 'P' defaults to (30, 90),\n
         if phase == 'S' defaults to (50, 85)
-
+    :param model: model for travel time calculation. See :mod:`~obspy.taup`
     :return: ``stats`` object with event and station attributes, distance,
         back_azimuth, inclination, onset and slowness or None if epicentral
         distance is not in the given intervall
@@ -631,17 +630,15 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     dist = kilometer2degrees(dist / 1000)
     if dist_range and not dist_range[0] <= dist <= dist_range[1]:
         return
-    tts = getTravelTimes(dist, stats.event_depth)
-    tts2 = getTravelTimes(dist, 0)
-    tts = [tt for tt in tts if tt['phase_name'] == phase]
-    tts2 = [tt for tt in tts2 if tt['phase_name'] == phase]
-    if len(tts) == 0 or len(tts2) == 0:
+    model = TauPyModel(model=model)
+    arrivals = model.get_travel_times(stats.event_depth, dist, (phase,))
+    if len(arrivals) == 0:
         raise Exception('Taup does not return phase %s at event distance %s' %
                         (phase, dist))
-    onset = stats.event_time + tts[0]['time']
-    inc = tts2[0]['take-off angle']  # approximation
-    v = 5.8 if 'P' in phase else 3.36  # iasp91
-    slowness = 6371. * sin(pi / 180. * inc) / v / 180 * pi
+    arrival = arrivals[0]
+    onset = stats.event_time + arrival.time
+    inc = arrival.incident_angle
+    slowness = arrival.ray_param_sec_degree
     stats.update({'distance': dist, 'back_azimuth': baz, 'inclination': inc,
                   'onset': onset, 'slowness': slowness})
     return stats
