@@ -165,14 +165,14 @@ After adapting the file to your needs you can use the various
 subcommands of rf to perform different tasks (e.g. receiver function
 calculation, plotting).
 
-To init a tutorial with a small included dataset and working configuration
+To create the tutorial with a small included dataset and working configuration
 you can use ::
 
     rf create --tutorial
 
 Now start using rf ..., e.g. ::
 
-    rf calc P
+    rf calc
     rf moveout
     rf plot Prf_Ps
     rf --moveout Psss moveout
