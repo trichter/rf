@@ -81,7 +81,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rf'
-copyright = u'2013, Tom Richter'
+copyright = u'2015, Tom Eulenfeld'
 
 # The full version, including alpha/beta/rc tags.
 release = rf.__version__
@@ -130,7 +130,7 @@ latex_elements = {} # stuff for the LaTeX preamble
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'rf.tex', u'rf Documentation',
-   u'Tom Richter', 'manual'),
+   u'Tom Eulenfeld', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -148,7 +148,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'rf', u'rf Documentation',
-     [u'Tom Richter'], 1)
+     [u'Tom Eulenfeld'], 1)
 ]
 
 
@@ -159,7 +159,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'rf', u'rf Documentation',
-   u'Tom Richter', 'rf', 'Receiver function calculation in seismology',
+   u'Tom Eulenfeld', 'rf', 'Receiver function calculation in seismology',
    'Miscellaneous'),
 ]
 
@@ -167,9 +167,9 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = u'rf'
-epub_author = u'Tom Richter'
-epub_publisher = u'Tom Richter'
-epub_copyright = u'2013, Tom Richter'
+epub_author = u'Tom Eulenfeld'
+epub_publisher = u'Tom Eulenfeld'
+epub_copyright = u'2015, Tom Eulenfeld'
 
 
 # Configuration for intersphinx
