@@ -85,9 +85,9 @@ The following table reflects the mapping:
 =================  =========  =====
 stats              SH/Q       SAC
 =================  =========  =====
-station_latitude   DCVREG     stla
-station_longitude  DCVINCI    stlo
-station_elevation  PWDW       stel
+station_latitude   COMMENT    stla
+station_longitude  COMMENT    stlo
+station_elevation  COMMENT    stel
 event_latitude     LAT        evla
 event_longitude    LON        evlo
 event_depth        DEPTH      evdp
@@ -101,8 +101,8 @@ slowness           SLOWNESS   user1
 =================  =========  =====
 
 .. note::
-    Q-file headers DCVREG DCVINCI PWDW are used for the station
-    information, because the Q format has a shortage of predefined headers.
+    Q-file header COMMENT is used for storing some information, because
+    the Q format has a shortage of predefined headers.
 
 .. note::
     Alternatively the hdf5 file format can be used. It is supported via the

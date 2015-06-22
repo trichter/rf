@@ -3,6 +3,7 @@
 Classes and functions for receiver function calculation.
 """
 
+import json
 import logging
 from operator import itemgetter
 import warnings
@@ -43,9 +44,8 @@ HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
 FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                          'evdp', 'mag',
                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1'),
-                 # fields 'dcvreg', 'dcvinci' and 'pwdw' are violated for
-                 # station information
-                 'sh': ('DCVREG', 'DCVINCI', 'PWDW',
+                 # field 'COMMENT' is violated for different information
+                 'sh': ('COMMENT', 'COMMENT', 'COMMENT',
                         'LAT', 'LON', 'DEPTH',
                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
                         'AZIMUTH', 'INCI', 'SLOWNESS')}
@@ -485,7 +485,10 @@ class RFTrace(Trace):
                 warnings.warn('Reading rf header of a file with this format '
                               'is not supported.')
             return
+        read_comment = False
         for head, head_format in header_map:
+            if format == 'sh' and read_comment:
+                continue
             try:
                 value = st[format][head_format]
             except KeyError:
@@ -493,6 +496,9 @@ class RFTrace(Trace):
             else:
                 if format == 'sac' and '-12345' in str(value):
                     pass
+                elif format == 'sh' and head_format == 'COMMENT':
+                    st.update(json.loads(value))
+                    continue
                 else:
                     st[head] = value
             try:
@@ -518,7 +524,15 @@ class RFTrace(Trace):
             return
         if format not in st:
             st[format] = AttribDict({})
+        if format == 'sh':
+            comment = {}
         for head, head_format in header_map:
+            if format == 'sh' and head_format == 'COMMENT':
+                try:
+                    comment[head] = st[head]
+                except KeyError:
+                    pass
+                continue
             try:
                 val = st[head]
             except KeyError:
@@ -529,6 +543,8 @@ class RFTrace(Trace):
             except KeyError:
                 pass
             st[format][head_format] = val
+        if format == 'sh' and len(comment) > 0:
+            st[format]['COMMENT'] = json.dumps(comment, separators=(',', ':'))
 
     def write(self, filename, format, **kwargs):
         """
