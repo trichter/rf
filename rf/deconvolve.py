@@ -15,7 +15,7 @@ except ImportError:
     warnings.warn(msg)
 
 
-def deconv(stream, source_component, method='time', **kwargs):
+def deconv(stream, source_component='L', method='time', **kwargs):
     """
     Deconvolve one component of a stream from all components.
 
@@ -57,7 +57,7 @@ def deconv(stream, source_component, method='time', **kwargs):
         winrf = kwargs.pop('winrf', (-20, 80))
     else:
         winsrc = kwargs.pop('winsrc', (-20, 80, 5))
-        tshift = kwargs.pop('tshift', 10)
+        tshift = kwargs.get('tshift', 10)
     st = stream
     samp = st[0].stats.sampling_rate
     onset = st[0].stats.onset

@@ -165,7 +165,8 @@ class RFStream(Stream):
                     nkwargs[k] = def_kwargs[k]
             try:
                 deconv(self[i:i + 3], method=deconvolve_method, **nkwargs)
-            except:
+            except Exception as ex:
+                print(ex)
                 print('error while calculating the deconvolution')
                 for tr in self[i:i + 3]:
                     self.remove(tr)
@@ -554,7 +555,7 @@ class RFTrace(Trace):
         """
         RFStream([self]).write(filename, format, **kwargs)
 
-    def _moveout_xy(self):
+    def _moveout_xy(self, phase='Ps'):
         """
         Depreciated! Moveout correction to a slowness of 6.4s/deg.
 
@@ -562,10 +563,13 @@ class RFTrace(Trace):
         of receiver function. Needs stats attributes slowness and onset.
         """
         from rf import _xy
+        itype = {'Ps': 1, 'Ppps': 2, 'Ppss': 3, 'Psss': 3}[phase]
         st = self.stats
-        self.data = _xy.psmout(self.data, st.slowness,
-                               st.onset - st.starttime,
-                               st.endtime - st.starttime, st.delta, 0)
+        dt = st.onset - st.starttime
+        data = _xy.psmout([self.data], st.slowness,
+                           -dt,
+                           st.endtime - st.starttime-dt, st.delta, itype)
+        self.data = data[0, :]
 
     def _ppoint_xy(self, depth, method='P'):
         """

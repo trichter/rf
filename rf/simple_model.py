@@ -196,11 +196,11 @@ class SimpleModel(object):
             points of S wave. Multiples are possible, too.
         :return: piercing point latitude and longitude
         """
-        dr = self.ppoint_distance(depth, stats.slowness, phase=phase)
-        lat = stats.station_latitude
-        lon = stats.station_longitude
-        az = stats.back_azimuth
+        dr = self.ppoint_distance(depth, stats['slowness'], phase=phase)
+        lat = stats['station_latitude']
+        lon = stats['station_longitude']
+        az = stats['back_azimuth']
         result = Geodesic.WGS84.Direct(lat, lon, az, 1000 * dr)
-        stats.plat = result['lat2']
-        stats.plon = result['lon2']
-        return stats.plat, stats.plon
+        stats['plat'] = plat = result['lat2']
+        stats['plon'] = plon = result['lon2']
+        return plat, plon
