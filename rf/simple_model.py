@@ -1,8 +1,5 @@
 """
 Simple move out and piercing point calculation.
-
-This module will probably be replaced by something more sophisticated in
-future.
 """
 from pkg_resources import resource_filename
 from math import floor
@@ -25,6 +22,16 @@ def load_model(fname='iasp91'):
 
     :param fname: path to model file or 'iasp91'
     :return: :class:`~rf.simple.model.SimpleModel` instance
+
+    The model file should have 4 columns with depth, vp, vs, n.
+    The model file for iasp91 starts like this:
+
+    #IASP91 velocity model
+    #depth    vp      vs     n
+       0.00  5.800 3.360 0
+       0.00  5.800 3.360 0
+      10.00  5.800 3.360 4
+
     """
     try:
         return _model_cache[fname]
@@ -52,7 +59,7 @@ def _interpolate_n(val, n):
 
 class SimpleModel(object):
     """
-    Simple 1D velocity model.
+    Simple 1D velocity model for move out and piercing point calculation.
     """
     def __init__(self, z, vp, vs, n=None):
         assert len(z) == len(vp) == len(vs)
@@ -98,7 +105,9 @@ class SimpleModel(object):
         :param ref: reference ray parameter in s/deg
         :return: original times, times stretched to reference slowness
         """
-        assert len(phase) % 2 == 0
+        if len(phase) % 2 == 1:
+            msg = 'Length of phase (%s) should be divisible by two'
+            raise ValueError(msg % phase)
         slowness = slowness * kilometer2degrees(1)
         ref = ref * kilometer2degrees(1)
         phase = phase.upper()
@@ -113,8 +122,6 @@ class SimpleModel(object):
         try:
             index = np.nonzero(np.isnan(t))[0][0] - 1
         except IndexError:
-            # slowness and phase do not match
-            # return
             index = len(t)
         t = t[:index]
         t_ref = t_ref[:index]
@@ -132,12 +139,8 @@ class SimpleModel(object):
         for tr in stream:
             st = tr.stats
             index0 = int(floor((st.onset - st.starttime) * st.sampling_rate))
-            temp = self.calculate_phase_delays(st.slowness, phase=phase,
-                                               ref=ref)
-            if temp is None:
-                stream.remove(tr)
-                continue
-            t0, t1 = temp
+            t0, t1 = self.calculate_phase_delays(st.slowness, phase=phase,
+                                                 ref=ref)
             S_multiple = phase[0].upper() == 'S' and len(phase) > 3
             if S_multiple:
                 time0 = st.starttime - st.onset + index0 * st.delta
@@ -167,7 +170,9 @@ class SimpleModel(object):
         :param phase: 'P' or 'S' for P wave or S wave. Multiples possible.
         :return: horizontal distance in km
         """
-        assert len(phase) % 2 == 1
+        if len(phase) % 2 == 0:
+            msg = 'Length of phase (%s) should be even'
+            raise ValueError(msg % phase)
         phase = phase.upper()
         slowness = slowness * kilometer2degrees(1)
         xp, xs = 0., 0.

@@ -117,6 +117,7 @@ class SimpleModelTestCase(unittest.TestCase):
                                              decimal=2)
         np.testing.assert_array_almost_equal(stream3[0].data, stream4[0].data,
                                              decimal=2)
+        #TODO Test moveout of multiples against XY
 #        import pylab
 #        pylab.plot(t, stream[0].data)
 #        pylab.plot(t, stream1[0].data)
