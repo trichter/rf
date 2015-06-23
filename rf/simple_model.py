@@ -158,7 +158,7 @@ class SimpleModel(object):
                 # stretch old times to new times
                 new_t = np.interp(t, t0, t1, left=0, right=0)
                 # interpolate data at new times to data samples
-                data = np.interp(t, new_t, old_data, left=0., right=0.)
+                data = np.interp(t, new_t, old_data, left=None, right=0.)
                 tr.data[index0:] = data
 
     def ppoint_distance(self, depth, slowness, phase='S'):
