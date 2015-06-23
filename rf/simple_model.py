@@ -13,7 +13,7 @@ except ImportError:
     warnings.warn(msg)
 
 
-_model_cache = {}
+_MODEL_CACHE = {}
 
 
 def load_model(fname='iasp91'):
@@ -34,7 +34,7 @@ def load_model(fname='iasp91'):
 
     """
     try:
-        return _model_cache[fname]
+        return _MODEL_CACHE[fname]
     except KeyError:
         pass
     fname_key = fname
@@ -47,7 +47,7 @@ def load_model(fname='iasp91'):
     except ValueError:
         n = None
         z, vp, vs = values
-    _model_cache[fname_key] = model = SimpleModel(z, vp, vs, n)
+    _MODEL_CACHE[fname_key] = model = SimpleModel(z, vp, vs, n)
     return model
 
 
@@ -58,9 +58,11 @@ def _interpolate_n(val, n):
 
 
 class SimpleModel(object):
+
     """
     Simple 1D velocity model for move out and piercing point calculation.
     """
+
     def __init__(self, z, vp, vs, n=None):
         assert len(z) == len(vp) == len(vs)
         if n is not None:
