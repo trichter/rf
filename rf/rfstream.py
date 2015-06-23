@@ -257,6 +257,10 @@ class RFStream(Stream):
         model = load_model(model)
         model.moveout(self, phase=phase, ref=ref)
 
+    def _moveout_xy(self, *args, **kwargs):
+        for tr in self:
+            tr._moveout_xy(*args, **kwargs)
+
     def ppoint(self, depth, phase='S', model='iasp91'):
         """
         Calculate coordinates of piercing point by 1D ray tracing.
@@ -280,6 +284,10 @@ class RFStream(Stream):
         for tr in self:
             model.ppoint(tr.stats, depth, phase=phase)
         return np.array([(tr.stats.plat, tr.stats.plon) for tr in self])
+
+    def _ppoint_xy(self, *args, **kwargs):
+        for tr in self:
+            tr._ppoint_xy(*args, **kwargs)
 
     def stack(self):
         """
@@ -425,14 +433,6 @@ class RFStream(Stream):
         if fname:
             fig.savefig(fname)
             plt.close(fig)
-
-    def _moveout_xy(self, *args, **kwargs):
-        for tr in self:
-            tr._moveout_xy(*args, **kwargs)
-
-    def _ppoint_xy(self, *args, **kwargs):
-        for tr in self:
-            tr._ppoint_xy(*args, **kwargs)
 
 
 class RFTrace(Trace):
