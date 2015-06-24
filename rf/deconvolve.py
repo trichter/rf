@@ -221,7 +221,7 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
     Calculate Toeplitz auto-correlation matrix of source, invert it, add noise
     and multiply it with cross-correlation vector of response and source.
 
-    In one formula: ::
+    In one formula::
 
         RF = (STS + spiking*I)^-1 * STR
 
