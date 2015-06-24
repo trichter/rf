@@ -98,6 +98,9 @@ distance           DISTANCE   gcarc
 back_azimuth       AZIMUTH    baz
 inclination        INCI       user0
 slowness           SLOWNESS   user1
+pp_latitude        COMMENT    user2
+pp_longitude       COMMENT    user3
+pp_depth           COMMENT    user4
 =================  =========  =====
 
 .. note::

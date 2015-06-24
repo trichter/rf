@@ -68,7 +68,7 @@ class RFStreamTestCase(unittest.TestCase):
             self.assertIn(head, stats)
 
     def test_rfstats(self):
-        stats = rfstats(station=self.station, event=self.event)
+        stats = rfstats(station=self.station, event=self.event, pp_depth=100.)
         for head in HEADERS:
             self.assertIn(head, stats)
         # event is exactly north from station and around 66.7 degrees away

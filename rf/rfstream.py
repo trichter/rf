@@ -40,20 +40,24 @@ EVENT_GETTER = (
     ('event_magnitude', lambda event: event.preferred_magnitude()['mag']),
     ('event_time', __get_event_origin('time')))
 HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
-    'onset', 'distance', 'back_azimuth', 'inclination', 'slowness')
+    'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
+    'pp_latitude', 'pp_longitude', 'pp_depth')
 FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                          'evdp', 'mag',
-                         'o', 'a', 'gcarc', 'baz', 'user0', 'user1'),
+                         'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
+                         'user2', 'user3', 'user4'),
                  # field 'COMMENT' is violated for different information
                  'sh': ('COMMENT', 'COMMENT', 'COMMENT',
                         'LAT', 'LON', 'DEPTH',
                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
-                        'AZIMUTH', 'INCI', 'SLOWNESS')}
+                        'AZIMUTH', 'INCI', 'SLOWNESS',
+                        'COMMENT', 'COMMENT', 'COMMENT')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
                                'event_time': (__rel2UTC, __UTC2rel)}}
 _HEADERS_EXAMPLE = (50.3, -100.2, 400.3,
                     -20.32, 10., 12.4, 6.5, -40.432,
-                    20.643, 57.6, 90.1, 10.2, 10.)
+                    20.643, 57.6, 90.1, 10.2, 10.,
+                    10., -20, 150)
 
 _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
 H5INDEX = ('{network}.{station}.{location}/{event_time%s}/' % _TF +
@@ -252,7 +256,8 @@ class RFStream(Stream):
 
         :param phase: 'Ps', 'Sp', 'Ppss' or other multiples
         :param ref: reference ray parameter in s/deg
-        :param model: path to model file or 'iasp91'
+        :param model: Path to model file
+            (see :class:`~rf.simple_model.SimpleModel`, default: iasp91)
         """
         model = load_model(model)
         model.moveout(self, phase=phase, ref=ref)
@@ -261,7 +266,7 @@ class RFStream(Stream):
         for tr in self:
             tr._moveout_xy(*args, **kwargs)
 
-    def ppoint(self, depth, phase='S', model='iasp91'):
+    def ppoint(self, pp_depth, pp_phase='S', model='iasp91'):
         """
         Calculate coordinates of piercing point by 1D ray tracing.
 
@@ -269,10 +274,11 @@ class RFStream(Stream):
         stats attributes plat and plon. Needs stats attributes
         station_latitude, station_longitude, slowness and back_azimuth.
 
-        :param depth: depth of interface in km
-        :param phase: 'P' for piercing points of P wave, 'S' for piercing
+        :param pp_depth: depth of interface in km
+        :param pp_phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave. Multiples are possible, too.
-        :param model: path to model file or 'iasp91'
+        :param model: Path to model file
+            (see :class:`~rf.simple_model.SimpleModel`, default: iasp91)
         :return: NumPy array with coordinates of piercing points
 
         .. note::
@@ -282,8 +288,9 @@ class RFStream(Stream):
         """
         model = load_model(model)
         for tr in self:
-            model.ppoint(tr.stats, depth, phase=phase)
-        return np.array([(tr.stats.plat, tr.stats.plon) for tr in self])
+            model.ppoint(tr.stats, pp_depth, phase=pp_phase)
+        return np.array([(tr.stats.pp_latitude, tr.stats.pp_longitude)
+                         for tr in self])
 
     def _ppoint_xy(self, *args, **kwargs):
         for tr in self:
@@ -614,7 +621,8 @@ def obj2stats(event=None, station=None):
 
 
 def rfstats(stats=None, event=None, station=None, stream=None,
-            phase='P', dist_range=None, model='iasp91'):
+            phase='P', dist_range=None, tt_model='iasp91',
+            pp_depth=None, pp_phase=None, model='iasp91'):
     """
     Calculate ray specific values like slowness for given event and station.
 
@@ -632,16 +640,26 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         is returned by this function,\n
         if phase == 'P' defaults to (30, 90),\n
         if phase == 'S' defaults to (50, 85)
-    :param model: model for travel time calculation. See the :mod:`obspy.taup`
-        module.
+    :param tt_model: model for travel time calculation.
+        (see the :mod:`obspy.taup` module, default: iasp91)
+    :param pp_depth: Depth for piercing point calculation
+        (in km, default: None -> No calculation)
+    :param pp_phase: Phase for pp calculation (default: 'S' for P-receiver
+        function and 'P' for S-receiver function)
+    :param model': Path to model file for pp calculation
+        (see :class:`~rf.simple_model.SimpleModel`, default: iasp91)
     :return: ``stats`` object with event and station attributes, distance,
         back_azimuth, inclination, onset and slowness or None if epicentral
         distance is not in the given intervall
     """
     if stream is not None:
         assert stats is None
+        kwargs = {'event': event, 'station': station, 'stream':None,
+                  'phase': phase, 'dist_range': dist_range,
+                  'tt_model':tt_model, 'pp_depth': pp_depth,
+                  'pp_phase': pp_phase, 'model': model}
         for tr in stream:
-            rfstats(tr.stats, event, station, None, phase, dist_range, model)
+            rfstats(stats=tr.stats, **kwargs)
         return
     phase = phase.upper()
     if dist_range is None and phase in 'PS':
@@ -657,8 +675,8 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     dist = kilometer2degrees(dist / 1000)
     if dist_range and not dist_range[0] <= dist <= dist_range[1]:
         return
-    model = TauPyModel(model=model)
-    arrivals = model.get_travel_times(stats.event_depth, dist, (phase,))
+    tt_model = TauPyModel(model=tt_model)
+    arrivals = tt_model.get_travel_times(stats.event_depth, dist, (phase,))
     if len(arrivals) == 0:
         raise Exception('TauPy does not return phase %s at distance %s' %
                         (phase, dist))
@@ -673,4 +691,9 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     slowness = arrival.ray_param_sec_degree
     stats.update({'distance': dist, 'back_azimuth': baz, 'inclination': inc,
                   'onset': onset, 'slowness': slowness})
+    if pp_depth is not None:
+        model = load_model(model)
+        if pp_phase is None:
+            pp_phase = 'S' if phase.upper().endswith('P') else 'P'
+        model.ppoint(stats, pp_depth, phase=pp_phase)
     return stats

@@ -218,7 +218,8 @@ def _generator(events, inventory, rf=False):
 
 
 def run_rf(events, inventory, get_waveforms, path, format='H5',
-           request_window=None, phase='P', dist_range=None,
+           request_window=None, phase='P', dist_range=None, tt_model='iasp91',
+           pp_depth=None, pp_phase=None, model='iasp91',
            **rf_kwargs):
     root = phase + 'rf'
     _check_path(join(path, root))
@@ -229,7 +230,8 @@ def run_rf(events, inventory, get_waveforms, path, format='H5',
         request_window = (-50, 150) if method == 'P' else (-100, 50)
     for kwargs, event, coords in _iter(events, inventory, rf=True):
         stats = rfstats(station=coords, event=event,
-                        phase=phase, dist_range=dist_range)
+                        phase=phase, dist_range=dist_range, tt_model=tt_model,
+                        pp_depth=pp_depth, pp_phase=pp_phase, model=model)
         if not stats:
             continue
         kwargs.update({'starttime': stats.onset + request_window[0],

@@ -2,7 +2,7 @@
 # Comments are indicated with "#" and ignored while parsing
 
 {
-    
+
 ### Options for input and output ###
 
 # Filename of events file (QuakeML format)
@@ -11,7 +11,7 @@
 # Filename of inventory of stations (StationXML format)
 "inventory": "example_inventory.xml",
 
-# Data can be 
+# Data can be
 #   1. a glob expression of files. All files are read at once. If you have
 #      a huge dataset think about using one of the other two available
 #      options.
@@ -24,11 +24,11 @@
 
 # Options for the webservices which are passed to Client.__init__.
 # See the documentation of the clients in ObsPy for availlable options.
-"client_options": {"user": "name@insitution.com"},                    
+"client_options": {"user": "name@insitution.com"},
 
 # Where to find the plugin in the form "module : func"
 # 'module' has to be importable (located in current path or PYTHON_PATH
-# environment variable). 
+# environment variable).
 # 'func' has to be the function which delivers the data, e.g. for a
 # FSDN client:
 #     # in module.py
@@ -45,7 +45,7 @@
 # This works only if the waveforms are requested with the exact same
 # parameters (start and end time) i.e. if options
 # events and request_window are left untouched.
-# This option needs the module joblib. 
+# This option needs the module joblib.
 "cache_waveforms": null,
 
 # Possibility to define your own logging configuration. This dictionary
@@ -70,26 +70,26 @@
 
 # Phase to use (e.g. "P", "PP", "S"), last letter will determine
 # if P- or S-receiver functions are calculated.
-"phase": "P", 
+"phase": "P",
 "options_by_phase": {
-    "P": {      
+    "P": {
         # Request window of data in s relative to origin time
         "request_window":  [-50, 150],
         # Events with an epicentral distance not in dist_range will be discarded
-        # for a specific station        
+        # for a specific station
         "dist_range": [30, 90],
         "filter":   {"type": "bandpass", "freqmin": 0.01, "freqmax": 2.0},
         # Trim window around P-onset
         "window": [-30, 100]
-    },    
+    },
     "S": {
         "request_window":  [-100, 50],
         "filter": {"type": "bandpass", "freqmin": 0.01, "freqmax": 0.5},
         # Trim window around S-onset
         "window": [-80, 50]
     }
-},    
-          
+},
+
 # Downsample stream to this frequency in Hz.
 "downsample": 10,
 # Roate stream with this method.
@@ -112,6 +112,9 @@
 
 # window for source function relative to onset, (start, end, tapering)
 "winsrc" : [-10, 30, 5],
+
+# Depth of piercing points in km
+"pp_depth": null,
 
 ### Options for other routines defined as dictionaries ###
 

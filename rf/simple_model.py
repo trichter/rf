@@ -168,7 +168,7 @@ class SimpleModel(object):
 
         :param depth: depth of interface in km
         :param slowness: ray parameter in s/deg
-        :param phase: 'P' or 'S' for P wave or S wave. Multiples possible.
+        :param phase: 'P' or 'S' for P wave or S wave. Multiples are possible.
         :return: horizontal distance in km
         """
         if len(phase) % 2 == 0:
@@ -192,11 +192,11 @@ class SimpleModel(object):
         """
         Piercing point calculation.
 
-        Piercing point coordinates are saved in the plat and plon attributes of
-        the stats objects.
+        Piercing point coordinates and depth are saved in the pp_latitude,
+        pp_longitude and pp_depth entries of the stats object or dictionary.
 
-        :param stats: Stats object with attributes slowness, back_azimuth and
-            station coordinates.
+        :param stats: Stats object or dictionary with entries
+            slowness, back_azimuth, station_latitude and station_longitude.
         :param depth: depth of interface in km
         :param phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave. Multiples are possible, too.
@@ -207,6 +207,7 @@ class SimpleModel(object):
         lon = stats['station_longitude']
         az = stats['back_azimuth']
         result = Geodesic.WGS84.Direct(lat, lon, az, 1000 * dr)
-        stats['plat'] = plat = result['lat2']
-        stats['plon'] = plon = result['lon2']
+        stats['pp_depth'] = depth
+        stats['pp_latitude'] = plat = result['lat2']
+        stats['pp_longitude'] = plon = result['lon2']
         return plat, plon
