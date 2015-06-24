@@ -81,7 +81,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rf'
-copyright = u'2015, Tom Eulenfeld'
+copyright = u'2013-2015, Tom Eulenfeld'
 
 # The full version, including alpha/beta/rc tags.
 release = rf.__version__
@@ -169,7 +169,7 @@ texinfo_documents = [
 epub_title = u'rf'
 epub_author = u'Tom Eulenfeld'
 epub_publisher = u'Tom Eulenfeld'
-epub_copyright = u'2015, Tom Eulenfeld'
+epub_copyright = u'2013-2015, Tom Eulenfeld'
 
 
 # Configuration for intersphinx
