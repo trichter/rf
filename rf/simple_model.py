@@ -24,14 +24,13 @@ def load_model(fname='iasp91'):
     :return: :class:`~rf.simple.model.SimpleModel` instance
 
     The model file should have 4 columns with depth, vp, vs, n.
-    The model file for iasp91 starts like this:
+    The model file for iasp91 starts like this::
 
-    #IASP91 velocity model
-    #depth    vp      vs     n
-       0.00  5.800 3.360 0
-       0.00  5.800 3.360 0
-      10.00  5.800 3.360 4
-
+        #IASP91 velocity model
+        #depth  vp    vs   n
+         0.00  5.800 3.360 0
+         0.00  5.800 3.360 0
+        10.00  5.800 3.360 4
     """
     try:
         return _MODEL_CACHE[fname]
