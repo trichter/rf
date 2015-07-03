@@ -55,14 +55,15 @@ for i in range(20):
         break
 
 # Show warnings for unreferenced targets
-# nitpicky = True
+#nitpicky = True
 
 # Add any Sphinx extension module names here
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.intersphinx',
               'sphinx.ext.autosummary',
-              'sphinx.ext.viewcode']
+              'sphinx.ext.viewcode',
+              'alabaster']
 
 autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
 
@@ -95,7 +96,30 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'nature'  #nature, sphinxdoc
+#html_theme = 'nature'  #nature, sphinxdoc
+
+import alabaster
+
+html_theme_path = [alabaster.get_path()]
+html_theme = 'alabaster'
+html_sidebars = {
+    '**': [
+        'about.html',
+        'mynavigation.html',
+        'searchbox.html',
+    ]
+}
+
+html_theme_options = {
+    'logo': 'logo_rf.svg',
+    'github_user': 'trichter',
+    'github_repo': 'rf',
+    'description': 'Receiver function calculation in seismology',
+    'show_powered_by': False,
+    'page_width': '1410px',
+    'extra_nav_links': {'Project on Github': 'https://github.com/trichter/rf'}
+
+}
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -104,7 +128,7 @@ html_theme = 'nature'  #nature, sphinxdoc
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+#html_favicon = ''
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

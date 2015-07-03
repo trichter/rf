@@ -1,31 +1,9 @@
-Welcome to rf's documentation!
-===============================
 
 .. currentmodule:: rf
 .. automodule:: rf
 
-Classes & Functions
--------------------
-.. autosummary::
-    :toctree:
-    :nosignatures:
-
-    ~rfstream.RFStream
-    ~rfstream.rfstats
-
-Modules
--------
-.. autosummary::
-    :toctree:
-    :nosignatures:
-
-    rfstream
-    batch
-    deconvolve
-    simple_model
-
-Module Reference
-================
+API Documentation
+=================
 
 :mod:`rfstream` Module
 ----------------------
