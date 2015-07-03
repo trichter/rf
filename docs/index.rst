@@ -24,3 +24,11 @@ API Documentation
 --------------------------
 
 .. automodule:: rf.simple_model
+
+.. _`config`:
+
+Template Configuration File
+===========================
+
+.. literalinclude:: ../rf/example/conf.json
+   :linenos:

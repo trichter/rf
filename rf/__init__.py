@@ -2,18 +2,50 @@
 rf Documentation
 ================
 
-This module heavily depends on ObsPy_.
-The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
-which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
+The receiver function method is a popular technique to investigate crustal and
+upper mantle velocity discontinuities. Basic concept of the method is that a
+small part of incident P-waves from a teleseismic event gets converted to
+S-waves at significant discontinuities under the receiver
+(for P-receiver functions).
+These converted Ps phases arrive at the station after the main P phase.
+The response function of the receiver side (receiver function) is constructed
+by removing the source and deep mantle propagation effects.
+Firstly, the S-wave field is separated from the P-wave field by a rotation
+from the station coordinate system (ZNE - vertical, north, east)
+to the wave coordinate system (LQT - P-wave polarization,
+approx. SV-wave polarization, SH-wave polarization).
+Secondly, the waveform on the L component is deconvolved from the other
+components, which removes source side and propagation effects.
+The resulting functions are the Q and T component of the P receiver function.
+Multiple reflected waves are also visible in the receiver function.
+The conversion points of the rays are called piercing points.
+
+For a more detailed description of the working flow see e.g. chapter 4.1 of
+this_ dissertation.
+
+.. image:: _static/2layer_rays.svg
+   :height: 200 px
+   :alt: Ray paths
+
+.. image:: _static/2layer_synrf.svg
+   :height: 200 px
+   :alt: Synthetic receiver function
+
+| *Left*: In a two-layer-model part of the incoming P-wave is converted to a
+    S-wave at the layer boundary. Major multiples are Pppp, Ppps and Ppss.
+| *Right*: Synthetic receiver function of Q component in a two-layer-model.
 
 Installation
 ------------
 
-Install ObsPy_, its dependencies and pip_, e.g. by (Ubuntu) ::
+Dependencies of rf are
 
-    sudo apt-get install python-obspy python-pip
+    * ObsPy_ and its dependencies,
+    * toeplitz_ for time domain deconvolution,
+    * geographiclib_ for ppoint calculation,
+    * obspyh5_ for hdf5 file support (optional).
 
-rf can then be installed by ::
+After the installation of Obspy rf can be installed with ::
 
     pip install rf
 
@@ -21,29 +53,15 @@ The tests can be run with the script ::
 
     rf-runtests
 
-Hdf5 file support can be installed with the obspyh5_ package.
-
-Manual installation of dev
---------------------------
-
-Install
-
-    * ObsPy_ and its dependencies,
-    * toeplitz_ for time domain deconvolution,
-    * geographiclib_ for ppoint calculation,
-    * optionally obspyh5_ for hdf5 file support.
-
-Then download the source code from GitHub_ eg. by ::
-
-    mkdir rf
-    git clone https://github.com/trichter/rf.git rf
-
-Now install rf with ::
+To install the development version of obspy download the source code and run ::
 
     python setup.py install
 
 Using the underlying Python module
 -----------------------------------
+
+The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
+which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
 
 The canonical way to load a waveform file into a RFStream is to use
 the :func:`~rf.rfstream.read_rf` function.
@@ -52,7 +70,7 @@ the :func:`~rf.rfstream.read_rf` function.
 >>> stream = read_rf('myfile.SAC')
 
 If you already have an ObsPy Stream and you want to turn it into a RFStream
-use the generator of :class:`~rf.rfstream.RFStream`:
+use the generator of RFStream:
 
 >>> from rf import RFStream
 >>> stream = RFStream(obspy_stream)
@@ -141,20 +159,20 @@ for a more detailed description.
 RFStream provides the possibility to perform moveout correction
 and piercing point calculation.
 
-Batch Usage
------------
+Command line tool for batch processing
+--------------------------------------
 
-rf provides a command line utility 'rf' which runs all the necessary steps
-to perform receiver function calculation. All you need is a StationXML
-file with your stations as an inventory and a QuakeML file with the events
-you want to analyze.
+The rf package provides a command line utility 'rf' which runs all the
+necessary steps to perform receiver function calculation.
+All you need is an inventory file (StationXML) and a file with events
+(QuakeML) you want to analyze.
 
 The command ::
 
     rf create
 
-creates a template configuration file in the current directory. This file is
-in JSON format and well documented.
+creates a :ref:`template configuration file <config>` in the current
+directory. This file is in JSON format and well documented.
 After adapting the file to your needs you can use the various
 subcommands of rf to perform different tasks (e.g. receiver function
 calculation, plotting).
@@ -176,10 +194,11 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-GitHub_. The code is continiously tested by travis-ci. The status is
-|buildstatus| for this version.
+GitHub_. The code is continiously tested by travis-ci. The test status of this
+version is |buildstatus|.
 
 
+.. _this: http://www.diss.fu-berlin.de/diss/servlets/MCRFileNodeServlet/FUDISS_derivate_000000014929/dissertation_richter.pdf
 .. _ObsPy: http://www.obspy.org/
 .. _pip: http://www.pip-installer.org/
 .. _obspyh5: https://github.com/trichter/obspyh5/
