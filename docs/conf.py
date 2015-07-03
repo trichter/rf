@@ -116,8 +116,8 @@ html_theme_options = {
     'github_repo': 'rf',
     'description': 'Receiver function calculation in seismology',
     'show_powered_by': False,
-    'page_width': '1410px',
-    'sidebar_width': '200px',
+    'page_width': '1240px',
+    #'sidebar_width': '220px',
     'extra_nav_links': {'Project on Github': 'https://github.com/trichter/rf'}
 
 }

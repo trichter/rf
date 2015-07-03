@@ -24,11 +24,11 @@ For a more detailed description of the working flow see e.g. chapter 4.1 of
 this_ dissertation.
 
 .. image:: _static/2layer_rays.svg
-   :height: 200 px
+   :height: 250px
    :alt: Ray paths
 
 .. image:: _static/2layer_synrf.svg
-   :height: 200 px
+   :height: 250px
    :alt: Synthetic receiver function
 
 | *Left*: In a two-layer-model part of the incoming P-wave is converted to a
