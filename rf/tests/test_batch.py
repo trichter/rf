@@ -4,7 +4,6 @@ Tests for batch module.
 import unittest
 import os
 from pkg_resources import load_entry_point
-import shutil
 from subprocess import check_call
 
 import warnings
