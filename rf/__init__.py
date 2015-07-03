@@ -176,7 +176,8 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-GitHub_. The code is continiously tested by travis-ci.
+GitHub_. The code is continiously tested by travis-ci. The status is
+|buildstatus| for this version.
 
 
 .. _ObsPy: http://www.obspy.org/
