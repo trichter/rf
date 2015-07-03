@@ -10,7 +10,7 @@ if not 'dev' in VERSION:  # get image for correct version from travis-ci
     README = README.replace('branch=master', 'branch=v%s' % VERSION)
 readme = README.split('\n')
 DESCRIPTION = readme[2]
-LONG_DESCRIPTION = '\n'.join(readme[5:7] + readme[9:10] + readme[12:])
+LONG_DESCRIPTION = '\n'.join(readme[5:])
 
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests:run',

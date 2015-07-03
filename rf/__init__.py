@@ -1,19 +1,10 @@
 """
-rf: Receiver function calculation in seismology
-===============================================
+rf Documentation
+================
 
 This module heavily depends on ObsPy_.
 The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
 which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
-
-:Author: Tom Eulenfeld
-:License: MIT
-:Documentation: http://rf.readthedocs.org/ (installation instructions, usage,
-    examples and module reference)
-:Project page: https://github.com/trichter/rf (bug reports and feature requests
-    via issue tracker)
-:Pypi page: https://pypi.python.org/pypi/rf
-:Test status: |buildstatus|
 
 Installation
 ------------
