@@ -5,10 +5,10 @@ from pkg_resources import resource_filename
 from math import floor
 import numpy as np
 from obspy.core.util.geodetics import kilometer2degrees
+import warnings
 try:
     from geographiclib.geodesic import Geodesic
 except ImportError:
-    import warnings
     msg = 'Geographiclib import error. Ppoint calculation will not work.'
     warnings.warn(msg)
 
@@ -79,10 +79,14 @@ class SimpleModel(object):
         Calculate vertical slowness of P and S wave.
         """
         qp, qs = 0, 0
-        if 'P' in phase:
-            qp = np.sqrt(self.vp ** (-2) - slowness ** 2)
-        if 'S' in phase:
-            qs = np.sqrt(self.vs ** (-2) - slowness ** 2)
+        with warnings.catch_warnings():
+            # catch warnings because of negative root
+            # these values will be nan
+            warnings.simplefilter('ignore')
+            if 'P' in phase:
+                qp = np.sqrt(self.vp ** (-2) - slowness ** 2)
+            if 'S' in phase:
+                qs = np.sqrt(self.vs ** (-2) - slowness ** 2)
         return qp, qs
 
     def _calc_phase_delay(self, slowness, phase='PS'):
