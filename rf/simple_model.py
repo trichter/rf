@@ -79,10 +79,9 @@ class SimpleModel(object):
         Calculate vertical slowness of P and S wave.
         """
         qp, qs = 0, 0
-        with warnings.catch_warnings():
-            # catch warnings because of negative root
-            # these values will be nan
-            warnings.simplefilter('ignore')
+        # catch warnings because of negative root
+        # these values will be nan
+        with np.errstate(invalid='ignore'):
             if 'P' in phase:
                 qp = np.sqrt(self.vp ** (-2) - slowness ** 2)
             if 'S' in phase:
