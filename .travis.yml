@@ -4,11 +4,8 @@ python:
 env:
   -
   - USE_OBSPYH5=true
-virtualenv:
-  system_site_packages: true
+sudo: false
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install -qq gfortran
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -21,13 +18,13 @@ before_install:
   - conda update -q conda
   - conda info -a
   - conda config --add channels obspy
-  - conda install python=$TRAVIS_PYTHON_VERSION obspy
+  - conda install python=$TRAVIS_PYTHON_VERSION gcc obspy
   - pip install toeplitz geographiclib
-  - pip install geographiclib toeplitz
   - if [[ $USE_OBSPYH5 == true ]]; then conda install python=$TRAVIS_PYTHON_VERSION cython h5py; pip install obspyh5; fi  
 install:
   - pip install .
 script:
+  - mkdir empty; cd empty  
   - rf-runtests
 after_success:
 notifications:
