@@ -15,8 +15,9 @@
 #   1. a glob expression of files. All files are read at once. If you have
 #      a huge dataset think about using one of the other two available
 #      options.
-#   2. one of "arclink", "seishub" or "fdsn" for getting the data from
-#      a webservice. Option "client_options" is available.
+#   2. one of the client modules supported by ObsPy (e.g "arclink", "fdsn")
+#      for getting the data from a webservice.
+#      Option "client_options" is available.
 #   3. "plugin" for a heterogeneus dataset. You have the freedom to get your
 #       data from different locations. In this case the option "plugin" is
 #       availlable

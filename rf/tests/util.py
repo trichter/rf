@@ -1,5 +1,3 @@
-# Author: Tom Richter
-
 import contextlib
 import os
 import shutil

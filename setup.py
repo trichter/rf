@@ -6,7 +6,7 @@ with open(os.path.join('rf', '_version.py')) as f:
     VERSION = f.read().split('=')[1].strip().strip("'")
 with open('README.rst') as f:
     README = f.read()
-if not 'dev' in VERSION:  # get image for correct version from travis-ci
+if 'dev' not in VERSION:  # get image for correct version from travis-ci
     README = README.replace('branch=master', 'branch=v%s' % VERSION)
 readme = README.split('\n')
 DESCRIPTION = readme[2]
@@ -26,7 +26,7 @@ setup(name='rf',
       license='MIT',
       packages=find_packages(),
       package_dir={'rf': 'rf'},
-      install_requires=['obspy>=0.10', 'toeplitz', 'geographiclib'],
+      install_requires=['obspy>=1.0', 'toeplitz', 'geographiclib'],
       entry_points=ENTRY_POINTS,
       include_package_data=True,
       zip_safe=False

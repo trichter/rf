@@ -4,7 +4,7 @@ Simple move out and piercing point calculation.
 from pkg_resources import resource_filename
 from math import floor
 import numpy as np
-from obspy.core.util.geodetics import kilometer2degrees
+from obspy.geodetics import kilometer2degrees
 import warnings
 try:
     from geographiclib.geodesic import Geodesic

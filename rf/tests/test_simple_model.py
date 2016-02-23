@@ -2,7 +2,7 @@
 Tests for simple_model module.
 """
 import numpy as np
-from obspy.core.util.geodetics import degrees2kilometers
+from obspy.geodetics import degrees2kilometers
 from obspy.taup import TauPyModel
 from rf import read_rf
 from rf.simple_model import load_model
@@ -62,7 +62,6 @@ class SimpleModelTestCase(unittest.TestCase):
         self.assertLess(abs(lat_sp-lat_sp_xy)/lat_sp_xy, 0.05)
         self.assertLess(abs(lon_ps), 0.0001)
         self.assertLess(abs(lon_sp), 0.0001)
-
 
     def test_ppointvsobspytaup_S2P(self):
         slowness = 12.33
@@ -503,9 +502,9 @@ XY_PSSSMOUT_REF4 = np.array([
        -0.08611909, -0.08549444, -0.0810589 , -0.07307705, -0.06196686,
        -0.04827898, -0.03267021, -0.0158708 ,  0.        ,  0.        ])
 
+
 def suite():
     return unittest.makeSuite(SimpleModelTestCase, 'test')
-
 
 
 if __name__ == '__main__':

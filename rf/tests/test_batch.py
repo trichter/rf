@@ -35,6 +35,7 @@ class BatchTestCase(unittest.TestCase):
 
     def test_batch_command_interface(self):
         travis = os.environ.get('TRAVIS') == 'true'
+
         def substitute(old, new):
             fname = 'conf.json'
             with open(fname) as f:

@@ -1,7 +1,6 @@
-from obspy import readEvents, read_inventory
-from obspy.core import Stream, UTCDateTime as UTC
-from obspy.fdsn import Client
-from obspy.arclink import Client as ArcClient
+from obspy import read_events, read_inventory, Stream, UTCDateTime as UTC
+from obspy.clients.fdsn import Client
+from obspy.clients.arclink import Client as ArcClient
 
 evname = './example_events.xml'
 invname = './example_inventory.xml'
@@ -15,7 +14,7 @@ seed_id = 'CX.PB01..BH?'
 
 def get_events():
     try:
-        return readEvents(evname)
+        return read_events(evname)
     except:
         pass
     client = Client()
@@ -36,7 +35,7 @@ def get_inventory():
     inv = client.get_stations(starttime=t1, endtime=t2, network=net,
                               station=sta, location=loc, channel=cha,
                               level='channel')
-                              # latitude=lat, longitude=lon, maxradius=10)
+#                               latitude=lat, longitude=lon, maxradius=10)
     inv.write(invname, 'STATIONXML')
     return inv
 

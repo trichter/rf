@@ -201,7 +201,7 @@ def _generator(events, inventory, rf=False):
                          'channel': cha}
                 if rf:
                     stats['event'] = event
-                    #stats['seed_id'] = seed_id
+                    # stats['seed_id'] = seed_id
                     coords = inventory.get_coordinates(one_channel[station])
                     yield stats, event, coords
                 else:
@@ -268,7 +268,8 @@ def run_moveout(moveout, events, inventory, format,
             _write(stream, path, '%s_%s' % (root, moveout), format)
 
 
-def run_convert(events, inventory, root, newformat, format, path='.', **kwargs):
+def run_convert(events, inventory, root, newformat, format, path='.',
+                **kwargs):
     for stats in _iter(events, inventory):
         stream = _read(stats, path, root, format)
         if stream is None:
@@ -306,6 +307,7 @@ CONFIG = ['events', 'inventory', 'get_waveforms', 'request_window',
 CONFIG_FREQ = ['water', 'gauss', 'tshift']
 CONFIG_TIME = ['winrsp', 'winrf', 'spiking']
 
+
 def _slice_config(conf):
     if conf['deconvolve'] == 'freq':
         CONFIG.extend(CONFIG_FREQ)
@@ -329,18 +331,16 @@ def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
     See example configuration file for a description of the options"""
     if client_options is None:
         client_options = {}
-    is_webservice = data in ('arclink', 'fdsn', 'seishub')
-    if is_webservice:
-        webservice_module = import_module('obspy.%s' % data)
-        Client = getattr(webservice_module, 'Client')
+    try:
+        client_module = import_module('obspy.clients.%s' % data)
+    except ImportError:
+        client_module = None
+    if client_module:
+        Client = getattr(client_module, 'Client')
         client = Client(**client_options)
-        if data == 'fdsn':
-            get_waveforms_orig = client.get_waveforms
-        else:
-            get_waveforms_orig = client.getWaveform
 
         def get_waveforms(event=None, **args):
-            return get_waveforms_orig(**args)
+            return client.get_waveforms(**args)
     elif data == 'plugin':
         modulename, funcname = plugin.split(':')
         get_waveforms = load_func(modulename.strip(), funcname.strip())
@@ -363,10 +363,11 @@ def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
         except Exception as ex:
             seedid = '.'.join((kwargs['network'], kwargs['station'],
                                kwargs['location'], kwargs['channel']))
-            msg = 'channel %s: error while retireving data: %s'
+            msg = 'channel %s: error while retrieving data: %s'
             log.debug(msg, seedid, ex)
 
-    use_cache = cache_waveforms and (is_webservice or data == 'plugin')
+    use_cache = client_module is not None or data == 'plugin'
+    use_cache = use_cache and cache_waveforms
     if use_cache and joblib:
         log.info('use waveform cache in %s', cache_waveforms)
         memory = joblib.Memory(cachedir=cache_waveforms, verbose=0)
@@ -384,6 +385,7 @@ class ConfigJSONDecoder(json.JSONDecoder):
         s = '\n'.join(l.split('#', 1)[0] for l in s.split('\n'))
         return super(ConfigJSONDecoder, self).decode(s)
 
+
 def configure_logging(loggingc, verbose=0, loglevel=3, logfile=None):
     if loggingc is None:
         loggingc = deepcopy(LOGGING_DEFAULT_CONFIG)
@@ -400,8 +402,10 @@ def configure_logging(loggingc, verbose=0, loglevel=3, logfile=None):
     logging.config.dictConfig(loggingc)
     logging.captureWarnings(loggingc.get('capture_warnings', False))
 
+
 class ParseError(Exception):
     pass
+
 
 def get_station(seedid):
     """Station name from seed id"""
@@ -463,14 +467,24 @@ def run(subcommand, conf=None, tutorial=False, get_waveforms=None,
     try:
         if subcommand != 'print' or subject == 'events':
             events = args.pop('events')
-            if not isinstance(events, (list, obspy.core.event.Catalog)):
-                events = obspy.readEvents(events)
+            if (not isinstance(events, obspy.Catalog) or
+                    not isinstance(events, list) or
+                    (len(events) == 2 and isinstance(events[0], str))):
+                if isinstance(events, (basestring, str)):
+                    format_ = None
+                else:
+                    events, format_ = events
+                events = obspy.read_events(events, format_)
                 log.info('read %d events', len(events))
             args['events'] = events
         if subcommand != 'print' or subject == 'stations':
             inventory = args.pop('inventory')
-            if not isinstance(inventory, obspy.station.Inventory):
-                inventory = obspy.read_inventory(inventory)
+            if not isinstance(inventory, obspy.Inventory):
+                if isinstance(inventory, (basestring, str)):
+                    format_ = None
+                else:
+                    inventory, format_ = inventory
+                inventory = obspy.read_inventory(inventory, format_)
                 channels = inventory.get_contents()['channels']
                 stations = list(set(get_station(ch) for ch in channels))
                 log.info('read inventory with %d stations', len(stations))
@@ -503,7 +517,7 @@ def run(subcommand, conf=None, tutorial=False, get_waveforms=None,
         args['get_waveforms'] = get_waveforms
         phase = args.get('phase', 'P')
         method = phase[-1].upper()
-        options_by_phase=args.pop('options_by_phase')
+        options_by_phase = args.pop('options_by_phase')
         if options_by_phase:
             args.update(options_by_phase[method])
         args = _slice_config(args)
@@ -518,6 +532,7 @@ def run(subcommand, conf=None, tutorial=False, get_waveforms=None,
         run_stack(**args)
     else:
         print('Subcommand not availlable')
+
 
 def run_cli(args=None):
     p = argparse.ArgumentParser(description=__doc__)

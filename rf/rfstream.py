@@ -9,10 +9,9 @@ from operator import itemgetter
 import warnings
 
 import numpy as np
-from obspy import read
-from obspy.core import Stream, Trace
-from obspy.core.util import AttribDict
-from obspy.core.util.geodetics import gps2DistAzimuth, kilometer2degrees
+from obspy import read, Stream, Trace
+from obspy.core import AttribDict
+from obspy.geodetics import gps2dist_azimuth, kilometer2degrees
 from obspy.taup import TauPyModel
 from rf.deconvolve import deconv
 from rf.simple_model import load_model
@@ -33,8 +32,7 @@ def __UTC2rel(stats, head):
 STATION_GETTER = (('station_latitude', itemgetter('latitude')),
                   ('station_longitude', itemgetter('longitude')),
                   ('station_elevation', itemgetter('elevation')))
-EVENT_GETTER = (
-    #('event_id', lambda event: _get_event_id(event)),
+EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
     ('event_latitude', __get_event_origin('latitude')),
     ('event_longitude', __get_event_origin('longitude')),
     ('event_depth', lambda event: event.preferred_origin()['depth'] / 1000.),
@@ -234,10 +232,10 @@ class RFStream(Stream):
         if deconvolve:
             self.deconvolve(method=method, deconvolve_method=deconvolve,
                             source_component=source_component, **kwargs)
-        for tr in self:
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
         # comparison with P-receiver method (converted Sp wave arrives before
         # S wave, but converted Ps wave arrives after P wave)
+        for tr in self:
             if method == 'S':
                 tr.data = tr.data[::-1]
                 tr.stats.onset = tr.stats.starttime + (tr.stats.endtime -
@@ -456,8 +454,8 @@ class RFTrace(Trace):
         super(RFTrace, self).__init__(data=data, header=header)
         st = self.stats
         if ('_format'in st and st._format.upper() == 'Q' and
-            st.station.count('.') > 0):
-                st.network, st.station, st.location = st.station.split('.')[:3]
+                st.station.count('.') > 0):
+            st.network, st.station, st.location = st.station.split('.')[:3]
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
@@ -577,9 +575,8 @@ class RFTrace(Trace):
         itype = {'Ps': 1, 'Ppps': 2, 'Ppss': 3, 'Psss': 3}[phase]
         st = self.stats
         dt = st.onset - st.starttime
-        data = _xy.psmout([self.data], st.slowness,
-                           -dt,
-                           st.endtime - st.starttime-dt, st.delta, itype)
+        data = _xy.psmout([self.data], st.slowness, -dt,
+                          st.endtime - st.starttime-dt, st.delta, itype)
         self.data = data[0, :]
 
     def _ppoint_xy(self, depth, method='P'):
@@ -658,9 +655,9 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     """
     if stream is not None:
         assert stats is None
-        kwargs = {'event': event, 'station': station, 'stream':None,
+        kwargs = {'event': event, 'station': station, 'stream': None,
                   'phase': phase, 'dist_range': dist_range,
-                  'tt_model':tt_model, 'pp_depth': pp_depth,
+                  'tt_model': tt_model, 'pp_depth': pp_depth,
                   'pp_phase': pp_phase, 'model': model}
         for tr in stream:
             rfstats(stats=tr.stats, **kwargs)
@@ -672,10 +669,10 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         stats = AttribDict({})
     if event is not None and station is not None:
         stats.update(obj2stats(event=event, station=station))
-    dist, baz, _ = gps2DistAzimuth(stats.station_latitude,
-                                   stats.station_longitude,
-                                   stats.event_latitude,
-                                   stats.event_longitude)
+    dist, baz, _ = gps2dist_azimuth(stats.station_latitude,
+                                    stats.station_longitude,
+                                    stats.event_latitude,
+                                    stats.event_longitude)
     dist = kilometer2degrees(dist / 1000)
     if dist_range and not dist_range[0] <= dist <= dist_range[1]:
         return
@@ -687,7 +684,7 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     if len(arrivals) > 1:
         from warnings import warn
         msg = ('TauPy returns more than one arrival for phase %s at '
-               'distance -> take first arrival' )
+               'distance -> take first arrival')
         warn(msg % (phase, dist))
     arrival = arrivals[0]
     onset = stats.event_time + arrival.time

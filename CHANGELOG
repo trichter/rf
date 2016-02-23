@@ -1,3 +1,6 @@
+v0.2.2:
+  * fix ObsPy depreciation warnings
+  * remove support for ObsPy<1.0
 v0.2.1:
   * Q file support: The COMMENT field in the header file is now used to store
     all non-standard information. Therefore, projects using Q file format
