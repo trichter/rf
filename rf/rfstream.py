@@ -17,6 +17,7 @@ from obspy.taup import TauPyModel
 from rf.deconvolve import deconv
 from rf.simple_model import load_model
 
+
 def __get_event_origin(h):
     return lambda event: event.preferred_origin()[h]
 
@@ -520,8 +521,11 @@ class RFTrace(Trace):
         format = format.lower()
         if format == 'q':
             format = 'sh'
-        if format == 'h5':
+        elif format == 'h5':
             return
+        elif format == 'sac' and 'sac' not in self.stats:
+            from obspy.io.sac.util import obspy_to_sac_header
+            self.stats.sac = obspy_to_sac_header(self.stats)
         try:
             header_map = zip(HEADERS, FORMATHEADERS[format])
         except KeyError:
