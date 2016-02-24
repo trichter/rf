@@ -1,4 +1,4 @@
-v0.2.2:
+v0.3.0:
   * fix ObsPy depreciation warnings
   * remove support for ObsPy<1.0
 v0.2.1:
