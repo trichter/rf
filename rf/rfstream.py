@@ -21,12 +21,14 @@ def __get_event_origin(h):
     return lambda event: event.preferred_origin()[h]
 
 
-def __rel2UTC(stats, head):
-    return stats.starttime + stats[head]
+def __SAC2UTC(stats, head):
+    from obspy.io.sac.util import get_sac_reftime
+    return get_sac_reftime(stats.sac) + stats[head]
 
 
-def __UTC2rel(stats, head):
-    return stats[head] - stats.starttime
+def __UTC2SAC(stats, head):
+    from obspy.io.sac.util import get_sac_reftime
+    return stats[head] - get_sac_reftime(stats.sac)
 
 
 STATION_GETTER = (('station_latitude', itemgetter('latitude')),
@@ -51,8 +53,8 @@ FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
                         'AZIMUTH', 'INCI', 'SLOWNESS',
                         'COMMENT', 'COMMENT', 'COMMENT')}
-_HEADER_CONVERSIONS = {'sac': {'onset': (__rel2UTC, __UTC2rel),
-                               'event_time': (__rel2UTC, __UTC2rel)}}
+_HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
+                               'event_time': (__SAC2UTC, __UTC2SAC)}}
 _HEADERS_EXAMPLE = (50.3, -100.2, 400.3,
                     -20.32, 10., 12.4, 6.5, -40.432,
                     20.643, 57.6, 90.1, 10.2, 10.,
