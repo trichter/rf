@@ -142,6 +142,9 @@ class SimpleModel(object):
         """
         for tr in stream:
             st = tr.stats
+            if not (st.starttime <= st.onset <= st.endtime):
+                msg = 'onset time is not between starttime and endtime of data'
+                raise ValueError(msg)
             index0 = int(floor((st.onset - st.starttime) * st.sampling_rate))
             t0, t1 = self.calculate_phase_delays(st.slowness, phase=phase,
                                                  ref=ref)
