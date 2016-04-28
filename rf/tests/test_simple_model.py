@@ -92,7 +92,9 @@ class SimpleModelTestCase(unittest.TestCase):
 
     def test_moveout_vs_XY(self):
         stream = read_rf()[:1]
-        stream._write_test_header()
+        for tr in stream:
+            tr.stats.slowness = 10.
+            tr.stats.onset = tr.stats.starttime + 20.643
         stream.decimate(10)
         N = len(stream[0])
         t = np.linspace(0, 20*np.pi, N)

@@ -90,8 +90,10 @@ class BatchTestCase(unittest.TestCase):
         f = init_data('plugin', plugin='rf.tests.test_batch : gw_test')
         self.assertEqual(f(nework=4, station=2), 42)
 
+
 def gw_test(**kwargs):
     return 42
+
 
 def suite():
     return unittest.makeSuite(BatchTestCase, 'test')

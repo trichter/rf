@@ -11,6 +11,21 @@ from rf.rfstream import obj2stats
 from rf.rfstream import HEADERS, FORMATHEADERS, STATION_GETTER, EVENT_GETTER
 
 
+_HEADERS_TEST_IO = (50.3, -100.2, 400.3,
+                    -20.32, 10., 12.4, 6.5, -40.432,
+                    20.643, 57.6, 90.1, 10.2, 10.,
+                    10., -20, 150)
+
+
+def write_test_header(stream):
+    for tr in stream:
+        st = tr.stats
+        for head, val in zip(HEADERS, _HEADERS_TEST_IO):
+            if head in ('onset', 'event_time'):
+                val = st.starttime + val
+            st[head] = val
+
+
 class RFStreamTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -41,7 +56,7 @@ class RFStreamTestCase(unittest.TestCase):
         stream = read_rf()[:1]
         for tr in stream:
             tr.stats.location = '11'
-        stream._write_test_header()
+        write_test_header(stream)
         for format in FORMATHEADERS:
             test_io_format(format)
 
