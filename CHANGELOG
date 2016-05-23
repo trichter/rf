@@ -1,3 +1,9 @@
+dev:
+  * add new imaging and util module
+  * add helper class to iterate through a collection of threecomponent streams
+    (IterMultipleComponents)
+  * refactor rf method to use this iterator
+  * refactor parameters of deconvolve method
 v0.3.0:
   * fix ObsPy depreciation warnings
   * remove support for ObsPy<1.0

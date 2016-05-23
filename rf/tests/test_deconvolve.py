@@ -48,8 +48,8 @@ class DeconvolveTestCase(unittest.TestCase):
         for tr in ms:
             tr.stats.sampling_rate = 1
             tr.stats.onset = tr.stats.starttime + 40
-        ms.deconvolve(deconvolve_method='time')
-        #ms.deconvolve(deconvolve_method='freq', tshift=45.)
+        ms.deconvolve(method='time')
+        #ms.deconvolve(method='freq', tshift=45.)
 #        print(ms)
 
 #        import pylab as plt

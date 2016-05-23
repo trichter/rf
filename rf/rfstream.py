@@ -13,12 +13,13 @@ from obspy import read, Stream, Trace
 from obspy.core import AttribDict
 from obspy.geodetics import gps2dist_azimuth, kilometer2degrees
 from obspy.taup import TauPyModel
-from rf.deconvolve import deconv
+from rf.deconvolve import deconvolve
 from rf.simple_model import load_model
+from rf.util import IterMultipleComponents
 
 
 def __get_event_origin(h):
-    return lambda event: event.preferred_origin()[h]
+    return lambda event: (event.preferred_origin() or event.origins[0])[h]
 
 
 def __SAC2UTC(stats, head):
@@ -122,58 +123,29 @@ class RFStream(Stream):
             for tr in self:
                 tr.stats.station = tr.stats.station.split('.')[1]
 
-    def deconvolve(self, method='P', deconvolve_method='time', **kwargs):
+    def rotate(self, *args, **kwargs):
         """
-        Deconvolve source component of stream from other components.
+        Rotate three component streams.
+
+        See :meth:`Stream.rotate() <obspy.core.stream.Stream.rotate>`.
+        """
+        for stream3c in IterMultipleComponents(self, key='onset',
+                                               number_components=(2, 3)):
+            super(RFTrace, self).rotate(*args, **kwargs)
+
+    def deconvolve(self, *args, **kwargs):
+        """
+        Deconvolve source component of stream.
 
         All args and kwargs are passed to the function
-        :func:`~rf.deconvolve.deconv`.
+        :func:`~rf.deconvolve.deconvolve`.
         """
-        if len(self) % 3 != 0:
-            raise ValueError('For deconvolution a 3 component stream is needed'
-                             '. The provied stream is not divisible by 3.')
-        i = 0
-        while i < len(self):
-            comps = ''.join(tr.stats.channel[-1] for tr in self[i:i + 3])
-            if i == 0:
-                comps0 = comps
-            elif comps != comps0:
-                raise ValueError('Error')
-            # set standard parameters for deconvolution
-            stats = self[i].stats
-            lensec = stats.endtime - stats.starttime
-            onset = stats.onset - stats.starttime
-            if method == 'P' and deconvolve_method == 'time':
-                def_kwargs = {'winsrc': (-10, 30, 5),
-                              'winrsp': (-onset, lensec - onset),
-                              'winrf': (-onset, lensec - onset)}
-            elif method == 'S' and deconvolve_method == 'time':
-                def_kwargs = {'winsrc': (-10, 30, 5),
-                              'winrsp': (onset - lensec, onset),
-                              'winrf': (onset - lensec, onset)}
-            elif method == 'P':
-                def_kwargs = {'winsrc': (-onset + 5, lensec - onset - 5, 5),
-                              'tshift': onset}
-            else:
-                def_kwargs = {'winsrc': (onset - lensec + 5, onset - 5),
-                              'tshift': lensec - onset}
-            nkwargs = kwargs.copy()
-            for k in def_kwargs:
-                if k not in kwargs:
-                    nkwargs[k] = def_kwargs[k]
-            try:
-                deconv(self[i:i + 3], method=deconvolve_method, **nkwargs)
-            except Exception as ex:
-                print(ex)
-                print('error while calculating the deconvolution')
-                for tr in self[i:i + 3]:
-                    self.remove(tr)
-                continue
-            i += 3
+        rsp = deconvolve(self, *args, **kwargs)
+        self.traces = rsp
 
     def rf(self, method='P', filter=None, window=None, downsample=None,
-           rotate='ZNE->LQT', source_component='L',
-           deconvolve='time', **kwargs):
+           rotate='ZNE->LQT', deconvolve='time', source_components='LZ',
+           **kwargs):
         r"""
         Calculate receiver functions in-place.
 
@@ -185,18 +157,17 @@ class RFStream(Stream):
         :param window: trim stream relative to P- or S-onset
              with :meth:`~obspy.core.stream.Stream.trim` (seconds)
         :param float downsample: downsample stream with its
-            :meth:`~obspy.core.stream.Stream.decimate` method
+            :meth:`~obspy.core.stream.Stream.decimate` method to the given
+            frequency
         :param rotate: 'ZNE->LQT' or 'NE->RT', rotate stream with its
             :meth:`~obspy.core.stream.Stream.rotate`
             method with the angles given by the back_azimuth and inclination
             attributes of the traces stats objects. You can set these to your
             needs or let them be computed by :func:`~rf.rfstream.rfstats`.
-        :param source_component: character of the source component
-            (i.e. 'L' or 'Z' depending on rotaion)
         :param deconvolve: 'time' or 'freq' for time or frequency domain
             deconvolution by the streams
             :meth:`~rf.rfstream.RFStream.deconvolve`
-            method. See :func:`~rf.deconvolve.deconv`,
+            method. See :func:`~rf.deconvolve.deconvolve`,
             :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
             for further documentation.
         :param \*\*kwargs: all other kwargs not mentioned here are
@@ -209,6 +180,9 @@ class RFStream(Stream):
         See source code of this function for the default
         deconvolution windows.
         """
+        def iter3c(stream):
+            return IterMultipleComponents(self, key='onset',
+                                          number_components=(2, 3))
         if method not in 'PS':
             raise NotImplementedError
         if filter:
@@ -220,18 +194,19 @@ class RFStream(Stream):
             for tr in self:
                 if downsample <= tr.stats.sampling_rate:
                     tr.decimate(int(tr.stats.sampling_rate) // downsample)
-        if isinstance(rotate, basestring):
-            self.rotate(rotate)
-        elif rotate:
-            rotate(self)
+        if rotate:
+            for stream3c in iter3c(self):
+                stream3c.rotate(rotate)
         if deconvolve:
-            self.deconvolve(method=method, deconvolve_method=deconvolve,
-                            source_component=source_component, **kwargs)
+            for stream3c in iter3c(self):
+                stream3c.deconvolve(method=deconvolve, set_tw=method,
+                                    source_components=source_components,
+                                    **kwargs)
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
         # comparison with P-receiver method (converted Sp wave arrives before
         # S wave, but converted Ps wave arrives after P wave)
-        for tr in self:
-            if method == 'S':
+        if method == 'S':
+            for tr in self:
                 tr.data = tr.data[::-1]
                 tr.stats.onset = tr.stats.starttime + (tr.stats.endtime -
                                                        tr.stats.onset)
@@ -239,7 +214,8 @@ class RFStream(Stream):
         # towards the event after the rotation. For a positive phase at
         # a Moho-like velocity contrast, the Q/R component has to
         # point away from the event.
-            if tr.stats.channel[-1] != source_component:
+        for tr in self:
+            if tr.stats.channel[-1] not in source_components:
                 tr.data = -tr.data
 
     def moveout(self, phase='Ps', ref=6.4, model='iasp91'):
@@ -493,7 +469,7 @@ def obj2stats(event=None, station=None):
 
 
 def rfstats(stats=None, event=None, station=None, stream=None,
-            phase='P', dist_range=None, tt_model='iasp91',
+            phase='P', dist_range='default', tt_model='iasp91',
             pp_depth=None, pp_phase=None, model='iasp91'):
     """
     Calculate ray specific values like slowness for given event and station.
@@ -534,7 +510,7 @@ def rfstats(stats=None, event=None, station=None, stream=None,
             rfstats(stats=tr.stats, **kwargs)
         return
     phase = phase.upper()
-    if dist_range is None and phase in 'PS':
+    if dist_range == 'default' and phase in 'PS':
         dist_range = (30, 90) if phase == 'P' else (50, 85)
     if stats is None:
         stats = AttribDict({})

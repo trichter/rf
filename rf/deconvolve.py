@@ -1,7 +1,6 @@
 """
 Frequency and time domain deconvolution.
 """
-
 import numpy as np
 from numpy import max, pi
 from obspy.signal.util import nextpow2
@@ -15,7 +14,10 @@ except ImportError:
     warnings.warn(msg)
 
 
-def deconv(stream, source_component='L', method='time', **kwargs):
+def deconvolve(stream, source_components='LZ', response_components=None,
+               method='time', set_tw='P',
+               winsrc=None, winrsp=None, winrf=None, tshift=None,
+               **kwargs):
     """
     Deconvolve one component of a stream from all components.
 
@@ -48,40 +50,69 @@ def deconv(stream, source_component='L', method='time', **kwargs):
     Other optional parameters are passed to the underlying deconvolution
     functions :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
     .
-    """
+    """    
     if method not in ('time', 'freq'):
         raise NotImplementedError()
-    if method == 'time':
-        winsrc = kwargs.pop('winsrc', (-10, 30, 5))
-        winrsp = kwargs.pop('winrsp', (-20, 80))
-        winrf = kwargs.pop('winrf', (-20, 80))
-    else:
-        winsrc = kwargs.pop('winsrc', (-20, 80, 5))
-        tshift = kwargs.get('tshift', 10)
-    st = stream
-    samp = st[0].stats.sampling_rate
-    onset = st[0].stats.onset
-    src = st.select(component=source_component)[0]
-    src_index = st.traces.index(src)
-    src = src.copy()
-    src.trim(onset + winsrc[0], onset + winsrc[1])
+#    if method == 'time':
+#        winsrc = kwargs.pop('winsrc', (-10, 30, 5))
+#        winrsp = kwargs.pop('winrsp', (-20, 80))
+#        winrf = kwargs.pop('winrf', (-20, 80))
+#    else:
+#        winsrc = kwargs.pop('winsrc', (-20, 80, 5))
+#        tshift = kwargs.get('tshift', 10)
+        
+    # identify source and response components
+    src = [tr for tr in stream if tr.stats.channel[-1] in source_components]
+    if len(src) != 1:
+        msg = 'Invalid number of source components. %d not equal to one.'
+        raise ValueError(msg % len(src))
+    src = src[0]
+    rsp = [tr for tr in stream if response_components is None or
+           tr.stats.channel[-1] in response_components]
+    if not 0 < len(rsp) < 4:
+        msg = 'Invalid number of response components. %d not between 0 and 4.' 
+        raise ValueError(msg % len(rsp))
+    # define default time windows      
+    lensec = src.stats.endtime - src.stats.starttime
+    onset = src.stats.onset - src.stats.starttime
+    if set_tw == 'P' and method == 'time':
+        winsrc = winsrc or (-10, 30, 5)
+        winrsp = winrsp or (-onset, lensec - onset)
+        winrf = winrf or (-onset, lensec - onset)
+    elif set_tw == 'S' and method == 'time':
+        winsrc = winsrc or (-10, 30, 5)
+        winrsp = winrsp or (onset - lensec, onset)
+        winrf = winrf or (onset - lensec, onset)
+    elif set_tw == 'P':
+        winsrc = winsrc or (-onset + 5, lensec - onset - 5, 5)
+        tshift = tshift or onset
+    elif set_tw == 'S':
+        winsrc = winsrc or (onset - lensec + 5, onset - 5),
+        tshift = tshift or lensec - onset
+    # prepare source and response data and deconvolve
+    sr = src.stats.sampling_rate
+    onset_utc = src.stats.onset
+    if src in rsp:
+        src = src.copy()
+    src.trim(onset_utc + winsrc[0], onset_utc + winsrc[1])
     src.taper(max_percentage=None, max_length=winsrc[2])
-    src = src.data
-    rsp = [st[(i + src_index) % 3].data for i in range(3)]
+    rsp_data = [tr.data for tr in rsp]      
     if method == 'time':
         time_rf = winrf[1] - winrf[0]
-        shift = int(round(samp *
+        shift = int(round(sr *
                           ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
                             time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0])))
-        length = int(round(time_rf * samp)) + 1
-        rf_resp = deconvt(rsp, src, shift, length=length, **kwargs)
+        length = int(round(time_rf * sr)) + 1
+        rf_data = deconvt(rsp_data, src.data, shift, length=length, **kwargs)
         tshift = -winrf[0]
-        for tr in st:
+        for tr in rsp:
             tr.stats.tshift = tshift
     else:
-        rf_resp = deconvf(rsp, src, samp, **kwargs)
-    for i in range(3):
-        st[(i + src_index) % 3].data = rf_resp[i].real
+        rf_data = deconvf(rsp_data, src.data, sr, **kwargs)
+    for i, tr in enumerate(rsp):
+        tr.data = rf_data[i].real
+    return rsp
+
 
 
 def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,

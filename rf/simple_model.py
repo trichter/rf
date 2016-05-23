@@ -4,7 +4,6 @@ Simple move out and piercing point calculation.
 from pkg_resources import resource_filename
 from math import floor
 import numpy as np
-from obspy.geodetics import kilometer2degrees
 import warnings
 try:
     from geographiclib.geodesic import Geodesic
@@ -14,6 +13,9 @@ except ImportError:
 
 
 _MODEL_CACHE = {}
+
+
+DEG2KM = 111.2
 
 
 def load_model(fname='iasp91'):
@@ -112,8 +114,8 @@ class SimpleModel(object):
         if len(phase) % 2 == 1:
             msg = 'Length of phase (%s) should be divisible by two'
             raise ValueError(msg % phase)
-        slowness = slowness * kilometer2degrees(1)
-        ref = ref * kilometer2degrees(1)
+        slowness = slowness / DEG2KM
+        ref = ref / DEG2KM
         phase = phase.upper()
         try:
             t_ref = self.t_ref[phase]
@@ -181,7 +183,7 @@ class SimpleModel(object):
             msg = 'Length of phase (%s) should be even'
             raise ValueError(msg % phase)
         phase = phase.upper()
-        slowness = slowness * kilometer2degrees(1)
+        slowness = slowness / DEG2KM
         xp, xs = 0., 0.
         qp, qs = self._calc_vertical_slowness(slowness, phase=phase)
         if 'P' in phase:
