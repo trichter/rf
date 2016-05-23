@@ -2,6 +2,8 @@ dev:
   * add new imaging and util module
   * add helper class to iterate through a collection of threecomponent streams
     (IterMultipleComponents)
+  * add helper class to iterate through data of event-station pairs
+    (IterEventData)
   * refactor rf method to use this iterator
   * refactor parameters of deconvolve method
 v0.3.0:

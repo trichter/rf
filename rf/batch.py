@@ -17,6 +17,7 @@ import sys
 
 import obspy
 from rf.rfstream import read_rf, rfstats, RFStream, set_index
+from rf.util import IterEventData
 try:
     from progressbar import ProgressBar
 except ImportError:
@@ -224,34 +225,11 @@ def run_rf(events, inventory, get_waveforms, path, format='H5',
     root = phase + 'rf'
     _check_path(join(path, root))
     method = phase[-1].upper()
-    if dist_range is None:
-        dist_range = (30, 90) if method == 'P' else (60, 85)
-    if request_window is None:
-        request_window = (-50, 150) if method == 'P' else (-100, 50)
-    for kwargs, event, coords in _iter(events, inventory, rf=True):
-        stats = rfstats(station=coords, event=event,
-                        phase=phase, dist_range=dist_range, tt_model=tt_model,
-                        pp_depth=pp_depth, pp_phase=pp_phase, model=model)
-        if not stats:
-            continue
-        kwargs.update({'starttime': stats.onset + request_window[0],
-                       'endtime': stats.onset + request_window[1]})
-        stream = get_waveforms(**kwargs)
-        if stream is None:
-            continue
-        stream = RFStream(stream, warn=False)
-        stream.merge()
-        if len(stream) != 3:
-            import warnings
-            warnings.warn('Need 3 component seismograms. More or less '
-                          'than three components for event %s, station %s.'
-                          % (stats.event_id, kwargs['seed_id']))
-            continue
-        for tr in stream:
-            tr.stats.update(stats)
+    kw = dict(phase=phase, request_window=request_window,
+              dist_range=dist_range, pad=10, tt_model=tt_model,
+              pp_depth=pp_depth, pp_phase=pp_phase, model=model)
+    for stream in IterEventData(events, inventory, get_waveforms, **kw):
         stream.rf(method=method, **rf_kwargs)
-        if len(stream) != 3:
-            continue
         _write(stream, path, root, format)
 
 
