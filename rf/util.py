@@ -18,3 +18,9 @@ class IterMultipleComponents(object):
     def __iter__(self):
         for s in self.substreams:
             yield s
+
+
+def direct_geodetic(lonlat, azi, dist):
+    from geographiclib.geodesic import Geodesic
+    coords = Geodesic.WGS84.Direct(lonlat[1], lonlat[0], azi, dist*1000)
+    return coords['lon2'], coords['lat2']

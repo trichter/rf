@@ -1,15 +1,11 @@
 """
 Simple move out and piercing point calculation.
 """
-from pkg_resources import resource_filename
 from math import floor
 import numpy as np
-import warnings
-try:
-    from geographiclib.geodesic import Geodesic
-except ImportError:
-    msg = 'Geographiclib import error. Ppoint calculation will not work.'
-    warnings.warn(msg)
+from pkg_resources import resource_filename
+
+from rf.util import direct_geodetic
 
 
 _MODEL_CACHE = {}
@@ -214,8 +210,8 @@ class SimpleModel(object):
         lat = stats['station_latitude']
         lon = stats['station_longitude']
         az = stats['back_azimuth']
-        result = Geodesic.WGS84.Direct(lat, lon, az, 1000 * dr)
+        plon, plat = direct_geodetic((lon, lat), az, dr)
         stats['pp_depth'] = depth
-        stats['pp_latitude'] = plat = result['lat2']
-        stats['pp_longitude'] = plon = result['lon2']
+        stats['pp_latitude'] = plat
+        stats['pp_longitude'] = plon
         return plat, plon
