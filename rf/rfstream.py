@@ -268,7 +268,7 @@ class RFStream(Stream):
 
     def stack(self):
         """
-        Stack traces with the same id.
+        Stack traces with the same id into new Stream.
 
         Traces with same id need to have the same number of datapoints.
         """
@@ -280,10 +280,10 @@ class RFStream(Stream):
             header = {'network': net, 'station': sta, 'location': loc,
                       'channel': cha, 'sampling_rate': tr.stats.sampling_rate}
             onset = tr.stats.onset - tr.stats.starttime
-            tr = RFTrace(data=data, header=header)
-            tr.stats['onset'] = tr.stats['starttime'] + onset
-            traces.append(tr)
-        self.traces = traces
+            tr2 = RFTrace(data=data, header=header)
+            tr2.stats['onset'] = tr2.stats['starttime'] + onset
+            traces.append(tr2)
+        return self.__class__(traces)
 
     def plot_rf(self, *args, **kwargs):
         """

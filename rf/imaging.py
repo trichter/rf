@@ -81,8 +81,7 @@ def plot_rf(stream, fname=None, norm=1., fig_width=7., trace_height=0.5,
             ax4 = ax3.twiny()
             info[1] = [ax4] + list(info[1])
     # plot stack and individual receiver functions
-    stack = stream.copy()
-    stack.stack()
+    stack = stream.stack()
     if len(stack) > 1:
         warnings.warn('Different stations in one RF plot.')
 
