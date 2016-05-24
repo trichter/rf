@@ -125,16 +125,6 @@ class RFStream(Stream):
             for tr in self:
                 tr.stats.station = tr.stats.station.split('.')[1]
 
-    def rotate(self, *args, **kwargs):
-        """
-        Rotate three component streams.
-
-        See :meth:`Stream.rotate() <obspy.core.stream.Stream.rotate>`.
-        """
-        for stream3c in IterMultipleComponents(self, key='onset',
-                                               number_components=(2, 3)):
-            super(RFTrace, self).rotate(*args, **kwargs)
-
     def deconvolve(self, *args, **kwargs):
         """
         Deconvolve source component of stream.
@@ -319,13 +309,27 @@ class RFTrace(Trace):
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
-        out = (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
-               u'baz:{back_azimuth:.1f}')
+        if self.id == '...' and 'onset' in self.stats:
+            t1 = self.stats.starttime - self.stats.onset
+            t2 = self.stats.endtime - self.stats.onset
+            out1 = 'profile | %.1fs - %.1fs' % (t1, t2)
+        else:
+            out1 = super(RFTrace, self).__str__(id_length=id_length)
+        out = ''
+        if 'event_magnitude' in self.stats:
+            out = out + (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
+                         u'baz:{back_azimuth:.1f}')
+        if 'box_pos' in self.stats:
+            out = out + u' | {box_pos:.2}km'
+        if 'slowness' in self.stats:
+            out = out + u' slow: {slowness:.2f}'
+            if 'moveout' in self.stats:
+                out = out + u' ({moveout.phase} moveout)'
         try:
             out = out.format(**self.stats)
         except KeyError:
             out = ''
-        return super(RFTrace, self).__str__(id_length=id_length) + out
+        return out1 + out
 
     def _read_format_specific_header(self, format=None, warn=True):
         st = self.stats
