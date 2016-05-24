@@ -275,7 +275,7 @@ def run_plot(events, inventory, root, format, kwargs_plot, path='.',
 def run_stack(inventory, path, root, format, **kwargs):
     for stats in _iter(None, inventory):
         stream = _read(stats, path, root, format)
-        stream.stack()
+        stream = stream.stack()
         _write(stream, path, 'stack_%s' % root, format, stack=True)
 
 CONFIG = ['events', 'inventory', 'get_waveforms', 'request_window',
