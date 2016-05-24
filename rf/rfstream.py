@@ -73,13 +73,13 @@ def set_index(index='rf'):
     obspyh5.set_index(index)
 
 
-def read_rf(fname=None, format_=None, **kwargs):
+def read_rf(*args, **kwargs):
     """
     Read waveform files into RFStream object.
 
     See :func:`read() <obspy.core.stream.read>` in ObsPy.
     """
-    return RFStream(read(fname, format=format_, **kwargs))
+    return RFStream(read(*args, **kwargs))
 
 
 class RFStream(Stream):
