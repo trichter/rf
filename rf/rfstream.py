@@ -44,6 +44,8 @@ EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
 HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
     'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
     'pp_latitude', 'pp_longitude', 'pp_depth')
+# The following headers can only be stored for H5:
+# moveout
 FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                          'evdp', 'mag',
                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
@@ -231,6 +233,10 @@ class RFStream(Stream):
         """
         model = load_model(model)
         model.moveout(self, phase=phase, ref=ref)
+        for tr in self:
+            tr.stats.moveout = {'phase': phase, 'model': model,
+                                'slowness_before_moveout': tr.stats.slowness}
+            tr.stats.slowness = ref
 
     def _moveout_xy(self, *args, **kwargs):
         for tr in self:

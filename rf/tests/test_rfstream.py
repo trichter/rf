@@ -14,7 +14,8 @@ from rf.rfstream import HEADERS, FORMATHEADERS, STATION_GETTER, EVENT_GETTER
 _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
                     -20.32, 10., 12.4, 6.5, -40.432,
                     20.643, 57.6, 90.1, 10.2, 10.,
-                    10., -20, 150)
+                    10., -20, 150,
+                    {'phase': 'Ps', 'model': 'z:/test/model.npz'})
 
 
 def write_test_header(stream):
@@ -51,7 +52,8 @@ class RFStreamTestCase(unittest.TestCase):
             st1 = stream1[0].stats
             st2 = stream2[0].stats
             for head in HEADERS:
-                self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
+                if format not in ('sac', 'q') or head != 'moveout':
+                    self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
             self.assertEqual(stream1[0].id, stream2[0].id)
         stream = read_rf()[:1]
         for tr in stream:
@@ -85,7 +87,8 @@ class RFStreamTestCase(unittest.TestCase):
     def test_rfstats(self):
         stats = rfstats(station=self.station, event=self.event, pp_depth=100.)
         for head in HEADERS:
-            self.assertIn(head, stats)
+            if head not in ('moveout', ):
+                self.assertIn(head, stats)
         # event is exactly north from station and around 66.7 degrees away
         self.assertTrue(abs(stats.distance - 66.7) < 1.)
         self.assertTrue(abs(stats.back_azimuth % 360.) < 0.1)
