@@ -121,7 +121,7 @@ class RFStream(Stream):
             if format.upper() == 'Q':
                 tr.stats.station = tr.id
         if format.upper() == 'H5':
-            if self.__is_set('box_plot'):
+            if self.__is_set('box_pos'):
                 index = 'profile'
             elif self.__is_set('event_time'):
                 index = 'rf'
@@ -327,7 +327,7 @@ class RFTrace(Trace):
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
-        if self._type == 'profile' and 'onset' in self.stats:
+        if 'box_pos' in self.stats and 'onset' in self.stats:
             t1 = self.stats.starttime - self.stats.onset
             t2 = self.stats.endtime - self.stats.onset
             out1 = 'profile | %.1fs - %.1fs' % (t1, t2)
