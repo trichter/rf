@@ -2,6 +2,9 @@ import collections
 import itertools
 
 
+DEG2KM = 111.2
+
+
 class IterEventData(object):
 
     def __init__(self, catalog, inventory, get_waveforms, phase='P',

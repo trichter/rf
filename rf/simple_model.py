@@ -5,13 +5,10 @@ from math import floor
 import numpy as np
 from pkg_resources import resource_filename
 
-from rf.util import direct_geodetic
+from rf.util import direct_geodetic, DEG2KM
 
 
 _MODEL_CACHE = {}
-
-
-DEG2KM = 111.2
 
 
 def load_model(fname='iasp91'):

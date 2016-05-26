@@ -3,6 +3,10 @@
 Classes and functions for receiver function calculation.
 """
 
+#TODO: add decorator to warn for rf rf_profile functions
+#TODO: add box, box_length to stats dictionary writing
+#TODO: automatically set index for profile, rf
+#TOFO: add helper functions do identify if Trace Stream is Data, RF, RFSTACk or RFProfile
 import json
 import logging
 from operator import itemgetter
@@ -43,19 +47,23 @@ EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
     ('event_time', __get_event_origin('time')))
 HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
     'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
-    'pp_latitude', 'pp_longitude', 'pp_depth')
-# The following headers can only be stored for H5:
-# moveout
+    'pp_latitude', 'pp_longitude', 'pp_depth', 'moveout',
+    'box_pos', 'box_length')
+# The following headers can at the moment only be stored for H5:
+# slowness_before_moveout, box_lonlat
+
 FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                          'evdp', 'mag',
                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
-                         'user2', 'user3', 'user4'),
+                         'user2', 'user3', 'user4', 'kuser1',
+                         'user5', 'user6'),
                  # field 'COMMENT' is violated for different information
                  'sh': ('COMMENT', 'COMMENT', 'COMMENT',
                         'LAT', 'LON', 'DEPTH',
                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
                         'AZIMUTH', 'INCI', 'SLOWNESS',
-                        'COMMENT', 'COMMENT', 'COMMENT')}
+                        'COMMENT', 'COMMENT', 'COMMENT', 'COMMENT',
+                        'COMMENT', 'COMMENT')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
                                'event_time': (__SAC2UTC, __UTC2SAC)}}
 
@@ -64,6 +72,7 @@ _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
 H5INDEX = ('{network}.{station}.{location}/{event_time%s}/' % _TF +
            '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF))
 H5INDEX_STACK = '{network}.{station}.{location}/{channel}'
+H5INDEX_PROFILE = '{box_pos}'
 
 
 def set_index(index='rf'):
@@ -72,6 +81,8 @@ def set_index(index='rf'):
         index = H5INDEX
     elif index == 'rf_stack':
         index = H5INDEX_STACK
+    elif index == 'rf_profile':
+        index = H5INDEX_PROFILE
     obspyh5.set_index(index)
 
 
@@ -109,6 +120,12 @@ class RFStream(Stream):
                 if not isinstance(tr, RFTrace):
                     tr = RFTrace(trace=tr, warn=warn)
                 self.traces.append(tr)
+
+    @property
+    def _type(self):
+        types = {tr._type for tr in self}
+        if len(types) == 1:
+            return types.pop()
 
     def write(self, filename, format, **kwargs):
         """
@@ -224,8 +241,8 @@ class RFStream(Stream):
         model = load_model(model)
         model.moveout(self, phase=phase, ref=ref)
         for tr in self:
-            tr.stats.moveout = {'phase': phase, 'model': model,
-                                'slowness_before_moveout': tr.stats.slowness}
+            tr.stats.moveout = phase
+            tr.stats.slowness_before_moveout = tr.stats.slowness
             tr.stats.slowness = ref
 
     def _moveout_xy(self, *args, **kwargs):
@@ -290,6 +307,14 @@ class RFStream(Stream):
         from rf.imaging import plot_rf
         return plot_rf(self, *args, **kwargs)
 
+    def get_profile(self, *args, **kwargs):
+        from rf.profile import get_profile
+        return get_profile(self, *args, **kwargs)
+
+    def plot_profile(self, *args, **kwargs):
+        from rf.imaging import plot_profile
+        return plot_profile(self, *args, **kwargs)
+
 
 class RFTrace(Trace):
 
@@ -308,8 +333,19 @@ class RFTrace(Trace):
             st.network, st.station, st.location = st.station.split('.')[:3]
         self._read_format_specific_header(warn=warn)
 
+    @property
+    def _type(self):
+        if 'box_pos' in self.stats:
+            return 'profile'
+        elif 'event_time' in self.stats:
+            return 'rf'
+        elif 'onset' in self.stats:
+            return 'stack'
+        else:
+            return 'data'
+
     def __str__(self, id_length=None):
-        if self.id == '...' and 'onset' in self.stats:
+        if self._type == 'profile' and 'onset' in self.stats:
             t1 = self.stats.starttime - self.stats.onset
             t2 = self.stats.endtime - self.stats.onset
             out1 = 'profile | %.1fs - %.1fs' % (t1, t2)
@@ -320,11 +356,11 @@ class RFTrace(Trace):
             out = out + (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
                          u'baz:{back_azimuth:.1f}')
         if 'box_pos' in self.stats:
-            out = out + u' | {box_pos:.2}km'
+            out = out + u' | {box_pos:.2f}km'
         if 'slowness' in self.stats:
             out = out + u' slow: {slowness:.2f}'
             if 'moveout' in self.stats:
-                out = out + u' ({moveout.phase} moveout)'
+                out = out + u' ({moveout} moveout)'
         try:
             out = out.format(**self.stats)
         except KeyError:

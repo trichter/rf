@@ -3,10 +3,14 @@
 Functions for receiver function plotting.
 """
 
+import matplotlib as mpl
+from matplotlib.ticker import (AutoMinorLocator, FixedLocator, FixedFormatter,
+                               MaxNLocator)
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator, MaxNLocator
 import numpy as np
 import warnings
+
+from rf.util import DEG2KM
 
 
 def plot_rf(stream, fname=None, norm=1., fig_width=7., trace_height=0.5,
@@ -132,3 +136,121 @@ def plot_rf(stream, fname=None, norm=1., fig_width=7., trace_height=0.5,
     if fname:
         fig.savefig(fname)
         plt.close(fig)
+
+
+def _get_geoaxes(crs=None, lonlats=None):
+    if crs is None:
+        from cartopy.crs import AzimuthalEquidistant
+        lonlat0 = np.median(lonlats, axis=0)
+        crs = AzimuthalEquidistant(*lonlat0)
+    return plt.axes(projection=crs)
+
+
+def __pc():
+    from cartopy.crs import PlateCarree as PC
+    return PC()
+
+
+def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
+
+    lonlats, names = zip(*[((sta.longitude, sta.latitude), sta.code)
+                           for net in inventory for sta in net])
+    if ax is None:
+        ax = _get_geoaxes(crs=crs, lonlats=lonlats)
+    kw = dict(s=200, marker='v', c='darkred', linewidth=0.5, zorder=3)
+    kw.update(kwargs)
+    ax.scatter(*zip(*lonlats), transform=__pc(), **kw)
+    if label_stations:
+        path_effect = mpl.patheffects.PathEffects.withStroke(
+                          linewidth=3, foreground="white")
+        kw = {'xycoords': __pc()._as_mpl_transform(ax),
+              'xytext': (10, 0), 'textcoords': 'offset points', 'zorder': 4,
+              'path_effects': [path_effect]}
+        for lonlat, name in zip(lonlats, names):
+            ax.annotate(name, lonlat, **kw)
+    return ax
+
+
+def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
+                 crs=None, **kwargs):
+    if ax is None:
+        ax = _get_geoaxes(crs=crs, lonlats=ppoints[:, ::-1])
+    if inventory is not None:
+        plot_stations(inventory, label_stations=label_stations, ax=ax)
+    kw = dict(s=50, marker='x', color='k', alpha=0.2, zorder=2)
+    kw.update(kwargs)
+    ax.scatter(*zip(*ppoints)[::-1], transform=__pc(), **kw)
+    return ax
+
+
+def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
+                     ax=None, crs=None, **kwargs):
+    if ax is None:
+        lonlats = [boxes[len(boxes)//2]['lonlat']]
+        ax = _get_geoaxes(crs=crs, lonlats=lonlats)
+    if inventory is not None:
+        plot_stations(inventory, label_stations=label_stations, ax=ax)
+    if ppoints is not None:
+        plot_ppoints(ppoints, ax=ax)
+    kw = dict(facecolor='none', edgecolor='0.8', zorder=1)
+    kw.update(kwargs)
+    for box in boxes:
+        ax.add_geometries([box['poly']], crs=__pc(), **kw)
+
+
+def plot_profile(profile, scale=2, fill=('b', 'r'), top=None, fig=None,
+                 moveout_model='iasp91'):
+    if fig is None:
+        fig = plt.figure()
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
+    widths = [tr.stats.box_length for tr in profile]
+    max_ = max(np.max(np.abs(tr.data)) for tr in profile)
+    for tr in profile:
+        x = tr.stats.box_pos + scale * tr.data / max_ * min(widths) / 2
+        y = tr.times() - (tr.stats.onset - tr.stats.starttime)
+        ax.plot(x, y, 'k')
+        if fill is not None:
+            ax.fill_betweenx(y, x, tr.stats.box_pos,
+                             where=x < tr.stats.box_pos, facecolor=fill[0])
+            ax.fill_betweenx(y, x, tr.stats.box_pos,
+                             where=x >= tr.stats.box_pos, facecolor=fill[1])
+    ax.set_xlabel('distance (km)')
+    ax.set_ylim(max(y), min(y))
+    ax.set_ylabel('time (s)')
+    if moveout_model:
+        from rf.simple_model import load_model
+        slow = profile[0].stats.slowness
+        model = load_model(moveout_model)
+        pd = model._calc_phase_delay(phase=profile[0].stats.moveout.upper(),
+                                     slowness=slow / DEG2KM)
+        ax2 = ax.twinx()
+        ax.get_shared_y_axes().join(ax, ax2)
+        dkm = 50
+        if profile[0].stats.endtime - profile[0].stats.onset > 50:
+            dkm = 200
+        d1 = np.arange(20) * dkm
+        d2 = np.arange(100) * dkm / 5
+        t1 = np.interp(d1, model.z, pd)
+        t2 = np.interp(d2, model.z, pd)
+        myLocator = FixedLocator(t1)
+        myMinorLocator = FixedLocator(t2)
+        myFormatter = FixedFormatter([str(i) for i in d1])
+        ax2.yaxis.set_major_locator(myLocator)
+        ax2.yaxis.set_minor_locator(myMinorLocator)
+        ax2.yaxis.set_major_formatter(myFormatter)
+        ax2.set_ylabel('depth (km)')
+        ax2.set_ylim(ax.get_ylim())
+    if top is not None:
+        ax3 = fig.add_axes([0.1, 0.85, 0.8, 0.1], sharex=ax)
+    if top == 'hist':
+        left = [tr.stats.box_pos - tr.stats.box_length / 2 for tr in profile]
+        height = [tr.stats.num for tr in profile]
+        ax3.bar(left, height, widths, color='cadetblue')
+        plt.setp(ax3.get_xticklabels(), visible=False)
+        ax3.spines['top'].set_color('none')
+        ax3.spines['right'].set_color('none')
+        ax3.spines['left'].set_color('none')
+        ax3.xaxis.set_ticks_position('bottom')
+        ax3.yaxis.set_ticks_position('left')
+        ax3.set_yticks(ax3.get_ylim())
+    return fig
