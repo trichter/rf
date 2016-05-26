@@ -1,4 +1,5 @@
 dev:
+  * add profile module and possibility to calculate profiles
   * add new imaging and util module
   * add helper class to iterate through a collection of threecomponent streams
     (IterMultipleComponents)
