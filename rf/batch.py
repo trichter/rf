@@ -16,7 +16,7 @@ import shutil
 import sys
 
 import obspy
-from rf.rfstream import read_rf, rfstats, RFStream, set_index
+from rf.rfstream import read_rf
 from rf.util import IterEventData
 try:
     from progressbar import ProgressBar
@@ -138,7 +138,6 @@ def _write(stream, path, root, format, stack=False):
     fnames = STACK_FNAMES if stack else FNAMES
     fname = join(path, fnames[format])
     if format == 'H5':
-        set_index('rf_stack' if stack else 'rf')
         stream.write(_fname(fname, root=root), format, mode='a')
     elif format == 'Q':
         stream.write(_fname(fname, root=root, **stream[0].stats), format)
@@ -156,7 +155,6 @@ def _read(stats, path, root, format):
     fname = fname.format(root=root, **stats)
     kwargs = {}
     if format == 'H5':
-        set_index()
         kwargs['readonly'] = stats
     try:
         return read_rf(fname, format, **kwargs)

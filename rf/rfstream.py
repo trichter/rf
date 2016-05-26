@@ -3,12 +3,7 @@
 Classes and functions for receiver function calculation.
 """
 
-#TODO: add decorator to warn for rf rf_profile functions
-#TODO: add box, box_length to stats dictionary writing
-#TODO: automatically set index for profile, rf
-#TOFO: add helper functions do identify if Trace Stream is Data, RF, RFSTACk or RFProfile
 import json
-import logging
 from operator import itemgetter
 import warnings
 
@@ -69,21 +64,12 @@ _HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
 
 
 _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
-H5INDEX = ('{network}.{station}.{location}/{event_time%s}/' % _TF +
-           '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF))
-H5INDEX_STACK = '{network}.{station}.{location}/{channel}'
-H5INDEX_PROFILE = '{box_pos}'
 
-
-def set_index(index='rf'):
-    import obspyh5
-    if index == 'rf':
-        index = H5INDEX
-    elif index == 'rf_stack':
-        index = H5INDEX_STACK
-    elif index == 'rf_profile':
-        index = H5INDEX_PROFILE
-    obspyh5.set_index(index)
+_H5INDEX = {
+    'rf': ('{network}.{station}.{location}/{event_time%s}/' % _TF +
+           '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF)),
+    'profile': '{box_pos}'
+    }
 
 
 def read_rf(*args, **kwargs):
@@ -121,11 +107,8 @@ class RFStream(Stream):
                     tr = RFTrace(trace=tr, warn=warn)
                 self.traces.append(tr)
 
-    @property
-    def _type(self):
-        types = {tr._type for tr in self}
-        if len(types) == 1:
-            return types.pop()
+    def __is_set(self, header):
+        return all(header in tr.stats for tr in self)
 
     def write(self, filename, format, **kwargs):
         """
@@ -137,6 +120,16 @@ class RFStream(Stream):
             tr._write_format_specific_header(format)
             if format.upper() == 'Q':
                 tr.stats.station = tr.id
+        if format.upper() == 'H5':
+            if self.__is_set('box_plot'):
+                index = 'profile'
+            elif self.__is_set('event_time'):
+                index = 'rf'
+            else:
+                index = None
+            if index:
+                import obspyh5
+                obspyh5.set_index(_H5INDEX[index])
         super(RFStream, self).write(filename, format, **kwargs)
         if format.upper() == 'Q':
             for tr in self:
@@ -298,22 +291,22 @@ class RFStream(Stream):
             traces.append(tr2)
         return self.__class__(traces)
 
+    def get_profile(self, *args, **kwargs):
+        from rf.profile import get_profile
+        return get_profile(self, *args, **kwargs)
+
     def plot_rf(self, *args, **kwargs):
         """
         Create receiver function plot.
 
         See :func:`~rf.imaging.plot_rf` for help on arguments.
         """
-        from rf.imaging import plot_rf
-        return plot_rf(self, *args, **kwargs)
-
-    def get_profile(self, *args, **kwargs):
-        from rf.profile import get_profile
-        return get_profile(self, *args, **kwargs)
-
-    def plot_profile(self, *args, **kwargs):
-        from rf.imaging import plot_profile
-        return plot_profile(self, *args, **kwargs)
+        if self.__is_set('box_pos'):
+            from rf.imaging import plot_profile
+            return plot_profile(self, *args, **kwargs)
+        else:
+            from rf.imaging import plot_rf
+            return plot_rf(self, *args, **kwargs)
 
 
 class RFTrace(Trace):
@@ -332,17 +325,6 @@ class RFTrace(Trace):
                 st.station.count('.') > 0):
             st.network, st.station, st.location = st.station.split('.')[:3]
         self._read_format_specific_header(warn=warn)
-
-    @property
-    def _type(self):
-        if 'box_pos' in self.stats:
-            return 'profile'
-        elif 'event_time' in self.stats:
-            return 'rf'
-        elif 'onset' in self.stats:
-            return 'stack'
-        else:
-            return 'data'
 
     def __str__(self, id_length=None):
         if self._type == 'profile' and 'onset' in self.stats:
