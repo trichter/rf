@@ -2,7 +2,6 @@
 """
 Classes and functions for receiver function calculation.
 """
-
 import json
 from operator import itemgetter
 from pkg_resources import resource_filename
@@ -452,6 +451,19 @@ class RFTrace(Trace):
             st[format][head_format] = val
         if format == 'sh' and len(comment) > 0:
             st[format]['COMMENT'] = json.dumps(comment, separators=(',', ':'))
+
+    def __seconds2utc(self, seconds, reftime=None):
+        from collections import Iterable
+        from obspy import UTCDateTime as UTC
+        if isinstance(seconds, Iterable):
+            return [self.seconds2utc(s, reftime=reftime) for s in seconds]
+        if isinstance(seconds, UTC):
+            return seconds
+        if reftime is None:
+            reftime = 'starttime'
+        if not isinstance(reftime, UTC):
+            reftime = self.stats[reftime]
+        return reftime + seconds
 
     def write(self, filename, format, **kwargs):
         """
