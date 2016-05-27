@@ -3,7 +3,7 @@
 Functions for receiver function plotting.
 """
 
-import matplotlib as mpl
+import matplotlib.patheffects as PathEffects
 from matplotlib.ticker import (AutoMinorLocator, FixedLocator, FixedFormatter,
                                MaxNLocator)
 import matplotlib.pyplot as plt
@@ -13,9 +13,9 @@ import warnings
 from rf.util import DEG2KM
 
 
-def plot_rf(stream, fname=None, norm=1., fig_width=7., trace_height=0.5,
+def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
             stack_height=0.5,
-            fill=False, window=None, downsample=None, title=True,
+            fill=False, trim=None, downsample=None, title=True,
             info=[('back_azimuth', u'baz (°)', 'b'),
                   ('distance', u'dist (°)', 'r')]):
     """
@@ -38,9 +38,9 @@ def plot_rf(stream, fname=None, norm=1., fig_width=7., trace_height=0.5,
 
     if len(stream) == 0:
         return
-    if window:
+    if trim:
         for tr in stream:
-            tr.trim(tr.stats.onset + window[0], tr.stats.onset + window[1])
+            tr.trim(tr.stats.onset + trim[0], tr.stats.onset + trim[1])
     if downsample:
         for tr in stream:
             tr.decimate(int(round(tr.stats.sampling_rate)) // downsample,
@@ -100,8 +100,9 @@ def plot_rf(stream, fname=None, norm=1., fig_width=7., trace_height=0.5,
         else:
             ax.plot(t, d + i, 'k')
     _plot(ax2, times, stack[0].data, 0)
+    max_ = max(np.max(np.abs(tr.data)) for tr in stream)
     for i, tr in enumerate(stream):
-        _plot(ax1, times, tr.data * norm, i + 1)
+        _plot(ax1, times, tr.data / max_ / 2 * scale, i + 1)
     # plot right axes with header information
     for ax, header, label, color in info:
         data = [tr.stats[header] for tr in stream]
@@ -161,8 +162,7 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
     kw.update(kwargs)
     ax.scatter(*zip(*lonlats), transform=__pc(), **kw)
     if label_stations:
-        path_effect = mpl.patheffects.PathEffects.withStroke(
-                          linewidth=3, foreground="white")
+        path_effect = PathEffects.withStroke(linewidth=3, foreground="white")
         kw = {'xycoords': __pc()._as_mpl_transform(ax),
               'xytext': (10, 0), 'textcoords': 'offset points', 'zorder': 4,
               'path_effects': [path_effect]}
@@ -204,6 +204,9 @@ def plot_profile(profile, scale=2, fill=('b', 'r'), top=None, fig=None,
         fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
     widths = [tr.stats.box_length for tr in profile]
+    pad = max(2, scale) / 2 * min(widths)
+    xlim = (min(tr.stats.box_pos for tr in profile) - pad,
+            max(tr.stats.box_pos for tr in profile) + pad)
     max_ = max(np.max(np.abs(tr.data)) for tr in profile)
     for tr in profile:
         x = tr.stats.box_pos + scale * tr.data / max_ * min(widths) / 2
@@ -253,4 +256,5 @@ def plot_profile(profile, scale=2, fill=('b', 'r'), top=None, fig=None,
         ax3.xaxis.set_ticks_position('bottom')
         ax3.yaxis.set_ticks_position('left')
         ax3.set_yticks(ax3.get_ylim())
+    ax.set_xlim(*xlim)
     return fig

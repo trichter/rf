@@ -27,7 +27,9 @@ class DeconvolveTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(x, x2, decimal=3)
 
     def test_deconvolution(self):
-        ms = rf.read_rf()
+        from obspy import read
+        from rf import RFStream
+        ms = RFStream(read())
         ms.decimate(10)
         for i in range(len(ms)):
             ms[i].stats.channel = ms[i].stats.channel[:2] + 'LQT'[i]

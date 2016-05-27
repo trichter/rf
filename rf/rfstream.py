@@ -17,8 +17,17 @@ from rf.simple_model import load_model
 from rf.util import DEG2KM, IterMultipleComponents
 
 
-def __get_event_origin(h):
-    return lambda event: (event.preferred_origin() or event.origins[0])[h]
+def __get_event_origin_prop(h):
+    def wrapper(event):
+        r = (event.preferred_origin() or event.origins[0])[h]
+        if h == 'depth':
+            r = r / 1000
+        return r
+    return wrapper
+
+
+def __get_event_magnitude(event):
+    return (event.preferred_magnitude() or event.magnitudes[0])['mag']
 
 
 def __SAC2UTC(stats, head):
@@ -35,11 +44,12 @@ STATION_GETTER = (('station_latitude', itemgetter('latitude')),
                   ('station_longitude', itemgetter('longitude')),
                   ('station_elevation', itemgetter('elevation')))
 EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
-    ('event_latitude', __get_event_origin('latitude')),
-    ('event_longitude', __get_event_origin('longitude')),
-    ('event_depth', lambda event: event.preferred_origin()['depth'] / 1000.),
-    ('event_magnitude', lambda event: event.preferred_magnitude()['mag']),
-    ('event_time', __get_event_origin('time')))
+    ('event_latitude', __get_event_origin_prop('latitude')),
+    ('event_longitude', __get_event_origin_prop('longitude')),
+    ('event_depth', __get_event_origin_prop('depth')),
+    ('event_magnitude', __get_event_magnitude),
+    ('event_time', __get_event_origin_prop('time')))
+
 HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
     'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
     'pp_latitude', 'pp_longitude', 'pp_depth', 'moveout',
@@ -79,27 +89,11 @@ def read_rf(pathname_or_url=None, format=None, **kwargs):
     See :func:`read() <obspy.core.stream.read>` in ObsPy.
     """
     if pathname_or_url is None:   # create example stream
-        from obspy import read_events, read_inventory
-        from rf.util import IterEventData
-        fname = resource_filename('rf', 'example/example_events.xml')
-        events = read_events(fname)
-        fname = resource_filename('rf', 'example/example_inventory.xml')
-        inventory = read_inventory(fname)
-        fname = resource_filename('rf', 'example/example_data.mseed')
-        stream = read(fname, 'MSEED')
-
-        def get_waveforms(network, station, location, channel,
-                          starttime, endtime, event=None):
-            st = stream.select(network=network, station=station,
-                               location=location, channel=channel)
-            st = st.slice(starttime, endtime)
-            return st
-        args = (events, inventory, get_waveforms)
-        stream = sum((s for s in IterEventData(*args)), RFStream())
+        fname = resource_filename('rf', 'example/minimal_example??.sac')
+        stream = read(fname, 'SAC')
     else:
         stream = read(pathname_or_url=pathname_or_url, format=format, **kwargs)
-        stream = RFStream(stream)
-    return stream
+    return RFStream(stream)
 
 
 class RFStream(Stream):
@@ -259,10 +253,6 @@ class RFStream(Stream):
             tr.stats.slowness_before_moveout = tr.stats.slowness
             tr.stats.slowness = ref
 
-    def _moveout_xy(self, *args, **kwargs):
-        for tr in self:
-            tr._moveout_xy(*args, **kwargs)
-
     def ppoint(self, pp_depth, pp_phase='S', model='iasp91'):
         """
         Calculate coordinates of piercing point by 1D ray tracing.
@@ -288,10 +278,6 @@ class RFStream(Stream):
             model.ppoint(tr.stats, pp_depth, phase=pp_phase)
         return np.array([(tr.stats.pp_latitude, tr.stats.pp_longitude)
                          for tr in self])
-
-    def _ppoint_xy(self, *args, **kwargs):
-        for tr in self:
-            tr._ppoint_xy(*args, **kwargs)
 
     def stack(self):
         """
@@ -322,12 +308,17 @@ class RFStream(Stream):
 
         See :func:`~rf.imaging.plot_rf` for help on arguments.
         """
-        if self.__is_set('box_pos'):
-            from rf.imaging import plot_profile
-            return plot_profile(self, *args, **kwargs)
-        else:
-            from rf.imaging import plot_rf
-            return plot_rf(self, *args, **kwargs)
+        from rf.imaging import plot_rf
+        return plot_rf(self, *args, **kwargs)
+
+    def plot_profile(self, *args, **kwargs):
+        """
+        Create receiver function profile plot.
+
+        See :func:`~rf.imaging.plot_profile` for help on arguments.
+        """
+        from rf.imaging import plot_profile
+        return plot_profile(self, *args, **kwargs)
 
 
 class RFTrace(Trace):
@@ -473,43 +464,6 @@ class RFTrace(Trace):
         """
         RFStream([self]).write(filename, format, **kwargs)
 
-    def _moveout_xy(self, phase='Ps'):
-        """
-        Depreciated! Moveout correction to a slowness of 6.4s/deg.
-
-        The iasp91 model is used. The correction is independent from the type
-        of receiver function. Needs stats attributes slowness and onset.
-        """
-        from rf import _xy
-        itype = {'Ps': 1, 'Ppps': 2, 'Ppss': 3, 'Psss': 3}[phase]
-        st = self.stats
-        dt = st.onset - st.starttime
-        data = _xy.psmout([self.data], st.slowness, -dt,
-                          st.endtime - st.starttime-dt, st.delta, itype)
-        self.data = data[0, :]
-
-    def _ppoint_xy(self, depth, method='P'):
-        """
-        Depreciated! Calculate coordinates of piercing point by 1D ray tracing.
-
-        The iasp91 model is used. Piercing point coordinates are stored in the
-        stats attributes `plat` and `plon`. Needs stats attributes
-        station_latitude, station_longitude, slowness and back_azimuth.
-
-        :param depth: depth of piercing points in km
-        :param method: 'P' or 'S' for P or S waves
-        """
-        from rf import _xy
-        if method not in 'PS':
-            raise NotImplementedError()
-        st = self.stats
-        args = (depth, st.station_latitude, st.station_longitude,
-                st.slowness, st.back_azimuth)
-        pier_func = _xy.pspier if method == 'P' else _xy.sppier
-        _, lat, lon = pier_func(*args)
-        st.plat = lat
-        st.plon = lon
-
 
 def obj2stats(event=None, station=None):
     """
@@ -568,8 +522,11 @@ def rfstats(stats=None, event=None, station=None, stream=None,
                   'phase': phase, 'dist_range': dist_range,
                   'tt_model': tt_model, 'pp_depth': pp_depth,
                   'pp_phase': pp_phase, 'model': model}
+        traces = []
         for tr in stream:
-            rfstats(stats=tr.stats, **kwargs)
+            if rfstats(stats=tr.stats, **kwargs) is not None:
+                traces.append(tr)
+        stream.traces = traces
         return
     phase = phase.upper()
     if dist_range == 'default' and phase in 'PS':

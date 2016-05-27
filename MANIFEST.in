@@ -5,3 +5,4 @@ include rf/data/*.dat
 include rf/example/*.json
 include rf/example/*.mseed
 include rf/example/*.xml
+include rf/example/*.tar.gz

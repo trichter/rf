@@ -2,11 +2,53 @@
 Tests for simple_model module.
 """
 import numpy as np
+from obspy import read
 from obspy.geodetics import degrees2kilometers
 from obspy.taup import TauPyModel
-from rf import read_rf
+from rf import RFStream
 from rf.simple_model import load_model
 import unittest
+
+
+def _moveout_xy(stream, phase='Ps'):
+    """
+    Depreciated! Moveout correction to a slowness of 6.4s/deg.
+
+    The iasp91 model is used. The correction is independent from the type
+    of receiver function. Needs stats attributes slowness and onset.
+    """
+    from rf import _xy
+    for tr in stream:
+        itype = {'Ps': 1, 'Ppps': 2, 'Ppss': 3, 'Psss': 3}[phase]
+        st = tr.stats
+        dt = st.onset - st.starttime
+        data = _xy.psmout([tr.data], st.slowness, -dt,
+                          st.endtime - st.starttime-dt, st.delta, itype)
+        tr.data = data[0, :]
+
+
+def _ppoint_xy(stream, depth, method='P'):
+    """
+    Depreciated! Calculate coordinates of piercing point by 1D ray tracing.
+
+    The iasp91 model is used. Piercing point coordinates are stored in the
+    stats attributes `plat` and `plon`. Needs stats attributes
+    station_latitude, station_longitude, slowness and back_azimuth.
+
+    :param depth: depth of piercing points in km
+    :param method: 'P' or 'S' for P or S waves
+    """
+    from rf import _xy
+    if method not in 'PS':
+        raise NotImplementedError()
+    for tr in stream:
+        st = tr.stats
+        args = (depth, st.station_latitude, st.station_longitude,
+                st.slowness, st.back_azimuth)
+        pier_func = _xy.pspier if method == 'P' else _xy.sppier
+        _, lat, lon = pier_func(*args)
+        st.plat = lat
+        st.plon = lon
 
 
 class SimpleModelTestCase(unittest.TestCase):
@@ -91,7 +133,7 @@ class SimpleModelTestCase(unittest.TestCase):
         self.assertLess(abs(pp1-pp2)/pp2, 0.1)
 
     def test_moveout_vs_XY(self):
-        stream = read_rf()[:1]
+        stream = RFStream(read())[:1]
         for tr in stream:
             tr.stats.slowness = 10.
             tr.stats.onset = tr.stats.starttime + 20.643

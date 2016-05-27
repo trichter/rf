@@ -3,7 +3,7 @@ Frequency and time domain deconvolution.
 """
 import numpy as np
 from numpy import max, pi
-from obspy.signal.util import nextpow2
+from obspy.signal.util import next_pow_2
 from scipy.fftpack import fft, ifft
 from scipy.signal import correlate
 try:
@@ -50,7 +50,7 @@ def deconvolve(stream, source_components='LZ', response_components=None,
     Other optional parameters are passed to the underlying deconvolution
     functions :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
     .
-    """    
+    """
     if method not in ('time', 'freq'):
         raise NotImplementedError()
 #    if method == 'time':
@@ -60,7 +60,7 @@ def deconvolve(stream, source_components='LZ', response_components=None,
 #    else:
 #        winsrc = kwargs.pop('winsrc', (-20, 80, 5))
 #        tshift = kwargs.get('tshift', 10)
-        
+
     # identify source and response components
     src = [tr for tr in stream if tr.stats.channel[-1] in source_components]
     if len(src) != 1:
@@ -70,9 +70,9 @@ def deconvolve(stream, source_components='LZ', response_components=None,
     rsp = [tr for tr in stream if response_components is None or
            tr.stats.channel[-1] in response_components]
     if not 0 < len(rsp) < 4:
-        msg = 'Invalid number of response components. %d not between 0 and 4.' 
+        msg = 'Invalid number of response components. %d not between 0 and 4.'
         raise ValueError(msg % len(rsp))
-    # define default time windows      
+    # define default time windows
     lensec = src.stats.endtime - src.stats.starttime
     onset = src.stats.onset - src.stats.starttime
     if set_tw == 'P' and method == 'time':
@@ -96,7 +96,7 @@ def deconvolve(stream, source_components='LZ', response_components=None,
         src = src.copy()
     src.trim(onset_utc + winsrc[0], onset_utc + winsrc[1])
     src.taper(max_percentage=None, max_length=winsrc[2])
-    rsp_data = [tr.data for tr in rsp]      
+    rsp_data = [tr.data for tr in rsp]
     if method == 'time':
         time_rf = winrf[1] - winrf[0]
         shift = int(round(sr *
@@ -112,7 +112,6 @@ def deconvolve(stream, source_components='LZ', response_components=None,
     for i, tr in enumerate(rsp):
         tr.data = rf_data[i].real
     return rsp
-
 
 
 def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
@@ -145,7 +144,7 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
     if length is None:
         length = len(src)
     N = length
-    nfft = nextpow2(N) * 2 ** pad
+    nfft = next_pow_2(N) * 2 ** pad
     freq = np.fft.fftfreq(nfft, d=1. / sampling_rate)
     gauss = np.exp(np.maximum(-(0.5 * 2 * pi * freq / gauss) ** 2, -700.) -
                    1j * tshift * 2 * pi * freq)

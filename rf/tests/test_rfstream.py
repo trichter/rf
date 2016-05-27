@@ -57,7 +57,7 @@ class RFStreamTestCase(unittest.TestCase):
 #                if format not in ('sac', 'q') or head != 'moveout':
                 self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
             self.assertEqual(stream1[0].id, stream2[0].id)
-        stream = read_rf()[:1]
+        stream = RFStream(read())[:1]
         for tr in stream:
             tr.stats.location = '11'
         write_test_header(stream)

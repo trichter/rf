@@ -1,5 +1,6 @@
 import collections
 import itertools
+import numpy as np
 
 
 DEG2KM = 111.2
@@ -59,6 +60,11 @@ class IterEventData(object):
                 warn('Need 3 component seismograms. %d components '
                      'detected for event %s, station %s.'
                      % (len(stream), event.resource_id, seedid))
+                continue
+            if any(isinstance(tr.data, np.ma.masked_array) for tr in stream):
+                from warnings import warn
+                warn('Gaps or overlaps detected for event %s, station %s.'
+                     % (event.resource_id, seedid))
                 continue
             for tr in stream:
                 tr.stats.update(stats)
