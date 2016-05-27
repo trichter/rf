@@ -5,16 +5,17 @@ Classes and functions for receiver function calculation.
 
 import json
 from operator import itemgetter
+from pkg_resources import resource_filename
 import warnings
 
 import numpy as np
 from obspy import read, Stream, Trace
 from obspy.core import AttribDict
-from obspy.geodetics import gps2dist_azimuth, kilometer2degrees
+from obspy.geodetics import gps2dist_azimuth
 from obspy.taup import TauPyModel
 from rf.deconvolve import deconvolve
 from rf.simple_model import load_model
-from rf.util import IterMultipleComponents
+from rf.util import DEG2KM, IterMultipleComponents
 
 
 def __get_event_origin(h):
@@ -44,9 +45,9 @@ HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
     'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
     'pp_latitude', 'pp_longitude', 'pp_depth', 'moveout',
     'box_pos', 'box_length')
+
 # The following headers can at the moment only be stored for H5:
 # slowness_before_moveout, box_lonlat
-
 FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                          'evdp', 'mag',
                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
@@ -72,13 +73,34 @@ _H5INDEX = {
     }
 
 
-def read_rf(*args, **kwargs):
+def read_rf(pathname_or_url=None, format=None, **kwargs):
     """
     Read waveform files into RFStream object.
 
     See :func:`read() <obspy.core.stream.read>` in ObsPy.
     """
-    return RFStream(read(*args, **kwargs))
+    if pathname_or_url is None:   # create example stream
+        from obspy import read_events, read_inventory
+        from rf.util import IterEventData
+        fname = resource_filename('rf', 'example/example_events.xml')
+        events = read_events(fname)
+        fname = resource_filename('rf', 'example/example_inventory.xml')
+        inventory = read_inventory(fname)
+        fname = resource_filename('rf', 'example/example_data.mseed')
+        stream = read(fname, 'MSEED')
+
+        def get_waveforms(network, station, location, channel,
+                          starttime, endtime, event=None):
+            st = stream.select(network=network, station=station,
+                               location=location, channel=channel)
+            st = st.slice(starttime, endtime)
+            return st
+        args = (events, inventory, get_waveforms)
+        stream = sum((s for s in IterEventData(*args)), RFStream())
+    else:
+        stream = read(pathname_or_url=pathname_or_url, format=format, **kwargs)
+        stream = RFStream(stream)
+    return stream
 
 
 class RFStream(Stream):
@@ -548,7 +570,7 @@ def rfstats(stats=None, event=None, station=None, stream=None,
                                     stats.station_longitude,
                                     stats.event_latitude,
                                     stats.event_longitude)
-    dist = kilometer2degrees(dist / 1000)
+    dist = dist / 1000 / DEG2KM
     if dist_range and not dist_range[0] <= dist <= dist_range[1]:
         return
     tt_model = TauPyModel(model=tt_model)
