@@ -1,4 +1,10 @@
 dev:
+  * TODO: depreciate batch tool
+  * TODO: write more/better tests use new read_rf stuff
+  * TODO: fix shift for freq deconvolution
+  * TODO: profile add HMBCX station but add another check that data is sufficient long
+  * TDOO: try to produce better profile by quality control
+  * TODO: doc
   * add profile module and possibility to calculate profiles
   * add new imaging and util module
   * add helper class to iterate through a collection of threecomponent streams
