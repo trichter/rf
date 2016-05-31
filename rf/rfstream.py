@@ -82,17 +82,17 @@ _H5INDEX = {
     }
 
 
-def read_rf(pathname_or_url=None, format=None, **kwargs):
+def read_rf(pathname_or_url=None, **kwargs):
     """
     Read waveform files into RFStream object.
 
     See :func:`read() <obspy.core.stream.read>` in ObsPy.
     """
-    if pathname_or_url is None:   # create example stream
+    if pathname_or_url is None:   # use example file
         fname = resource_filename('rf', 'example/minimal_example.tar.gz')
-        stream = read(fname, 'SAC')
-    else:
-        stream = read(pathname_or_url=pathname_or_url, format=format, **kwargs)
+        pathname_or_url = fname
+        kwargs['format'] = 'SAC'
+    stream = read(pathname_or_url, **kwargs)
     return RFStream(stream)
 
 
