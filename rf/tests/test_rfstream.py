@@ -7,8 +7,8 @@ from obspy import read, read_events
 from obspy.core import AttribDict
 from obspy.core.util import NamedTemporaryFile
 from rf import read_rf, RFStream, rfstats
-from rf.rfstream import obj2stats
-from rf.rfstream import HEADERS, FORMATHEADERS, STATION_GETTER, EVENT_GETTER
+from rf.rfstream import (obj2stats, _HEADERS, _FORMATHEADERS, _STATION_GETTER,
+                         _EVENT_GETTER)
 
 
 _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
@@ -23,7 +23,7 @@ _HEADERS_NOT_DETERMINED_BY_RFSTATS = ('moveout', 'box_pos', 'box_length')
 def write_test_header(stream):
     for tr in stream:
         st = tr.stats
-        for head, val in zip(HEADERS, _HEADERS_TEST_IO):
+        for head, val in zip(_HEADERS, _HEADERS_TEST_IO):
             if head in ('onset', 'event_time'):
                 val = st.starttime + val
             st[head] = val
@@ -53,7 +53,7 @@ class RFStreamTestCase(unittest.TestCase):
                 stream2 = read_rf(fname)
             st1 = stream1[0].stats
             st2 = stream2[0].stats
-            for head in HEADERS:
+            for head in _HEADERS:
 #                if format not in ('sac', 'q') or head != 'moveout':
                 self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
             self.assertEqual(stream1[0].id, stream2[0].id)
@@ -61,7 +61,7 @@ class RFStreamTestCase(unittest.TestCase):
         for tr in stream:
             tr.stats.location = '11'
         write_test_header(stream)
-        for format in FORMATHEADERS:
+        for format in _FORMATHEADERS:
             test_io_format(format)
 
     def test_io_header_no_eventtime(self):
@@ -78,17 +78,17 @@ class RFStreamTestCase(unittest.TestCase):
             st2 = stream2[0].stats
             self.assertNotIn('event_time', st2)
         stream = read()[:1]
-        for format in FORMATHEADERS:
+        for format in _FORMATHEADERS:
             test_io_format(format)
 
     def test_obj2stats(self):
         stats = obj2stats(event=self.event, station=self.station)
-        for head, _ in STATION_GETTER + EVENT_GETTER:
+        for head, _ in _STATION_GETTER + _EVENT_GETTER:
             self.assertIn(head, stats)
 
     def test_rfstats(self):
         stats = rfstats(station=self.station, event=self.event, pp_depth=100.)
-        for head in HEADERS:
+        for head in _HEADERS:
             if head not in _HEADERS_NOT_DETERMINED_BY_RFSTATS:
                 self.assertIn(head, stats)
         # event is exactly north from station and around 66.7 degrees away

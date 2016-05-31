@@ -40,35 +40,35 @@ def __UTC2SAC(stats, head):
     return stats[head] - get_sac_reftime(stats.sac)
 
 
-STATION_GETTER = (('station_latitude', itemgetter('latitude')),
-                  ('station_longitude', itemgetter('longitude')),
-                  ('station_elevation', itemgetter('elevation')))
-EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
+_STATION_GETTER = (('station_latitude', itemgetter('latitude')),
+                   ('station_longitude', itemgetter('longitude')),
+                   ('station_elevation', itemgetter('elevation')))
+_EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
     ('event_latitude', __get_event_origin_prop('latitude')),
     ('event_longitude', __get_event_origin_prop('longitude')),
     ('event_depth', __get_event_origin_prop('depth')),
     ('event_magnitude', __get_event_magnitude),
     ('event_time', __get_event_origin_prop('time')))
 
-HEADERS = zip(*STATION_GETTER)[0] + zip(*EVENT_GETTER)[0] + (
+_HEADERS = zip(*_STATION_GETTER)[0] + zip(*_EVENT_GETTER)[0] + (
     'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
     'pp_latitude', 'pp_longitude', 'pp_depth', 'moveout',
     'box_pos', 'box_length')
 
 # The following headers can at the moment only be stored for H5:
 # slowness_before_moveout, box_lonlat
-FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
-                         'evdp', 'mag',
-                         'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
-                         'user2', 'user3', 'user4', 'kuser1',
-                         'user5', 'user6'),
-                 # field 'COMMENT' is violated for different information
-                 'sh': ('COMMENT', 'COMMENT', 'COMMENT',
-                        'LAT', 'LON', 'DEPTH',
-                        'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
-                        'AZIMUTH', 'INCI', 'SLOWNESS',
-                        'COMMENT', 'COMMENT', 'COMMENT', 'COMMENT',
-                        'COMMENT', 'COMMENT')}
+_FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
+                          'evdp', 'mag',
+                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
+                          'user2', 'user3', 'user4', 'kuser1',
+                          'user5', 'user6'),
+                  # field 'COMMENT' is violated for different information
+                  'sh': ('COMMENT', 'COMMENT', 'COMMENT',
+                         'LAT', 'LON', 'DEPTH',
+                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
+                         'AZIMUTH', 'INCI', 'SLOWNESS',
+                         'COMMENT', 'COMMENT', 'COMMENT', 'COMMENT',
+                         'COMMENT', 'COMMENT')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
                                'event_time': (__SAC2UTC, __UTC2SAC)}}
 
@@ -373,7 +373,7 @@ class RFTrace(Trace):
         if format == 'h5':
             return
         try:
-            header_map = zip(HEADERS, FORMATHEADERS[format])
+            header_map = zip(_HEADERS, _FORMATHEADERS[format])
         except KeyError:
             if warn:
                 warnings.warn('Reading rf header of a file with this format '
@@ -412,7 +412,7 @@ class RFTrace(Trace):
             from obspy.io.sac.util import obspy_to_sac_header
             self.stats.sac = obspy_to_sac_header(self.stats)
         try:
-            header_map = zip(HEADERS, FORMATHEADERS[format])
+            header_map = zip(_HEADERS, _FORMATHEADERS[format])
         except KeyError:
             if format != 'h5':
                 msg = ("rf in-/output of file format '%s' is not supported" %
@@ -476,10 +476,10 @@ def obj2stats(event=None, station=None):
     """
     stats = AttribDict({})
     if event is not None:
-        for key, getter in EVENT_GETTER:
+        for key, getter in _EVENT_GETTER:
             stats[key] = getter(event)
     if station is not None:
-        for key, getter in STATION_GETTER:
+        for key, getter in _STATION_GETTER:
             stats[key] = getter(station)
     return stats
 
