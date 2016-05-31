@@ -89,7 +89,7 @@ def read_rf(pathname_or_url=None, format=None, **kwargs):
     See :func:`read() <obspy.core.stream.read>` in ObsPy.
     """
     if pathname_or_url is None:   # create example stream
-        fname = resource_filename('rf', 'example/minimal_example??.sac')
+        fname = resource_filename('rf', 'example/minimal_example.tar.gz')
         stream = read(fname, 'SAC')
     else:
         stream = read(pathname_or_url=pathname_or_url, format=format, **kwargs)
