@@ -27,7 +27,7 @@ class IterEventData(object):
         return len(self.catalog) * len(self.stations)
 
     def __iter__(self):
-        from rf import rfstats, RFStream
+        from rf.rfstream import rfstats, RFStream
         for event, seedid in itertools.product(self.catalog, self.stations):
             origin_time = (event.preferred_origin() or
                            event.origins[0])['time']
