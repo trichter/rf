@@ -200,7 +200,7 @@ class SimpleModel(object):
             raise ValueError(msg % phase)
         phase = phase.upper()
         xp, xs = 0., 0.
-        qp, qs = self._calculate_vertical_slowness(slowness, phase=phase)
+        qp, qs = self.calculate_vertical_slowness(slowness, phase=phase)
         if 'P' in phase:
             xp = np.cumsum(self.dz * slowness / DEG2KM / qp)
         if 'S' in phase:
