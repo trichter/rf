@@ -1,77 +1,105 @@
+"""
+Utility functions and classes for receiver function calculation.
+"""
 import collections
 import itertools
 import numpy as np
 
 
-DEG2KM = 111.2
+DEG2KM = 111.2  #: Conversion factor from degrees epicentral distance to km
 
 
-class IterEventData(object):
+def iter_event_data(catalog, inventory, get_waveforms, phase='P',
+                    request_window=None, pad=10, pbar=None, **kwargs):
+    """
+    Return iterator yielding three component streams per station and event.
 
-    def __init__(self, catalog, inventory, get_waveforms, phase='P',
-                 request_window=None, pad=10, **kwargs):
-        self.catalog = catalog
-        self.inventory = inventory
-        self.get_waveforms = get_waveforms
-        method = phase[-1].upper()
-        if request_window is None:
-            request_window = (-50, 150) if method == 'P' else (-100, 50)
-        self.request_window = request_window
-        self.phase = phase
-        self.pad = pad
-        self.kwargs = kwargs
-        channels = inventory.get_contents()['channels']
-        self.stations = {ch[:-1] + '?': ch[-1] for ch in channels}
+    :param catalog: `~obspy.core.event.Catalog` instance with events
+    :param inventory: `~obspy.core.inventory.inventory.Inventory` instance
+        with station and channel information
+    :param get_waveforms: Function returning the data. It has to take the
+        arguments network, station, locaton, channel, starttime, endtime.
+    :param phase: Considered phase, e.g. 'P', 'S', 'PP'
+    :type request_window: tuple (start, end)
+    :param request_window: requested time window around the onset of the phase
+    :param float pad: add specified time in seconds to request window and
+       trim afterwards again
+    :param pbar: tqdm_ instance for displaying a progressbar
 
-    def __len__(self):
-        return len(self.catalog) * len(self.stations)
+    Example usage with progressbar::
 
-    def __iter__(self):
-        from rf.rfstream import rfstats, RFStream
-        for event, seedid in itertools.product(self.catalog, self.stations):
-            origin_time = (event.preferred_origin() or
-                           event.origins[0])['time']
-            try:
-                gc = self.inventory.get_coordinates
-                coords = gc(seedid[:-1] + self.stations[seedid], origin_time)
-            except:  # station not availlable at that time
-                # todo log
-                continue
-            stats = rfstats(station=coords, event=event,
-                            phase=self.phase, **self.kwargs)
-            if not stats:
-                continue
-            net, sta, loc, cha = seedid.split('.')
-            starttime = stats.onset + self.request_window[0]
-            endtime = stats.onset + self.request_window[1]
-            kws = {'network': net, 'station': sta, 'location': loc,
-                   'channel': cha, 'starttime': starttime - self.pad,
-                   'endtime': endtime + self.pad}
-            try:
-                stream = self.get_waveforms(**kws)
-            except:  # no data availlable
-                # todo log
-                continue
-            stream.trim(starttime, endtime)
-            stream.merge()
-            if len(stream) != 3:
-                # todo log
-                from warnings import warn
-                warn('Need 3 component seismograms. %d components '
-                     'detected for event %s, station %s.'
-                     % (len(stream), event.resource_id, seedid))
-                continue
-            if any(isinstance(tr.data, np.ma.masked_array) for tr in stream):
-                from warnings import warn
-                warn('Gaps or overlaps detected for event %s, station %s.'
-                     % (event.resource_id, seedid))
-                continue
-            for tr in stream:
-                tr.stats.update(stats)
-            yield RFStream(stream, warn=False)
+        from tqdm import tqdm
+        from rf.util import iter_event_data
+        with tqdm() as t:
+            for stream3c in iter_event_data(*args, pbar=t):
+                do_something(stream3c)
+
+    .. _tqdm: https://pypi.python.org/pypi/tqdm
+    """
+    from rf.rfstream import rfstats, RFStream
+    method = phase[-1].upper()
+    if request_window is None:
+        request_window = (-50, 150) if method == 'P' else (-100, 50)
+    channels = inventory.get_contents()['channels']
+    stations = {ch[:-1] + '?': ch[-1] for ch in channels}
+    if pbar is not None:
+        pbar.total = len(catalog) * len(stations)
+    for event, seedid in itertools.product(catalog, stations):
+        if pbar is not None:
+            pbar.update(1)
+        origin_time = (event.preferred_origin() or event.origins[0])['time']
+        try:
+            gc = inventory.get_coordinates
+            coords = gc(seedid[:-1] + stations[seedid], origin_time)
+        except:  # station not availlable at that time
+            continue
+        stats = rfstats(station=coords, event=event, phase=phase, **kwargs)
+        if not stats:
+            continue
+        net, sta, loc, cha = seedid.split('.')
+        starttime = stats.onset + request_window[0]
+        endtime = stats.onset + request_window[1]
+        kws = {'network': net, 'station': sta, 'location': loc,
+               'channel': cha, 'starttime': starttime - pad,
+               'endtime': endtime + pad}
+        try:
+            stream = get_waveforms(**kws)
+        except:  # no data availlable
+            continue
+        stream.trim(starttime, endtime)
+        stream.merge()
+        if len(stream) != 3:
+            from warnings import warn
+            warn('Need 3 component seismograms. %d components '
+                 'detected for event %s, station %s.'
+                 % (len(stream), event.resource_id, seedid))
+            continue
+        if any(isinstance(tr.data, np.ma.masked_array) for tr in stream):
+            from warnings import warn
+            warn('Gaps or overlaps detected for event %s, station %s.'
+                 % (event.resource_id, seedid))
+            continue
+        for tr in stream:
+            tr.stats.update(stats)
+        yield RFStream(stream, warn=False)
 
 
 class IterMultipleComponents(object):
+
+    """
+    Return iterable to iterate over associated components of a stream.
+
+    :param stream: Stream with different, possibly many traces. It is
+        splitted into substreams with the same seed id (only last character
+        i.e. component may vary)
+    :type key: str or None
+    :param key: Additionally, the stream is grouped by the values of
+         the given stats entry to differentiate between e.g. different events
+         (for example key='starttime', key='onset')
+    :type number_components: int, tuple of ints or None
+    :param number_components: Only iterate through substreams with
+         matching number of components.
+    """
 
     def __init__(self, stream, key=None, number_components=None):
         substreams = collections.defaultdict(stream.__class__)
@@ -90,7 +118,16 @@ class IterMultipleComponents(object):
             yield s
 
 
-def direct_geodetic(lonlat, azi, dist):
+def direct_geodetic(latlon, azi, dist):
+    """
+    Solve direct geodetic problem with geographiclib.
+
+    :param tuple latlon: coordinates of first point
+    :param azi: azimuth of direction
+    :param dist: distance in km
+
+    :return: coordinates (lat, lon) of second point on a WGS84 globe
+    """
     from geographiclib.geodesic import Geodesic
-    coords = Geodesic.WGS84.Direct(lonlat[1], lonlat[0], azi, dist * 1000)
-    return coords['lon2'], coords['lat2']
+    coords = Geodesic.WGS84.Direct(latlon[0], latlon[1], azi, dist * 1000)
+    return coords['lat2'], coords['lon2']

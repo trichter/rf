@@ -16,7 +16,7 @@ def load_model(fname='iasp91'):
     Load model from file.
 
     :param fname: path to model file or 'iasp91'
-    :return: :class:`~rf.simple.model.SimpleModel` instance
+    :return: `SimpleModel` instance
 
     The model file should have 4 columns with depth, vp, vs, n.
     The model file for iasp91 starts like this::
@@ -55,6 +55,13 @@ class SimpleModel(object):
 
     """
     Simple 1D velocity model for move out and piercing point calculation.
+
+    :param z: depths in km
+    :param vp: P wave velocities at provided depths in km/s
+    :param vs: S wave velocities at provided depths in km/s
+    :param n: number of support points between provided depths
+
+    All arguments can be of type numpy.ndarray or list.
     """
 
     def __init__(self, z, vp, vs, n=None):
@@ -69,52 +76,67 @@ class SimpleModel(object):
         self.vs = vs[:-1]
         self.t_ref = {}
 
-    def _calc_vertical_slowness(self, slowness, phase='PS'):
+    def calculate_vertical_slowness(self, slowness, phase='PS'):
         """
         Calculate vertical slowness of P and S wave.
+
+        :param slowness: slowness in s/deg
+        :param phase: Weather to calculate only P, only S or both vertical
+            slownesses
+        :return: vertical slowness of P wave, vertical slowness of S wave
+            at different depths (z attribute of model instance)
         """
+        phase = phase.upper()
+        hslow = slowness / DEG2KM  # convert to horizontal slowness (s/km)
         qp, qs = 0, 0
         # catch warnings because of negative root
         # these values will be nan
         with np.errstate(invalid='ignore'):
             if 'P' in phase:
-                qp = np.sqrt(self.vp ** (-2) - slowness ** 2)
+                qp = np.sqrt(self.vp ** (-2) - hslow ** 2)
             if 'S' in phase:
-                qs = np.sqrt(self.vs ** (-2) - slowness ** 2)
+                qs = np.sqrt(self.vs ** (-2) - hslow ** 2)
         return qp, qs
 
-    def _calc_phase_delay(self, slowness, phase='PS'):
+    def calculate_delay_times(self, slowness, phase='PS'):
         """
-        Calculate travel time delay between direct wave and converted phase.
+        Calculate delay times between direct wave and converted phase.
+
+        :param slowness: ray parameter in s/deg
+        :param phase: Converted phase or multiple (e.g. Ps, Pppp)
+        :return: delay times at different depths
         """
-        qp, qs = self._calc_vertical_slowness(slowness, phase=phase)
+        phase = phase.upper()
+        qp, qs = self.calculate_vertical_slowness(slowness, phase=phase)
         dt = (qp * phase.count('P') + qs * phase.count('S') -
               2 * (qp if phase[0] == 'P' else qs)) * self.dz
         return np.cumsum(dt)
 
-    def calculate_phase_delays(self, slowness, phase='Ps', ref=6.4):
+    def stretch_delay_times(self, slowness, phase='Ps', ref=6.4):
         """
-        Calculate travel time delays for slowness and reference slowness.
+        Stretch delay times of provided slowness to reference slowness.
 
-        Travel time delays are calculated between the direct wave and the
-        converted phase or multiples.
+        First, calculate delay times (time between the direct wave and
+        the converted phase or multiples at different depths) for the provided
+        slowness and reference slowness.
+        Secondly, stretch the the delay times of provided slowness to reference
+        slowness.
 
         :param slowness: ray parameter in s/deg
         :param phase: 'Ps', 'Sp' or multiples
         :param ref: reference ray parameter in s/deg
-        :return: original times, times stretched to reference slowness
+        :return: original delay times, delay times stretched to reference
+            slowness
         """
         if len(phase) % 2 == 1:
             msg = 'Length of phase (%s) should be divisible by two'
             raise ValueError(msg % phase)
-        slowness = slowness / DEG2KM
-        ref = ref / DEG2KM
         phase = phase.upper()
         try:
             t_ref = self.t_ref[phase]
         except KeyError:
-            self.t_ref[phase] = t_ref = self._calc_phase_delay(ref, phase)
-        t = self._calc_phase_delay(slowness, phase)
+            self.t_ref[phase] = t_ref = self.calculate_delay_times(ref, phase)
+        t = self.calculate_delay_times(slowness, phase)
         if phase[0] == 'S':
             t_ref = -t_ref
             t = -t
@@ -129,11 +151,11 @@ class SimpleModel(object):
 
     def moveout(self, stream, phase='Ps', ref=6.4):
         """
-        In-place moveout correction.
+        In-place moveout correction to reference slowness.
 
         :param stream: stream with stats attributes onset and slowness.
         :param phase: 'Ps', 'Sp', 'Ppss' or other multiples
-        :param ref: reference ray parameter in s/deg
+        :param ref: reference slowness (ray parameter) in s/deg
         """
         for tr in stream:
             st = tr.stats
@@ -141,8 +163,8 @@ class SimpleModel(object):
                 msg = 'onset time is not between starttime and endtime of data'
                 raise ValueError(msg)
             index0 = int(floor((st.onset - st.starttime) * st.sampling_rate))
-            t0, t1 = self.calculate_phase_delays(st.slowness, phase=phase,
-                                                 ref=ref)
+            t0, t1 = self.stretch_delay_times(st.slowness, phase=phase,
+                                              ref=ref)
             S_multiple = phase[0].upper() == 'S' and len(phase) > 3
             if S_multiple:
                 time0 = st.starttime - st.onset + index0 * st.delta
@@ -162,10 +184,11 @@ class SimpleModel(object):
                 # interpolate data at new times to data samples
                 data = np.interp(t, new_t, old_data, left=None, right=0.)
                 tr.data[index0:] = data
+        return stream
 
     def ppoint_distance(self, depth, slowness, phase='S'):
         """
-        Calculate horizontal distance of piercing point to station.
+        Calculate horizontal distance between piercing point and station.
 
         :param depth: depth of interface in km
         :param slowness: ray parameter in s/deg
@@ -176,13 +199,12 @@ class SimpleModel(object):
             msg = 'Length of phase (%s) should be even'
             raise ValueError(msg % phase)
         phase = phase.upper()
-        slowness = slowness / DEG2KM
         xp, xs = 0., 0.
-        qp, qs = self._calc_vertical_slowness(slowness, phase=phase)
+        qp, qs = self._calculate_vertical_slowness(slowness, phase=phase)
         if 'P' in phase:
-            xp = np.cumsum(self.dz * slowness / qp)
+            xp = np.cumsum(self.dz * slowness / DEG2KM / qp)
         if 'S' in phase:
-            xs = np.cumsum(self.dz * slowness / qs)
+            xs = np.cumsum(self.dz * slowness / DEG2KM / qs)
         x = xp * phase.count('P') + xs * phase.count('S')
         z = self.z
         index = np.nonzero(depth < z)[0][0] - 1
@@ -191,23 +213,23 @@ class SimpleModel(object):
 
     def ppoint(self, stats, depth, phase='S'):
         """
-        Piercing point calculation.
+        Calculate latitude and longitude of piercing point.
 
         Piercing point coordinates and depth are saved in the pp_latitude,
         pp_longitude and pp_depth entries of the stats object or dictionary.
 
         :param stats: Stats object or dictionary with entries
-            slowness, back_azimuth, station_latitude and station_longitude.
+            slowness, back_azimuth, station_latitude and station_longitude
         :param depth: depth of interface in km
-        :param phase: 'P' for piercing points of P wave, 'S' for piercing
-            points of S wave. Multiples are possible, too.
-        :return: piercing point latitude and longitude
+        :param phase: 'P' for piercing point of P wave, 'S' for piercing
+            point of S wave. Multiples are possible, too.
+        :return: latitude and longitude of piercing point
         """
         dr = self.ppoint_distance(depth, stats['slowness'], phase=phase)
         lat = stats['station_latitude']
         lon = stats['station_longitude']
         az = stats['back_azimuth']
-        plon, plat = direct_geodetic((lon, lat), az, dr)
+        plat, plon = direct_geodetic((lat, lon), az, dr)
         stats['pp_depth'] = depth
         stats['pp_latitude'] = plat
         stats['pp_longitude'] = plon

@@ -82,17 +82,17 @@ _H5INDEX = {
     }
 
 
-def read_rf(pathname_or_url=None, **kwargs):
+def read_rf(pathname_or_url=None, format=None, **kwargs):
     """
     Read waveform files into RFStream object.
 
-    See :func:`read() <obspy.core.stream.read>` in ObsPy.
+    See :func:`~obspy.core.stream.read` in ObsPy.
     """
     if pathname_or_url is None:   # use example file
         fname = resource_filename('rf', 'example/minimal_example.tar.gz')
         pathname_or_url = fname
-        kwargs['format'] = 'SAC'
-    stream = read(pathname_or_url, **kwargs)
+        format = 'SAC'
+    stream = read(pathname_or_url, format=format, **kwargs)
     return RFStream(stream)
 
 
@@ -129,7 +129,7 @@ class RFStream(Stream):
         """
         Save stream to file including format specific headers.
 
-        See :meth:`Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
+        See `Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
         """
         for tr in self:
             tr._write_format_specific_header(format)
@@ -150,12 +150,32 @@ class RFStream(Stream):
             for tr in self:
                 tr.stats.station = tr.stats.station.split('.')[1]
 
+    def trim2(self, starttime=None, endtime=None, reftime=None, **kwargs):
+        for tr in self.traces:
+            t1 = self.__seconds2utc(starttime, reftime=reftime)
+            t2 = self.__seconds2utc(endtime, reftime=reftime)
+            tr.trim(t1, t2, **kwargs)
+        self.traces = [_i for _i in self.traces if _i.stats.npts]
+        return self
+
+    def slice2(self, starttime=None, endtime=None, reftime=None,
+               keep_empty_traces=False, **kwargs):
+        traces = []
+        for tr in self:
+            t1 = self.__seconds2utc(starttime, reftime=reftime)
+            t2 = self.__seconds2utc(endtime, reftime=reftime)
+            sliced_trace = tr.slice(t1, t2, **kwargs)
+            if not keep_empty_traces and not sliced_trace.stats.npts:
+                continue
+            traces.append(sliced_trace)
+        return self.__class__(traces)
+
     def deconvolve(self, *args, **kwargs):
         """
         Deconvolve source component of stream.
 
         All args and kwargs are passed to the function
-        :func:`~rf.deconvolve.deconvolve`.
+        `~rf.deconvolve.deconvolve()`.
         """
         rsp = deconvolve(self, *args, **kwargs)
         self.traces = rsp
@@ -168,24 +188,25 @@ class RFStream(Stream):
 
         :param method: 'P' for P receiver functions, 'S' for S receiver
             functions
-        :param dictionary filter: filter stream with its
-            :meth:`~obspy.core.stream.Stream.filter` method and given kwargs
-        :type window: tuple of length 2
+        :param dict filter: filter stream with its
+            `~obspy.core.stream.Stream.filter` method and given kwargs
+        :type window: tuple (start, end)
         :param window: trim stream relative to P- or S-onset
              with :meth:`~obspy.core.stream.Stream.trim` (seconds)
         :param float downsample: downsample stream with its
             :meth:`~obspy.core.stream.Stream.decimate` method to the given
             frequency
-        :param rotate: 'ZNE->LQT' or 'NE->RT', rotate stream with its
+        :type rotate: 'ZNE->LQT' or 'NE->RT'
+        :param rotate: rotate stream with its
             :meth:`~obspy.core.stream.Stream.rotate`
             method with the angles given by the back_azimuth and inclination
             attributes of the traces stats objects. You can set these to your
             needs or let them be computed by :func:`~rf.rfstream.rfstats`.
         :param deconvolve: 'time' or 'freq' for time or frequency domain
             deconvolution by the streams
-            :meth:`~rf.rfstream.RFStream.deconvolve`
-            method. See :func:`~rf.deconvolve.deconvolve`,
-            :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
+            `deconvolve()`
+            method. See `~.deconvolve.deconvolve()`,
+            `.deconvt()` and `.deconvf()`
             for further documentation.
         :param \*\*kwargs: all other kwargs not mentioned here are
             passed to deconvolve
@@ -244,7 +265,7 @@ class RFStream(Stream):
         :param phase: 'Ps', 'Sp', 'Ppss' or other multiples
         :param ref: reference ray parameter in s/deg
         :param model: Path to model file
-            (see :class:`~rf.simple_model.SimpleModel`, default: iasp91)
+            (see `.SimpleModel`, default: iasp91)
         """
         model = load_model(model)
         model.moveout(self, phase=phase, ref=ref)
@@ -265,13 +286,13 @@ class RFStream(Stream):
         :param pp_phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave. Multiples are possible, too.
         :param model: Path to model file
-            (see :class:`~rf.simple_model.SimpleModel`, default: iasp91)
+            (see `.SimpleModel`, default: iasp91)
         :return: NumPy array with coordinates of piercing points
 
         .. note::
 
-            `phase='S'` is usually wanted for P receiver functions and 'P'
-            for S receiver functions.
+            ``phase='S'`` is usually wanted for P receiver functions and
+            ``'P'`` for S receiver functions.
         """
         model = load_model(model)
         for tr in self:
@@ -299,6 +320,11 @@ class RFStream(Stream):
         return self.__class__(traces)
 
     def get_profile(self, *args, **kwargs):
+        """
+        Return profile of receiver functions in the stream.
+
+        See `.profile.get_profile()` for help on arguments.
+        """
         from rf.profile import get_profile
         return get_profile(self, *args, **kwargs)
 
@@ -306,7 +332,7 @@ class RFStream(Stream):
         """
         Create receiver function plot.
 
-        See :func:`~rf.imaging.plot_rf` for help on arguments.
+        See `.imaging.plot_rf()` for help on arguments.
         """
         from rf.imaging import plot_rf
         return plot_rf(self, *args, **kwargs)
@@ -315,7 +341,7 @@ class RFStream(Stream):
         """
         Create receiver function profile plot.
 
-        See :func:`~rf.imaging.plot_profile` for help on arguments.
+        See `.imaging.plot_profile()` for help on arguments.
         """
         from rf.imaging import plot_profile
         return plot_profile(self, *args, **kwargs)
@@ -448,10 +474,8 @@ class RFTrace(Trace):
         from obspy import UTCDateTime as UTC
         if isinstance(seconds, Iterable):
             return [self.seconds2utc(s, reftime=reftime) for s in seconds]
-        if isinstance(seconds, UTC):
+        if isinstance(seconds, UTC) or reftime is None or seconds is None:
             return seconds
-        if reftime is None:
-            reftime = 'starttime'
         if not isinstance(reftime, UTC):
             reftime = self.stats[reftime]
         return reftime + seconds
@@ -460,7 +484,7 @@ class RFTrace(Trace):
         """
         Save current trace into a file  including format specific headers.
 
-        See :meth:`Trace.write() <obspy.core.trace.Trace.write>` in ObsPy.
+        See `Trace.write() <obspy.core.trace.Trace.write>` in ObsPy.
         """
         RFStream([self]).write(filename, format, **kwargs)
 
@@ -469,7 +493,7 @@ def obj2stats(event=None, station=None):
     """
     Map event and station object to stats with attributes.
 
-    :param event: ObsPy :class:`~obspy.core.event.Event` object
+    :param event: ObsPy `~obspy.core.event.event.Event` object
     :param station: station object with attributes latitude, longitude and
         elevation
     :return: ``stats`` object with station and event attributes
@@ -490,9 +514,9 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     """
     Calculate ray specific values like slowness for given event and station.
 
-    :param stats: stats object with event and/or station attributes. Can be
-        None if both event and station are given.
-    :param event: ObsPy :class:`~obspy.core.event.Event` object
+    :param stats: `~obspy.core.trace.Stats` object with event and/or station
+        attributes. Can be None if both event and station are given.
+    :param event: ObsPy `~obspy.core.event.event.Event` object
     :param station: station object with attributes latitude, longitude and
         elevation
     :param stream: If a stream is given, stats has to be None. In this case
@@ -505,16 +529,16 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         if phase == 'P' defaults to (30, 90),\n
         if phase == 'S' defaults to (50, 85)
     :param tt_model: model for travel time calculation.
-        (see the :mod:`obspy.taup` module, default: iasp91)
+        (see the `obspy.taup` module, default: iasp91)
     :param pp_depth: Depth for piercing point calculation
         (in km, default: None -> No calculation)
     :param pp_phase: Phase for pp calculation (default: 'S' for P-receiver
         function and 'P' for S-receiver function)
     :param model': Path to model file for pp calculation
-        (see :class:`~rf.simple_model.SimpleModel`, default: iasp91)
-    :return: ``stats`` object with event and station attributes, distance,
-        back_azimuth, inclination, onset and slowness or None if epicentral
-        distance is not in the given intervall
+        (see `.SimpleModel`, default: iasp91)
+    :return: `~obspy.core.trace.Stats` object with event and station
+        attributes, distance, back_azimuth, inclination, onset and
+        slowness or None if epicentral distance is not in the given intervall
     """
     if stream is not None:
         assert stats is None

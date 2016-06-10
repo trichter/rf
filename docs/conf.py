@@ -39,6 +39,7 @@ for i in range(20):
     try:
         import rf
         import rf.batch
+        import rf.imaging
     except ImportError:
         exc_type, exc_value, tb = sys.exc_info()
         codeline = traceback.extract_tb(tb)[-1][-1]
@@ -54,8 +55,30 @@ for i in range(20):
     else:
         break
 
+
+def get_all_param_type_declarations():
+    from glob import glob
+    from re import search
+    ignobj = []
+    text = ''
+    for fname in glob(os.path.join('..', 'rf', '*.py')):
+        with open(fname) as f:
+            text = text + f.read()
+    for line in text.splitlines():
+        match = search(':param\s+(\S+)\s+\S+:', line)
+        if match is None:
+            match = search(':type.*:\s*(.*?)\s*$', line)
+        if match is not None:
+            ignobj.append(match.group(1))
+    return ignobj
+
+
 # Show warnings for unreferenced targets
-#nitpicky = True
+nitpicky = True
+ignobj = get_all_param_type_declarations()
+igncls = ('object', 'exceptions.Exception', 'json.decoder.JSONDecoder')
+nitpick_ignore = ([('py:obj', n) for n in ignobj] +
+                  [('py:class', n) for n in igncls])
 
 # Add any Sphinx extension module names here
 extensions = ['sphinx.ext.autodoc',
@@ -66,6 +89,7 @@ extensions = ['sphinx.ext.autodoc',
               'alabaster']
 
 autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
+default_role = 'py:obj'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -198,4 +222,6 @@ epub_copyright = u'2013-2015, Tom Eulenfeld'
 
 
 # Configuration for intersphinx
-intersphinx_mapping = {'obspy': ('http://docs.obspy.org/', None)}
+intersphinx_mapping = {'obspy': ('http://docs.obspy.org/', None),
+                       #'python': ('https://docs.python.org/2.7/', None)
+                       }

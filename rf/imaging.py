@@ -10,12 +10,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
-from rf.util import DEG2KM
-
 
 def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
             stack_height=0.5,
-            fill=False, trim=None, downsample=None, title=True,
+            fillcolors=(None, None), trim=None, downsample=None, title=True,
             info=[('back_azimuth', u'baz (°)', 'b'),
                   ('distance', u'dist (°)', 'r')]):
     """
@@ -89,16 +87,13 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
     if len(stack) > 1:
         warnings.warn('Different stations in one RF plot.')
 
-    def _rf_fill(ax, t, d, i):
-        ax.fill_between(t, d + i, i, where=d >= 0, lw=0., facecolor='k')
-        ax.fill_between(t, d + i, i, where=d < 0, lw=0, facecolor='grey')
-
     def _plot(ax, t, d, i):
-        if fill:
-            _rf_fill(ax, t, d, i)
-            ax.plot(t, d + i, 'k')
-        else:
-            ax.plot(t, d + i, 'k')
+        c1, c2 = fillcolors
+        if c1:
+            ax.fill_between(t, d + i, i, where=d >= 0, lw=0., facecolor=c1)
+        if c2:
+            ax.fill_between(t, d + i, i, where=d < 0, lw=0., facecolor=c2)
+        ax.plot(t, d + i, 'k')
     _plot(ax2, times, stack[0].data, 0)
     max_ = max(np.max(np.abs(tr.data)) for tr in stream)
     for i, tr in enumerate(stream):
@@ -139,11 +134,11 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
         plt.close(fig)
 
 
-def _get_geoaxes(crs=None, lonlats=None):
+def _get_geoaxes(crs=None, latlons=None):
     if crs is None:
         from cartopy.crs import AzimuthalEquidistant
-        lonlat0 = np.median(lonlats, axis=0)
-        crs = AzimuthalEquidistant(*lonlat0)
+        latlon0 = np.median(latlons, axis=0)
+        crs = AzimuthalEquidistant(*latlon0[::-1])
     return plt.axes(projection=crs)
 
 
@@ -154,27 +149,27 @@ def __pc():
 
 def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
 
-    lonlats, names = zip(*[((sta.longitude, sta.latitude), sta.code)
+    latlons, names = zip(*[((sta.latitude, sta.longitude), sta.code)
                            for net in inventory for sta in net])
     if ax is None:
-        ax = _get_geoaxes(crs=crs, lonlats=lonlats)
+        ax = _get_geoaxes(crs=crs, latlons=latlons)
     kw = dict(s=200, marker='v', c='darkred', linewidth=0.5, zorder=3)
     kw.update(kwargs)
-    ax.scatter(*zip(*lonlats), transform=__pc(), **kw)
+    ax.scatter(*zip(*latlons)[::-1], transform=__pc(), **kw)
     if label_stations:
         path_effect = PathEffects.withStroke(linewidth=3, foreground="white")
         kw = {'xycoords': __pc()._as_mpl_transform(ax),
               'xytext': (10, 0), 'textcoords': 'offset points', 'zorder': 4,
               'path_effects': [path_effect]}
-        for lonlat, name in zip(lonlats, names):
-            ax.annotate(name, lonlat, **kw)
+        for latlon, name in zip(latlons, names):
+            ax.annotate(name, latlon[::-1], **kw)
     return ax
 
 
 def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
                  crs=None, **kwargs):
     if ax is None:
-        ax = _get_geoaxes(crs=crs, lonlats=ppoints[:, ::-1])
+        ax = _get_geoaxes(crs=crs, latlons=ppoints)
     if inventory is not None:
         plot_stations(inventory, label_stations=label_stations, ax=ax)
     kw = dict(s=50, marker='x', color='k', alpha=0.2, zorder=2)
@@ -186,8 +181,8 @@ def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
 def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
                      ax=None, crs=None, **kwargs):
     if ax is None:
-        lonlats = [boxes[len(boxes)//2]['lonlat']]
-        ax = _get_geoaxes(crs=crs, lonlats=lonlats)
+        latlons = [boxes[len(boxes)//2]['latlat']]
+        ax = _get_geoaxes(crs=crs, latlons=latlons)
     if inventory is not None:
         plot_stations(inventory, label_stations=label_stations, ax=ax)
     if ppoints is not None:
@@ -198,7 +193,7 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
         ax.add_geometries([box['poly']], crs=__pc(), **kw)
 
 
-def plot_profile(profile, scale=2, fill=('b', 'r'), top=None, fig=None,
+def plot_profile(profile, scale=2, fillcolors=('r', 'b'), top=None, fig=None,
                  moveout_model='iasp91'):
     if fig is None:
         fig = plt.figure()
@@ -212,20 +207,22 @@ def plot_profile(profile, scale=2, fill=('b', 'r'), top=None, fig=None,
         x = tr.stats.box_pos + scale * tr.data / max_ * min(widths) / 2
         y = tr.times() - (tr.stats.onset - tr.stats.starttime)
         ax.plot(x, y, 'k')
-        if fill is not None:
+        c1, c2 = fillcolors
+        if c1:
             ax.fill_betweenx(y, x, tr.stats.box_pos,
-                             where=x < tr.stats.box_pos, facecolor=fill[0])
+                             where=x >= tr.stats.box_pos, facecolor=c1)
+        if c2:
             ax.fill_betweenx(y, x, tr.stats.box_pos,
-                             where=x >= tr.stats.box_pos, facecolor=fill[1])
+                             where=x < tr.stats.box_pos, facecolor=c2)
     ax.set_xlabel('distance (km)')
     ax.set_ylim(max(y), min(y))
     ax.set_ylabel('time (s)')
     if moveout_model:
         from rf.simple_model import load_model
-        slow = profile[0].stats.slowness
         model = load_model(moveout_model)
-        pd = model._calc_phase_delay(phase=profile[0].stats.moveout.upper(),
-                                     slowness=slow / DEG2KM)
+        phase = profile[0].stats.moveout
+        slowness = profile[0].stats.slowness
+        pd = model.calculate_delay_times(phase=phase, slowness=slowness)
         ax2 = ax.twinx()
         ax.get_shared_y_axes().join(ax, ax2)
         dkm = 50

@@ -5,27 +5,45 @@
 API Documentation
 =================
 
-:mod:`rfstream` Module
-----------------------
+:mod:`!rfstream` Module
+-----------------------
 
 .. automodule:: rf.rfstream
 
-:mod:`batch` Module
--------------------
-
-.. automodule:: rf.batch
-
-:mod:`deconvolve` Module
-------------------------
+:mod:`!deconvolve` Module
+-------------------------
 
 .. automodule:: rf.deconvolve
 
-:mod:`simple_model` Module
---------------------------
+:mod:`!imaging` Module
+-------------------------
+
+.. automodule:: rf.imaging
+
+
+:mod:`!profile` Module
+---------------------------
+
+.. automodule:: rf.profile
+
+
+:mod:`!simple_model` Module
+---------------------------
 
 .. automodule:: rf.simple_model
 
-.. _`config`:
+:mod:`!util` Module
+-------------------------
+
+.. automodule:: rf.util
+
+
+:mod:`!batch` Module
+--------------------
+
+.. automodule:: rf.batch
+
+.. _`config_label`:
 
 Template Configuration File
 ===========================

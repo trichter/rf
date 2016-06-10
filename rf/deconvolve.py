@@ -24,16 +24,14 @@ def deconvolve(stream, source_components='LZ', response_components=None,
     The deconvolutions are written to the data arrays of the stream. To keep
     the original data use the copy method of Stream.
     The stats dictionaries of the traces inside stream must have an 'onset'
-    entry with a :class:`~obspy.core.UTCDateTime` object. This will be used
-    for determining the data windows.
+    entry with a `~obspy.core.utcdatetime.UTCDateTime` object.
+    This will be used for determining the data windows.
 
     :param stream: Stream object including response and source
     :param source_component: Name of component using for source function
     :param method:
-        'time' -> use time domain deconvolution in
-        :func:`~rf.deconvolve.deconvt`,\n
-        'freq' -> use freqeuency domain deconvolution in
-        :func:`~rf.deconvolve.deconvf`
+        'time' -> use time domain deconvolution in `deconvt()`,\n
+        'freq' -> use freqeuency domain deconvolution in `deconvf()`
     :type winsrc: tuple (start, end, taper)
     :param winsrc:
         data window for source function, in seconds relative to onset,\n
@@ -48,7 +46,7 @@ def deconvolve(stream, source_components='LZ', response_components=None,
         just for method='time', default: (-20, 80)
 
     Other optional parameters are passed to the underlying deconvolution
-    functions :func:`~rf.deconvolve.deconvt` and :func:`~rf.deconvolve.deconvf`
+    functions `deconvt()` and `deconvf()`
     .
     """
     if method not in ('time', 'freq'):

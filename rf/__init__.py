@@ -60,11 +60,11 @@ To install the development version of obspy download the source code and run ::
 Using the underlying Python module
 -----------------------------------
 
-The main functionality is provided by the class :class:`~rf.rfstream.RFStream`
-which is derived from ObsPy's :class:`~obspy.core.stream.Stream` class.
+The main functionality is provided by the class `.RFStream`
+which is derived from ObsPy's `~obspy.core.stream.Stream` class.
 
 The canonical way to load a waveform file into a RFStream is to use
-the :func:`~rf.rfstream.read_rf` function.
+the `.read_rf()` function.
 
 >>> from rf import read_rf
 >>> stream = read_rf('myfile.SAC')
@@ -123,7 +123,7 @@ pp_depth           COMMENT    user4
 
 The first task when calculating receiver functions is calculating some ray
 specific values like azimuth and epicentral distance. An appropriate stats
-dictionary can be calculated with :func:`~rf.rfstream.rfstats`:
+dictionary can be calculated with `.rfstats()`:
 
 >>> from rf import rfstats
 >>> stats = rfstats(station=station, event=event, phase='P', dist_range=(30,90))
@@ -154,7 +154,7 @@ the given kwargs:
     * rotation
     * deconvolution
 
-Please see :meth:`RFStream.rf() <rf.rfstream.RFStream.rf>`
+Please see `.RFStream.rf()`
 for a more detailed description.
 RFStream provides the possibility to perform moveout correction
 and piercing point calculation.
@@ -171,7 +171,7 @@ The command ::
 
     rf create
 
-creates a :ref:`template configuration file <config>` in the current
+creates a :ref:`template configuration file <config_label>` in the current
 directory. This file is in JSON format and well documented.
 After adapting the file to your needs you can use the various
 subcommands of rf to perform different tasks (e.g. receiver function
@@ -214,7 +214,7 @@ version is |buildstatus|.
 from _version import __version__
 from profile import get_profile_boxes
 from rfstream import read_rf, RFStream, rfstats
-from util import IterEventData, IterMultipleComponents
+from util import iter_event_data, IterMultipleComponents
 
 
 if 'dev' not in __version__:  # get image for correct version from travis-ci

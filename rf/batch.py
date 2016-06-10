@@ -17,7 +17,7 @@ import sys
 
 import obspy
 from rf.rfstream import read_rf
-from rf.util import IterEventData
+from rf.util import iter_event_data
 try:
     from progressbar import ProgressBar
 except ImportError:
@@ -226,7 +226,7 @@ def run_rf(events, inventory, get_waveforms, path, format='H5',
     kw = dict(phase=phase, request_window=request_window,
               dist_range=dist_range, pad=10, tt_model=tt_model,
               pp_depth=pp_depth, pp_phase=pp_phase, model=model)
-    for stream in IterEventData(events, inventory, get_waveforms, **kw):
+    for stream in iter_event_data(events, inventory, get_waveforms, **kw):
         stream.rf(method=method, **rf_kwargs)
         _write(stream, path, root, format)
 
