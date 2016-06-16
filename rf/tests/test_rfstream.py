@@ -123,6 +123,11 @@ class RFStreamTestCase(unittest.TestCase):
         # (subducting slab, Northern Chile)
         self.assertAlmostEqual(Q[0].data.argmax() * Q[0].stats.delta - 5, 8.6)
 
+    def test_str(self):
+        str_ = '6.0M dist:46.1 baz:325.0 slow: 6.40 (Ps moveout)'
+        stream = _minimal_example()
+        self.assertEqual(str(stream[0]).split(' | ')[-1], str_)
+
 
 def suite():
     return unittest.makeSuite(RFStreamTestCase, 'test')
