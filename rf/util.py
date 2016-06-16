@@ -49,8 +49,8 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
             pbar.update(1)
         origin_time = (event.preferred_origin() or event.origins[0])['time']
         try:
-            gc = inventory.get_coordinates
-            coords = gc(seedid[:-1] + stations[seedid], origin_time)
+            args = (seedid[:-1] + stations[seedid], origin_time)
+            coords = inventory.get_coordinates(*args)
         except:  # station not available at that time
             continue
         stats = rfstats(station=coords, event=event, phase=phase, **kwargs)

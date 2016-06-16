@@ -151,19 +151,34 @@ class RFStream(Stream):
                 tr.stats.station = tr.stats.station.split('.')[1]
 
     def trim2(self, starttime=None, endtime=None, reftime=None, **kwargs):
+        """
+        Alternative trim method accepting relative times.
+
+        See :meth:`~obspy.core.stream.Stream.trim`.
+        :param starttime, endttime: accept UTCDateTime or seconds relative to
+           reftime
+        :param reftime: reference time, can be an UTCDateTime object or a
+           string. The string will be looked up in the stats dictionary
+           (e.g. 'starttime', 'endtime', 'onset').
+        """
         for tr in self.traces:
-            t1 = tr.__seconds2utc(starttime, reftime=reftime)
-            t2 = tr.__seconds2utc(endtime, reftime=reftime)
+            t1 = tr._seconds2utc(starttime, reftime=reftime)
+            t2 = tr._seconds2utc(endtime, reftime=reftime)
             tr.trim(t1, t2, **kwargs)
         self.traces = [_i for _i in self.traces if _i.stats.npts]
         return self
 
     def slice2(self, starttime=None, endtime=None, reftime=None,
                keep_empty_traces=False, **kwargs):
+        """
+        Alternative slice method accepting relative times.
+
+        See :meth:`~obspy.core.stream.Stream.slice` and `trim2()`.
+        """
         traces = []
         for tr in self:
-            t1 = tr.__seconds2utc(starttime, reftime=reftime)
-            t2 = tr.__seconds2utc(endtime, reftime=reftime)
+            t1 = tr._seconds2utc(starttime, reftime=reftime)
+            t2 = tr._seconds2utc(endtime, reftime=reftime)
             sliced_trace = tr.slice(t1, t2, **kwargs)
             if not keep_empty_traces and not sliced_trace.stats.npts:
                 continue
@@ -469,11 +484,12 @@ class RFTrace(Trace):
         if format == 'sh' and len(comment) > 0:
             st[format]['COMMENT'] = json.dumps(comment, separators=(',', ':'))
 
-    def __seconds2utc(self, seconds, reftime=None):
+    def _seconds2utc(self, seconds, reftime=None):
+        """Return UTCDateTime given as seconds relative to reftime"""
         from collections import Iterable
         from obspy import UTCDateTime as UTC
         if isinstance(seconds, Iterable):
-            return [self.__seconds2utc(s, reftime=reftime) for s in seconds]
+            return [self._seconds2utc(s, reftime=reftime) for s in seconds]
         if isinstance(seconds, UTC) or reftime is None or seconds is None:
             return seconds
         if not isinstance(reftime, UTC):

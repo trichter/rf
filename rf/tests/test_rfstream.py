@@ -54,7 +54,6 @@ class RFStreamTestCase(unittest.TestCase):
             st1 = stream1[0].stats
             st2 = stream2[0].stats
             for head in _HEADERS:
-#                if format not in ('sac', 'q') or head != 'moveout':
                 self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
             self.assertEqual(stream1[0].id, stream2[0].id)
         stream = RFStream(read())[:1]
@@ -95,11 +94,22 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertTrue(abs(stats.distance - 66.7) < 1.)
         self.assertTrue(abs(stats.back_azimuth % 360.) < 0.1)
         self.assertTrue(abs(stats.slowness - 6.4) < 0.1)
-    
+
     def test_trim2(self):
         stream = read_rf()
-        from IPython import embed
-        embed()
+        starttimes = [tr.stats.starttime for tr in stream]
+        stream.trim2(50, 100, 'starttime')
+        for t0, tr in zip(starttimes, stream):
+            self.assertEqual(tr.stats.starttime - t0, 50)
+            self.assertEqual(tr.stats.endtime - t0, 100)
+
+    def test_slice2(self):
+        stream = read_rf()
+        event_times = [tr.stats.starttime for tr in stream]
+        stream = stream.slice2(-50, 100, 'event_time')
+        for t0, tr in zip(event_times, stream):
+            self.assertEqual(tr.stats.starttime - t0, -50)
+            self.assertEqual(tr.stats.endtime - t0, 100)
 
 #    def test_simple(self):
 #        stream = read_rf()
