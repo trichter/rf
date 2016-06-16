@@ -18,7 +18,7 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
     :param inventory: `~obspy.core.inventory.inventory.Inventory` instance
         with station and channel information
     :param get_waveforms: Function returning the data. It has to take the
-        arguments network, station, locaton, channel, starttime, endtime.
+        arguments network, station, location, channel, starttime, endtime.
     :param phase: Considered phase, e.g. 'P', 'S', 'PP'
     :type request_window: tuple (start, end)
     :param request_window: requested time window around the onset of the phase
@@ -51,7 +51,7 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
         try:
             gc = inventory.get_coordinates
             coords = gc(seedid[:-1] + stations[seedid], origin_time)
-        except:  # station not availlable at that time
+        except:  # station not available at that time
             continue
         stats = rfstats(station=coords, event=event, phase=phase, **kwargs)
         if not stats:
@@ -64,7 +64,7 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
                'endtime': endtime + pad}
         try:
             stream = get_waveforms(**kws)
-        except:  # no data availlable
+        except:  # no data available
             continue
         stream.trim(starttime, endtime)
         stream.merge()
@@ -90,7 +90,7 @@ class IterMultipleComponents(object):
     Return iterable to iterate over associated components of a stream.
 
     :param stream: Stream with different, possibly many traces. It is
-        splitted into substreams with the same seed id (only last character
+        split into substreams with the same seed id (only last character
         i.e. component may vary)
     :type key: str or None
     :param key: Additionally, the stream is grouped by the values of

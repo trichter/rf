@@ -152,8 +152,8 @@ class RFStream(Stream):
 
     def trim2(self, starttime=None, endtime=None, reftime=None, **kwargs):
         for tr in self.traces:
-            t1 = self.__seconds2utc(starttime, reftime=reftime)
-            t2 = self.__seconds2utc(endtime, reftime=reftime)
+            t1 = tr.__seconds2utc(starttime, reftime=reftime)
+            t2 = tr.__seconds2utc(endtime, reftime=reftime)
             tr.trim(t1, t2, **kwargs)
         self.traces = [_i for _i in self.traces if _i.stats.npts]
         return self
@@ -162,8 +162,8 @@ class RFStream(Stream):
                keep_empty_traces=False, **kwargs):
         traces = []
         for tr in self:
-            t1 = self.__seconds2utc(starttime, reftime=reftime)
-            t2 = self.__seconds2utc(endtime, reftime=reftime)
+            t1 = tr.__seconds2utc(starttime, reftime=reftime)
+            t2 = tr.__seconds2utc(endtime, reftime=reftime)
             sliced_trace = tr.slice(t1, t2, **kwargs)
             if not keep_empty_traces and not sliced_trace.stats.npts:
                 continue
@@ -473,7 +473,7 @@ class RFTrace(Trace):
         from collections import Iterable
         from obspy import UTCDateTime as UTC
         if isinstance(seconds, Iterable):
-            return [self.seconds2utc(s, reftime=reftime) for s in seconds]
+            return [self.__seconds2utc(s, reftime=reftime) for s in seconds]
         if isinstance(seconds, UTC) or reftime is None or seconds is None:
             return seconds
         if not isinstance(reftime, UTC):
@@ -538,7 +538,7 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         (see `.SimpleModel`, default: iasp91)
     :return: `~obspy.core.trace.Stats` object with event and station
         attributes, distance, back_azimuth, inclination, onset and
-        slowness or None if epicentral distance is not in the given intervall
+        slowness or None if epicentral distance is not in the given interval
     """
     if stream is not None:
         assert stats is None

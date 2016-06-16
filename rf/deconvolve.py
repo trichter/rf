@@ -264,7 +264,7 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
         S... source matrix (shape N*N)
         R... response vector (length N)
         RF... receiver function (deconvolution) vector (length N)
-        STS = S^T*S = symetric Toeplitz autocorrelation matrix
+        STS = S^T*S = symmetric Toeplitz autocorrelation matrix
         STR = S^T*R = cross-correlation vector
         I... Identity
 

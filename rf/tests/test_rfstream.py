@@ -95,6 +95,11 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertTrue(abs(stats.distance - 66.7) < 1.)
         self.assertTrue(abs(stats.back_azimuth % 360.) < 0.1)
         self.assertTrue(abs(stats.slowness - 6.4) < 0.1)
+    
+    def test_trim2(self):
+        stream = read_rf()
+        from IPython import embed
+        embed()
 
 #    def test_simple(self):
 #        stream = read_rf()

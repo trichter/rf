@@ -2,13 +2,13 @@
 """
 Functions for receiver function plotting.
 """
+import warnings
 
 import matplotlib.patheffects as PathEffects
 from matplotlib.ticker import (AutoMinorLocator, FixedLocator, FixedFormatter,
                                MaxNLocator)
 import matplotlib.pyplot as plt
 import numpy as np
-import warnings
 
 
 def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,

@@ -194,7 +194,7 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-GitHub_. The code is continiously tested by travis-ci. The test status of this
+GitHub_. The code is continuously tested by travis-ci. The test status of this
 version is |buildstatus|.
 
 

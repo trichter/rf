@@ -2,9 +2,9 @@
 Simple move out and piercing point calculation.
 """
 from math import floor
-import numpy as np
 from pkg_resources import resource_filename
 
+import numpy as np
 from rf.util import direct_geodetic, DEG2KM
 
 
