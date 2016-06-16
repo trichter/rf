@@ -291,9 +291,9 @@ class RFStream(Stream):
 
     def ppoint(self, pp_depth, pp_phase='S', model='iasp91'):
         """
-        Calculate coordinates of piercing point by 1D ray tracing.
+        Return coordinates of piercing point calculated by 1D ray tracing.
 
-        The iasp91 model is used. Piercing point coordinates are stored in the
+        Piercing point coordinates are stored in the
         stats attributes plat and plon. Needs stats attributes
         station_latitude, station_longitude, slowness and back_azimuth.
 
@@ -317,9 +317,11 @@ class RFStream(Stream):
 
     def stack(self):
         """
-        Stack traces with the same id into new Stream.
+        Return stack of traces with same seed ids.
 
         Traces with same id need to have the same number of datapoints.
+        Each trace in the returned stream will correspond to one unique seed
+        id.
         """
         ids = set(tr.id for tr in self)
         traces = []
@@ -334,7 +336,7 @@ class RFStream(Stream):
             traces.append(tr2)
         return self.__class__(traces)
 
-    def get_profile(self, *args, **kwargs):
+    def profile(self, *args, **kwargs):
         """
         Return profile of receiver functions in the stream.
 

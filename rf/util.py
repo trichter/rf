@@ -131,3 +131,19 @@ def direct_geodetic(latlon, azi, dist):
     from geographiclib.geodesic import Geodesic
     coords = Geodesic.WGS84.Direct(latlon[0], latlon[1], azi, dist * 1000)
     return coords['lat2'], coords['lon2']
+
+
+def _minimal_example():
+    """
+    Return receiver functions calculated from the data returned by read_rf()
+    """
+    from rf.rfstream import read_rf, rfstats
+    stream = read_rf()
+    rfstats(stream=stream)
+    stream.filter('bandpass', freqmin=0.4, freqmax=1)
+    stream.trim2(5, 95, reftime='starttime')
+    stream.rf()
+    stream.moveout()
+    stream.trim2(-5, 22, reftime='onset')
+    stream.ppoint(50)
+    return stream

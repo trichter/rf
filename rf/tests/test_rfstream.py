@@ -9,6 +9,7 @@ from obspy.core.util import NamedTemporaryFile
 from rf import read_rf, RFStream, rfstats
 from rf.rfstream import (obj2stats, _HEADERS, _FORMATHEADERS, _STATION_GETTER,
                          _EVENT_GETTER)
+from rf.util import _minimal_example
 
 
 _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
@@ -112,14 +113,7 @@ class RFStreamTestCase(unittest.TestCase):
             self.assertEqual(tr.stats.endtime - t0, -20)
 
     def test_rf_minimal_example(self):
-        stream = read_rf()
-        rfstats(stream=stream)
-        stream.filter('bandpass', freqmin=0.4, freqmax=1)
-        stream.trim2(5, 95, reftime='starttime')
-        stream.rf()
-        stream.moveout()
-        stream.trim2(-5, 22, reftime='onset')
-        stream.ppoint(50)
+        stream = _minimal_example()
         stack = stream.stack()
         L = stack.select(component='L')
         Q = stack.select(component='Q')
