@@ -105,22 +105,29 @@ class RFStreamTestCase(unittest.TestCase):
 
     def test_slice2(self):
         stream = read_rf()
-        event_times = [tr.stats.starttime for tr in stream]
-        stream = stream.slice2(-50, 100, 'event_time')
-        for t0, tr in zip(event_times, stream):
+        endtimes = [tr.stats.endtime for tr in stream]
+        stream = stream.slice2(-50, -20, 'endtime')
+        for t0, tr in zip(endtimes, stream):
             self.assertEqual(tr.stats.starttime - t0, -50)
-            self.assertEqual(tr.stats.endtime - t0, 100)
+            self.assertEqual(tr.stats.endtime - t0, -20)
 
-#    def test_simple(self):
-#        stream = read_rf()
-#        stream._write_test_header()
-#        stream.rf()
-#        stream.moveout()
-#        stream.ppoint(50)
-#        self.assertEqual(len(stream[0]), len(read_rf()[0]))
-
-    def test_rf(self):
-        pass
+    def test_rf_minimal_example(self):
+        stream = read_rf()
+        rfstats(stream=stream)
+        stream.filter('bandpass', freqmin=0.4, freqmax=1)
+        stream.trim2(5, 95, reftime='starttime')
+        stream.rf()
+        stream.moveout()
+        stream.trim2(-5, 22, reftime='onset')
+        stream.ppoint(50)
+        stack = stream.stack()
+        L = stack.select(component='L')
+        Q = stack.select(component='Q')
+        # check that maximum in L component is at 0s (at P onset)
+        self.assertEqual(L[0].data.argmax() * L[0].stats.delta - 5, 0)
+        # check that maximum in Q component is at 8.6s
+        # (subducting slab, Northern Chile)
+        self.assertAlmostEqual(Q[0].data.argmax() * Q[0].stats.delta - 5, 8.6)
 
 
 def suite():
