@@ -3,8 +3,9 @@ Utility functions and classes for receiver function calculation.
 """
 import collections
 import itertools
-import numpy as np
+from pkg_resources import resource_filename
 
+import numpy as np
 
 DEG2KM = 111.2  #: Conversion factor from degrees epicentral distance to km
 
@@ -133,17 +134,35 @@ def direct_geodetic(latlon, azi, dist):
     return coords['lat2'], coords['lon2']
 
 
-def _minimal_example():
+def minimal_example_rf():
     """
     Return receiver functions calculated from the data returned by read_rf()
     """
     from rf.rfstream import read_rf, rfstats
     stream = read_rf()
     rfstats(stream=stream)
-    stream.filter('bandpass', freqmin=0.4, freqmax=1)
-    stream.trim2(5, 95, reftime='starttime')
-    stream.rf()
+    stream.filter('bandpass', freqmin=0.5, freqmax=2)
+    stream.trim2(10, 110, reftime='starttime')
+    stream.rf(winsrc=(-5, 25, 5), spiking=1)
     stream.moveout()
-    stream.trim2(-5, 22, reftime='onset')
+    stream.trim2(-10, 80, reftime='onset')
     stream.ppoint(50)
+    return stream
+
+
+def minimal_example_Srf():
+    """
+    Return S receiver functions calculated from the data returned by read_rf()
+    """
+    from rf.rfstream import read_rf, rfstats
+    fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
+    stream = read_rf(fname)
+    rfstats(stream=stream, phase='S')
+    stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
+    stream.trim2(10, 120, reftime='starttime')
+    stream.rf(method='S', winsrc=(-5, 19, 5))
+    # TODO moveout, winsrc=(-5, 20, 5)
+    stream.moveout(phase='Sp')
+    #stream.trim2(-5, 22, reftime='onset')
+    stream.ppoint(50, pp_phase='P')
     return stream
