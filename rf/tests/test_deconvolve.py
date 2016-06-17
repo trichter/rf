@@ -1,12 +1,33 @@
 """
 Tests for deconvolve module.
 """
+import unittest
+
 from numpy.random import random, seed
 import numpy as np
 import scipy.linalg
 from scipy.signal import get_window, convolve
-import unittest
-import rf
+import rf.deconvolve
+from rf.rfstream import read_rf, rfstats, RFStream
+
+
+#def get_shift(trace):
+#    st = trace.stats
+#    return trace.data.argmax() * st.delta - (st.onset - st.starttime)
+
+def test_deconvolve_Lpeak(testcase, stream, *args, **kwargs):
+    s1 = stream.copy()
+    s1.deconvolve(*args, **kwargs)
+    Ltrace = s1.select(component='L')[0]
+    st = Ltrace.stats
+    onsetL = Ltrace.data.argmax() * st.delta
+    onset = st.onset - st.starttime
+    msg = ('L component maxium at %.2fs, but should be at %.2fs. '
+           'deconvolve args: %s, %s') % (onsetL, onset, args, kwargs)
+#    import matplotlib.pyplot as plt
+#    s1.plot_rf()
+#    plt.show()
+    testcase.assertLess(abs(onsetL-onset), 0.1, msg=msg)
 
 
 class DeconvolveTestCase(unittest.TestCase):
@@ -25,6 +46,29 @@ class DeconvolveTestCase(unittest.TestCase):
         x = np.dot(scipy.linalg.inv(toep), rsp)  # compare to scipy.linalg
         x2 = rf.deconvolve._toeplitz_real_sym(src, rsp)
         np.testing.assert_array_almost_equal(x, x2, decimal=3)
+
+    def test_deconvolution_of_stream_Lpeak_position(self):
+        stream = read_rf()[:3]
+        rfstats(stream=stream)
+        stream.filter('bandpass', freqmin=0.4, freqmax=1)
+        stream.trim2(5, 95, reftime='starttime')
+        stream.rotate('ZNE->LQT')
+        # check that maximum in L component is at 0s (at P onset)
+        test_deconvolve_Lpeak(self, stream, 'time')
+        test_deconvolve_Lpeak(self, stream, 'freq')
+        test_deconvolve_Lpeak(self, stream, 'time', tshift=5)
+        test_deconvolve_Lpeak(self, stream, 'freq', tshift=5)
+        stream.trim2(5, 70, reftime='starttime')
+        test_deconvolve_Lpeak(self, stream, 'time')
+        test_deconvolve_Lpeak(self, stream, 'freq')
+        test_deconvolve_Lpeak(self, stream, 'time', tshift=15)
+        test_deconvolve_Lpeak(self, stream, 'freq', tshift=15)
+        stream.trim2(5, 40, reftime='starttime')
+        test_deconvolve_Lpeak(self, stream, 'time')
+        test_deconvolve_Lpeak(self, stream, 'freq')
+        test_deconvolve_Lpeak(self, stream, 'time', tshift=0)
+        test_deconvolve_Lpeak(self, stream, 'freq', tshift=0)
+
 
     def test_deconvolution(self):
         from obspy import read

@@ -7,9 +7,9 @@ from obspy import read, read_events
 from obspy.core import AttribDict
 from obspy.core.util import NamedTemporaryFile
 from rf import read_rf, RFStream, rfstats
-from rf.rfstream import (obj2stats, _HEADERS, _FORMATHEADERS, _STATION_GETTER,
-                         _EVENT_GETTER)
-from rf.util import _minimal_example
+from rf.rfstream import (obj2stats, _HEADERS, _STATION_GETTER, _EVENT_GETTER,
+                         _FORMATHEADERS)
+from rf.util import minimal_example_rf, minimal_example_Srf
 
 
 _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
@@ -20,6 +20,15 @@ _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
 
 _HEADERS_NOT_DETERMINED_BY_RFSTATS = ('moveout', 'box_pos', 'box_length')
 
+FORMATS = _FORMATHEADERS.keys()
+
+try:
+    import obspyh5
+except ImportError:
+    pass
+else:
+    FORMATS.append('h5')
+
 
 def write_test_header(stream):
     for tr in stream:
@@ -28,6 +37,37 @@ def write_test_header(stream):
             if head in ('onset', 'event_time'):
                 val = st.starttime + val
             st[head] = val
+
+
+def test_io_header(testcase, stream, ignore=()):
+    for format in FORMATS:
+        stream1 = stream.copy()
+        suffix = '.' + format.upper()
+        if format in ('sac', 'sh'):  # TODO!!
+            continue
+        if format == 'sh':
+            format = 'q'
+            suffix = '.QHD'
+        with NamedTemporaryFile(suffix=suffix) as ft:
+            fname = ft.name
+            stream1.write(fname, format.upper())
+            stream2 = read_rf(fname)
+        st1 = stream1[0].stats
+        st2 = stream2[0].stats
+        for head in _HEADERS:
+            if head in st1 and head not in ignore:
+                if head not in st2:
+                    from IPython import embed
+                    embed()
+                testcase.assertIn(head, st2)
+                msg = ("AssertionError for header '%s' with format '%s': "
+                       "%s and %s not equal within 3 places")
+                testcase.assertAlmostEqual(
+                    st1[head], st2[head], 3,
+                    msg=msg % (head, format, st1[head], st2[head])
+                    )
+        if len(ignore) == 0 or format != 'q':
+            testcase.assertEqual(stream1[0].id, stream2[0].id)
 
 
 class RFStreamTestCase(unittest.TestCase):
@@ -42,44 +82,20 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertIsInstance(read_rf(), RFStream)
 
     def test_io_header(self):
-        def test_io_format(format):
-            stream1 = stream.copy()
-            suffix = '.' + format.upper()
-            if format == 'sh':
-                format = 'q'
-                suffix = '.QHD'
-            with NamedTemporaryFile(suffix=suffix) as ft:
-                fname = ft.name
-                stream1.write(fname, format.upper())
-                stream2 = read_rf(fname)
-            st1 = stream1[0].stats
-            st2 = stream2[0].stats
-            for head in _HEADERS:
-                self.assertAlmostEqual(st1[head], st2[head], 4, msg=head)
-            self.assertEqual(stream1[0].id, stream2[0].id)
         stream = RFStream(read())[:1]
         for tr in stream:
             tr.stats.location = '11'
         write_test_header(stream)
-        for format in _FORMATHEADERS:
-            test_io_format(format)
+        test_io_header(self, stream)
 
-    def test_io_header_no_eventtime(self):
-        def test_io_format(format):
-            stream1 = stream.copy()
-            suffix = '.' + format.upper()
-            if format == 'sh':
-                format = 'q'
-                suffix = '.QHD'
-            with NamedTemporaryFile(suffix=suffix) as ft:
-                fname = ft.name
-                stream1.write(fname, format.upper())
-                stream2 = read_rf(fname)
-            st2 = stream2[0].stats
-            self.assertNotIn('event_time', st2)
+    def test_io_header_obspy_stream(self):
         stream = read()[:1]
-        for format in _FORMATHEADERS:
-            test_io_format(format)
+        ignore = ('back_azimuth', 'inclination')
+        test_io_header(self, stream, ignore=ignore)
+
+    def test_io_header_rf(self):
+        stream = minimal_example_rf()[:1]
+        test_io_header(self, stream)
 
     def test_obj2stats(self):
         stats = obj2stats(event=self.event, station=self.station)
@@ -112,20 +128,47 @@ class RFStreamTestCase(unittest.TestCase):
             self.assertEqual(tr.stats.starttime - t0, -50)
             self.assertEqual(tr.stats.endtime - t0, -20)
 
-    def test_rf_minimal_example(self):
-        stream = _minimal_example()
+    def test_minimal_example_rf(self):
+        stream = minimal_example_rf()
+#        stream.select(component='L').plot_rf()
+#        stream.select(component='Q').plot_rf()
+#        stream.select(component='T').plot_rf()
+#        import matplotlib.pyplot as plt
+#        plt.show()
         stack = stream.stack()
         L = stack.select(component='L')
         Q = stack.select(component='Q')
         # check that maximum in L component is at 0s (at P onset)
-        self.assertEqual(L[0].data.argmax() * L[0].stats.delta - 5, 0)
+        onset = L[0].stats.onset - L[0].stats.starttime
+        dt = L[0].stats.delta
+        #TODO reduce delta
+        self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 0, delta=0.1)
         # check that maximum in Q component is at 8.6s
         # (subducting slab, Northern Chile)
-        self.assertAlmostEqual(Q[0].data.argmax() * Q[0].stats.delta - 5, 8.6)
+        self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 8.6, delta=0.1)
+
+    def test_minimal_example_Srf(self):
+        stream = minimal_example_Srf()
+#        stream.select(component='L').plot_rf()
+#        stream.select(component='Q').plot_rf()
+#        stream.select(component='T').plot_rf()
+#        import matplotlib.pyplot as plt
+#        plt.show()
+        stack = stream.stack()
+        L = stack.select(component='L')
+        Q = stack.select(component='Q')
+        # check that maximum in Q component is at 0s (at S onset)
+        onset = Q[0].stats.onset - Q[0].stats.starttime
+        dt = Q[0].stats.delta
+        self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 0, delta=0.1)
+        # check that maximum in L component is at 8.8s
+        L.trim2(-5, 16, 'onset')
+        onset = L[0].stats.onset - L[0].stats.starttime
+        self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 8.8, delta=0.1)
 
     def test_str(self):
-        str_ = '6.0M dist:46.1 baz:325.0 slow: 6.40 (Ps moveout)'
-        stream = _minimal_example()
+        str_ = '6.0M dist:46.1 baz:325.0 slow:6.40 (Ps moveout)'
+        stream = minimal_example_rf()
         self.assertEqual(str(stream[0]).split(' | ')[-1], str_)
 
 
