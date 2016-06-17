@@ -14,9 +14,10 @@ except ImportError:
     warnings.warn(msg)
 
 
-def deconvolve(stream, source_components='LZ', response_components=None,
-               method='time', set_tw='P',
-               winsrc=None, winrsp=None, winrf=None, tshift=None,
+def deconvolve(stream, method='time',
+               source_components='LZ', response_components=None,
+               set_tw='P',
+               winsrc=None, tshift=None,
                **kwargs):
     """
     Deconvolve one component of a stream from all components.
@@ -51,14 +52,6 @@ def deconvolve(stream, source_components='LZ', response_components=None,
     """
     if method not in ('time', 'freq'):
         raise NotImplementedError()
-#    if method == 'time':
-#        winsrc = kwargs.pop('winsrc', (-10, 30, 5))
-#        winrsp = kwargs.pop('winrsp', (-20, 80))
-#        winrf = kwargs.pop('winrf', (-20, 80))
-#    else:
-#        winsrc = kwargs.pop('winsrc', (-20, 80, 5))
-#        tshift = kwargs.get('tshift', 10)
-
     # identify source and response components
     src = [tr for tr in stream if tr.stats.channel[-1] in source_components]
     if len(src) != 1:
@@ -71,22 +64,29 @@ def deconvolve(stream, source_components='LZ', response_components=None,
         msg = 'Invalid number of response components. %d not between 0 and 4.'
         raise ValueError(msg % len(rsp))
     # define default time windows
-    lensec = src.stats.endtime - src.stats.starttime
+    lenrsp = src.stats.endtime - src.stats.starttime
     onset = src.stats.onset - src.stats.starttime
     if set_tw == 'P' and method == 'time':
         winsrc = winsrc or (-10, 30, 5)
-        winrsp = winrsp or (-onset, lensec - onset)
-        winrf = winrf or (-onset, lensec - onset)
+#        winrsp = winrsp or (-onset, lensec - onset)
+#        winrf = winrf or (-onset, lensec - onset)
     elif set_tw == 'S' and method == 'time':
         winsrc = winsrc or (-10, 30, 5)
-        winrsp = winrsp or (onset - lensec, onset)
-        winrf = winrf or (onset - lensec, onset)
+#        winrsp = winrsp or (onset - lensec, onset)
+#        winrf = winrf or (onset - lensec, onset)
     elif set_tw == 'P':
-        winsrc = winsrc or (-onset + 5, lensec - onset - 5, 5)
-        tshift = tshift or onset
+        winsrc = winsrc or (-onset + 5, lenrsp - onset - 5, 5)
     elif set_tw == 'S':
-        winsrc = winsrc or (onset - lensec + 5, onset - 5),
-        tshift = tshift or lensec - onset
+        winsrc = winsrc or (onset - lenrsp + 5, onset - 5),
+
+    winsrc = list(winsrc)
+    if winsrc[0] < -onset:
+        winsrc[0] = -onset
+    if winsrc[1] - winsrc[0] > lenrsp:
+        winsrc[1] = lenrsp - onset
+    if tshift is None:
+        tshift = -winsrc[0]
+
     # prepare source and response data and deconvolve
     sr = src.stats.sampling_rate
     onset_utc = src.stats.onset
@@ -96,17 +96,21 @@ def deconvolve(stream, source_components='LZ', response_components=None,
     src.taper(max_percentage=None, max_length=winsrc[2])
     rsp_data = [tr.data for tr in rsp]
     if method == 'time':
-        time_rf = winrf[1] - winrf[0]
-        shift = int(round(sr *
-                          ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
-                            time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0])))
-        length = int(round(time_rf * sr)) + 1
+        lensrc = winsrc[1] - winsrc[0]
+#        time_rf = winrf[1] - winrf[0]
+#        shift = int(round(sr *
+#                          ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
+#                            time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0])))
+#        length = int(round(time_rf * sr)) + 1
+#        tshift = -winrf[0]
+        shift = int(round(sr * (tshift - lensrc / 2)))
+        length = int(round(lenrsp * sr)) + 1
         rf_data = deconvt(rsp_data, src.data, shift, length=length, **kwargs)
-        tshift = -winrf[0]
-        for tr in rsp:
-            tr.stats.tshift = tshift
     else:
-        rf_data = deconvf(rsp_data, src.data, sr, **kwargs)
+        rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, **kwargs)
+    for tr in rsp:
+        tr.stats.onset = tr.stats.onset + tshift + winsrc[0]
+        tr.stats.tshift = tshift
     for i, tr in enumerate(rsp):
         tr.data = rf_data[i].real
     return rsp
