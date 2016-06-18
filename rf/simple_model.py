@@ -180,7 +180,7 @@ class SimpleModel(object):
                 old_data = tr.data[index0:]
                 t = time0 + np.arange(len(tr) - index0) * st.delta
                 # stretch old times to new times
-                new_t = np.interp(t, t0, t1, left=0, right=0)
+                new_t = np.interp(t, t0, t1, left=0, right=None)
                 # interpolate data at new times to data samples
                 data = np.interp(t, new_t, old_data, left=None, right=0.)
                 tr.data[index0:] = data
