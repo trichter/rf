@@ -73,7 +73,6 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
     # init figure and axes
     fig = plt.figure(figsize=(FW, FH))
     ax1 = fig.add_axes([fl, fb, fw2, h * (N + 2)])
-    ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
     if info:
         ax3 = fig.add_axes(
             [1 - fr - fw3, fb, fw3, h * (N + 2)], sharey=ax1)
@@ -82,10 +81,7 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
         if len(info) > 1:
             ax4 = ax3.twiny()
             info[1] = [ax4] + list(info[1])
-    # plot stack and individual receiver functions
-    stack = stream.stack()
-    if len(stack) > 1:
-        warnings.warn('Different stations in one RF plot.')
+    # plot individual receiver functions
 
     def _plot(ax, t, d, i):
         c1, c2 = fillcolors
@@ -94,7 +90,6 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
         if c2:
             ax.fill_between(t, d + i, i, where=d < 0, lw=0., facecolor=c2)
         ax.plot(t, d + i, 'k')
-    _plot(ax2, times, stack[0].data, 0)
     max_ = max(np.max(np.abs(tr.data)) for tr in stream)
     for i, tr in enumerate(stream):
         _plot(ax1, times, tr.data / max_ / 2 * scale, i + 1)
@@ -117,18 +112,27 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
     ax1.set_yticklabels('')
     ax1.set_xlabel('time (s)')
     ax1.xaxis.set_minor_locator(AutoMinorLocator())
-    for l in ax2.get_xticklabels():
-        l.set_visible(False)
-    ax2.yaxis.set_major_locator(MaxNLocator(4))
-    for l in ax2.get_yticklabels():
-        l.set_fontsize('small')
-    # plot title and save plot
-    if title:
-        bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
-        text = '%s traces  %s' % (len(stream), stack[0].id)
-        ax2.annotate(text, (1 - 0.5 * fr, 1 - 0.5 * ft),
-                     xycoords='figure fraction', va='top', ha='right',
-                     bbox=bbox, clip_on=False)
+
+    # plot stack
+    stack = stream.stack()
+    if len(stack) > 1:
+        warnings.warn('Different stations or channels in one RF plot.')
+    elif len(stack) == 1:
+        ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
+        _plot(ax2, times, stack[0].data, 0)
+        for l in ax2.get_xticklabels():
+            l.set_visible(False)
+        ax2.yaxis.set_major_locator(MaxNLocator(4))
+        for l in ax2.get_yticklabels():
+            l.set_fontsize('small')
+        # plot title
+        if title:
+            bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
+            text = '%s traces  %s' % (len(stream), stack[0].id)
+            ax2.annotate(text, (1 - 0.5 * fr, 1 - 0.5 * ft),
+                         xycoords='figure fraction', va='top', ha='right',
+                         bbox=bbox, clip_on=False)
+    # save plot
     if fname:
         fig.savefig(fname)
         plt.close(fig)
