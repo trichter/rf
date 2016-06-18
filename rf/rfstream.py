@@ -144,8 +144,11 @@ class RFStream(Stream):
                 index = None
             if index:
                 import obspyh5
+                old_index = obspyh5._INDEX
                 obspyh5.set_index(_H5INDEX[index])
         super(RFStream, self).write(filename, format, **kwargs)
+        if format.upper() == 'H5' and index:
+            obspyh5.set_index(old_index)
         if format.upper() == 'Q':
             for tr in self:
                 tr.stats.station = tr.stats.station.split('.')[1]
@@ -196,7 +199,7 @@ class RFStream(Stream):
         self.traces = rsp
 
     def rf(self, method='P', filter=None, window=None, downsample=None,
-           rotate='ZNE->LQT', deconvolve='time', source_components='LZ',
+           rotate='ZNE->LQT', deconvolve='time', source_components=None,
            **kwargs):
         r"""
         Calculate receiver functions in-place.
@@ -238,11 +241,12 @@ class RFStream(Stream):
                                           number_components=(2, 3))
         if method not in 'PS':
             raise NotImplementedError
+        if source_components is None:
+            source_components = 'LZ' if method == 'P' else 'QR'
         if filter:
             self.filter(**filter)
         if window:
-            for tr in self:
-                tr.trim(tr.stats.onset + window[0], tr.stats.onset + window[1])
+            self.trim2(*window, reftime='onset')
         if downsample:
             for tr in self:
                 if downsample <= tr.stats.sampling_rate:
@@ -382,20 +386,25 @@ class RFTrace(Trace):
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
-        if 'box_pos' in self.stats and 'onset' in self.stats:
-            t1 = self.stats.starttime - self.stats.onset
-            t2 = self.stats.endtime - self.stats.onset
-            out1 = 'profile | %.1fs - %.1fs' % (t1, t2)
+        if 'box_pos' in self.stats:
+            out1 = 'profile'
+            if 'onset' in self.stats:
+                t1 = self.stats.starttime - self.stats.onset
+                t2 = self.stats.endtime - self.stats.onset
+                out1 = out1 + ' | %.1fs - %.1fs' % (t1, t2)
         else:
             out1 = super(RFTrace, self).__str__(id_length=id_length)
         out = ''
+        if 'onset' in self.stats and 'box_pos' not in self.stats:
+            t1 = self.stats.starttime - self.stats.onset
+            out = out + ', onset: %.1fs' % (-t1)
         if 'event_magnitude' in self.stats:
             out = out + (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
                          u'baz:{back_azimuth:.1f}')
         if 'box_pos' in self.stats:
             out = out + u' | {box_pos:.2f}km'
         if 'slowness' in self.stats:
-            out = out + u' slow: {slowness:.2f}'
+            out = out + u' slow:{slowness:.2f}'
             if 'moveout' in self.stats:
                 out = out + u' ({moveout} moveout)'
         try:
