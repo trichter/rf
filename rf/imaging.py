@@ -13,7 +13,7 @@ import numpy as np
 
 def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
             stack_height=0.5,
-            fillcolors=(None, None), trim=None, downsample=None, title=True,
+            fillcolors=(None, None), downsample=None, title=True,
             info=[('back_azimuth', u'baz (°)', 'b'),
                   ('distance', u'dist (°)', 'r')]):
     """
@@ -23,7 +23,7 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
         the figure is left open.
     :param fig_width: Width of figure in inches.
     :param trace_height: Height of one trace in inches.
-    :param fill: Waether to fill receiver functions or not.
+    :param fillcolors: Fill colors for positive and negative wiggles.
     :param downsample: Downsample to frequency (in Hz) with
         Stream.decimate. Filtering is not performed. When saving in a
         vector format the plot size can be reduced in this way.
@@ -36,9 +36,6 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
 
     if len(stream) == 0:
         return
-    if trim:
-        for tr in stream:
-            tr.trim(tr.stats.onset + trim[0], tr.stats.onset + trim[1])
     if downsample:
         for tr in stream:
             tr.decimate(int(round(tr.stats.sampling_rate)) // downsample,
