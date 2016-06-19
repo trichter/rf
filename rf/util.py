@@ -134,10 +134,16 @@ def direct_geodetic(latlon, azi, dist):
     return coords['lat2'], coords['lon2']
 
 
+__CACHE = {}
+
+
 def minimal_example_rf():
     """
     Return receiver functions calculated from the data returned by read_rf()
     """
+    cache_key = 'minimal_example_rf'
+    if cache_key in __CACHE:
+        return __CACHE[cache_key].copy()
     from rf.rfstream import read_rf, rfstats
     stream = read_rf()
     rfstats(stream=stream)
@@ -147,22 +153,25 @@ def minimal_example_rf():
     stream.moveout()
     stream.trim2(-10, 80, reftime='onset')
     stream.ppoint(50)
-    return stream
+    __CACHE[cache_key] = stream
+    return stream.copy()
 
 
 def minimal_example_Srf():
     """
     Return S receiver functions calculated from the data returned by read_rf()
     """
+    cache_key = 'minimal_example_Srf'
+    if cache_key in __CACHE:
+        return __CACHE[cache_key].copy()
     from rf.rfstream import read_rf, rfstats
     fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
     stream = read_rf(fname)
     rfstats(stream=stream, phase='S')
     stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
     stream.trim2(10, 120, reftime='starttime')
-    stream.rf(method='S', winsrc=(-5, 19, 5))
-    # TODO moveout, winsrc=(-5, 20, 5)
+    stream.rf(method='S', winsrc=(-5, 15, 5))
     stream.moveout(phase='Sp')
-    #stream.trim2(-5, 22, reftime='onset')
     stream.ppoint(50, pp_phase='P')
-    return stream
+    __CACHE[cache_key] = stream
+    return stream.copy()
