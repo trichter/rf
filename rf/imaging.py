@@ -11,23 +11,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
-            stack_height=0.5,
-            fillcolors=(None, None), downsample=None, title=True,
+def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
+            stack_height=0.5, scale=1, fillcolors=(None, None),
             info=[('back_azimuth', u'baz (°)', 'b'),
                   ('distance', u'dist (°)', 'r')]):
     """
-    Create receiver function plot.
+    Plot receiver functions.
 
-    :param fname: Filename to save plot to. Can be None. In this case
+    :param fname: filename to save plot to. Can be None. In this case
         the figure is left open.
-    :param fig_width: Width of figure in inches.
-    :param trace_height: Height of one trace in inches.
-    :param fillcolors: Fill colors for positive and negative wiggles.
-    :param downsample: Downsample to frequency (in Hz) with
-        Stream.decimate. Filtering is not performed. When saving in a
-        vector format the plot size can be reduced in this way.
-    :param title: Print seed id as a title.
+    :param fig_width: width of figure in inches
+    :param trace_height: height of one trace in inches
+    :param stack_height: height of stack axes in inches
+    :param scale: scale for individual traces
+    :param fillcolors: fill colors for positive and negative wiggles
     :param info: Plot one additional axes showing maximal two entries of
         the stats object. Each entry in this list is a list consisting of
         three entries: key, label and color.
@@ -36,16 +33,10 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
 
     if len(stream) == 0:
         return
-    if downsample:
-        for tr in stream:
-            tr.decimate(int(round(tr.stats.sampling_rate)) // downsample,
-                        no_filter=True)
+    N = len(stream)
     # calculate lag times
     stats = stream[0].stats
-    N = len(stream)
-    t0 = stats.onset - stats.starttime
-    t2 = stats.endtime - stats.starttime
-    times = np.linspace(-t0, t2 - t0, stats.npts, endpoint=True)
+    times = stream[0].times() - (stats.onset - stats.starttime)
     # calculate axes and figure dimensions
     # big letters: inches, small letters: figure fraction
     H = trace_height
@@ -89,7 +80,7 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
         ax.plot(t, d + i, 'k')
     max_ = max(np.max(np.abs(tr.data)) for tr in stream)
     for i, tr in enumerate(stream):
-        _plot(ax1, times, tr.data / max_ / 2 * scale, i + 1)
+        _plot(ax1, times, tr.data / max_ * scale, i + 1)
     # plot right axes with header information
     for ax, header, label, color in info:
         data = [tr.stats[header] for tr in stream]
@@ -122,13 +113,12 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
         ax2.yaxis.set_major_locator(MaxNLocator(4))
         for l in ax2.get_yticklabels():
             l.set_fontsize('small')
-        # plot title
-        if title:
-            bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
-            text = '%s traces  %s' % (len(stream), stack[0].id)
-            ax2.annotate(text, (1 - 0.5 * fr, 1 - 0.5 * ft),
-                         xycoords='figure fraction', va='top', ha='right',
-                         bbox=bbox, clip_on=False)
+        # annotate plot with seed id
+        bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
+        text = '%s traces  %s' % (len(stream), stack[0].id)
+        ax2.annotate(text, (1 - 0.5 * fr, 1 - 0.5 * ft),
+                     xycoords='figure fraction', va='top', ha='right',
+                     bbox=bbox, clip_on=False)
     # save plot
     if fname:
         fig.savefig(fname)
@@ -136,6 +126,7 @@ def plot_rf(stream, fname=None, scale=2, fig_width=7., trace_height=0.5,
 
 
 def _get_geoaxes(crs=None, latlons=None):
+    """Return cartopy geoaxis"""
     if crs is None:
         from cartopy.crs import AzimuthalEquidistant
         latlon0 = np.median(latlons, axis=0)
@@ -149,7 +140,16 @@ def __pc():
 
 
 def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
+    """
+    Plot stations.
 
+    :param inventory: station inventory
+    :param label_stations: weather to label stations
+    :param ax: geoaxes (default None: new ax will be created)
+    :param crs: coordinate reference system for new geoaxis, (default: None,
+        then AzimuthalEquidistant projection with appropriate center is used.)
+    :param **kwargs: Other kwargs are passed to ax.scatter() call.
+    """
     latlons, names = zip(*[((sta.latitude, sta.longitude), sta.code)
                            for net in inventory for sta in net])
     if ax is None:
@@ -169,6 +169,16 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
 
 def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
                  crs=None, **kwargs):
+    """
+    Plot piercing points with stations.
+
+    :param ppoints: list of (lat, lon) tuples of piercing points
+    :param inventory, label_stations: plot stations, see `plot_stations`
+    :param ax: geoaxes (default None: new ax will be created)
+    :param crs: coordinate reference system for new geoaxis, (default: None,
+        then AzimuthalEquidistant projection with appropriate center is used.)
+    :param **kwargs: Other kwargs are passed to ax.scatter() call.
+    """
     if ax is None:
         ax = _get_geoaxes(crs=crs, latlons=ppoints)
     if inventory is not None:
@@ -181,6 +191,18 @@ def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
 
 def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
                      ax=None, crs=None, **kwargs):
+    """
+    Plot profile map with stations and piercing points.
+
+    :param boxes: boxes created with `get_profile_boxes`
+    :param inventory, label_stations: plot stations, see `plot_stations`
+    :param ppoints: list of (lat, lon) tuples of piercing points,
+        see `plot_ppoints`
+    :param ax: geoaxes (default None: new ax will be created)
+    :param crs: coordinate reference system for new geoaxis, (default: None,
+        then AzimuthalEquidistant projection with appropriate center is used.)
+    :param **kwargs: Other kwargs are passed to ax.add_geometries() call.
+    """
     if ax is None:
         latlons = [boxes[len(boxes)//2]['latlat']]
         ax = _get_geoaxes(crs=crs, latlons=latlons)
@@ -194,18 +216,30 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
         ax.add_geometries([box['poly']], crs=__pc(), **kw)
 
 
-def plot_profile(profile, scale=2, fillcolors=('r', 'b'), top=None, fig=None,
+def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
                  moveout_model='iasp91'):
-    if fig is None:
-        fig = plt.figure()
+    """
+    Plot receiver function profile.
+
+    :param profile: stream holding the profile
+    :param scale: scale for individual traces
+    :param fillcolors: fill colors for positive and negative wiggles
+    :param top: Show second axes on top of profile with additional information.
+        Vaild values: 'hist' - Plot histogram showing the number of receiver
+        functions stacked in the corresponding bin.
+    :param moveout_model: String with model filename. Will be loaded into a
+    `~.simple_model.SimpleModel` object to calculate depths for tick labels.
+
+    """
+    fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
     widths = [tr.stats.box_length for tr in profile]
-    pad = max(2, scale) / 2 * min(widths)
+    pad = max(1, scale) * min(widths)
     xlim = (min(tr.stats.box_pos for tr in profile) - pad,
             max(tr.stats.box_pos for tr in profile) + pad)
     max_ = max(np.max(np.abs(tr.data)) for tr in profile)
     for tr in profile:
-        x = tr.stats.box_pos + scale * tr.data / max_ * min(widths) / 2
+        x = tr.stats.box_pos + scale * tr.data / max_ * min(widths)
         y = tr.times() - (tr.stats.onset - tr.stats.starttime)
         ax.plot(x, y, 'k')
         c1, c2 = fillcolors
@@ -254,5 +288,7 @@ def plot_profile(profile, scale=2, fillcolors=('r', 'b'), top=None, fig=None,
         ax3.xaxis.set_ticks_position('bottom')
         ax3.yaxis.set_ticks_position('left')
         ax3.set_yticks(ax3.get_ylim())
+    elif top is not None:
+        raise NotImplementedError("'%s' not supported for top parameter" % top)
     ax.set_xlim(*xlim)
     return fig
