@@ -144,6 +144,8 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 0, delta=0.1)
         # check that maximum in Q component is at 8.6s
         # (subducting slab, Northern Chile)
+        Q.trim2(5, 50, 'onset')
+        onset = Q[0].stats.onset - Q[0].stats.starttime
         self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 8.6, delta=0.2)
 
     def test_minimal_example_Srf(self):

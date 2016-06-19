@@ -148,7 +148,7 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
-    :param **kwargs: Other kwargs are passed to ax.scatter() call.
+    :param **kwargs: other kwargs are passed to ax.scatter() call
     """
     latlons, names = zip(*[((sta.latitude, sta.longitude), sta.code)
                            for net in inventory for sta in net])
@@ -177,7 +177,7 @@ def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
-    :param **kwargs: Other kwargs are passed to ax.scatter() call.
+    :param **kwargs: other kwargs are passed to ax.scatter() call
     """
     if ax is None:
         ax = _get_geoaxes(crs=crs, latlons=ppoints)
@@ -201,7 +201,7 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
-    :param **kwargs: Other kwargs are passed to ax.add_geometries() call.
+    :param **kwargs: other kwargs are passed to ax.add_geometries() call
     """
     if ax is None:
         latlons = [boxes[len(boxes)//2]['latlat']]
@@ -224,10 +224,10 @@ def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
     :param profile: stream holding the profile
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
-    :param top: Show second axes on top of profile with additional information.
+    :param top: show second axes on top of profile with additional information.
         Vaild values: 'hist' - Plot histogram showing the number of receiver
-        functions stacked in the corresponding bin.
-    :param moveout_model: String with model filename. Will be loaded into a
+        functions stacked in the corresponding bin
+    :param moveout_model: string with model filename. Will be loaded into a
     `~.simple_model.SimpleModel` object to calculate depths for tick labels.
 
     """

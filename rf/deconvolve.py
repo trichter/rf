@@ -19,7 +19,7 @@ def deconvolve(stream, method='time',
                winsrc='P', tshift=None,
                **kwargs):
     """
-    Deconvolve one component of a stream from all components.
+    Deconvolve one component of a stream from other components.
 
     The deconvolutions are written to the data arrays of the stream. To keep
     the original data use the copy method of Stream.
@@ -27,26 +27,27 @@ def deconvolve(stream, method='time',
     entry with a `~obspy.core.utcdatetime.UTCDateTime` object.
     This will be used for determining the data windows.
 
-    :param stream: Stream object including response and source
-    :param source_component: Name of component using for source function
+    :param stream: stream including responses and source
     :param method:
         'time' -> use time domain deconvolution in `deconvt()`,\n
         'freq' -> use freqeuency domain deconvolution in `deconvf()`
+    :param source_components: names of components identifing the source traces,
+        e.g. 'LZ' for P receiver functions and 'QR' for S receiver functions
+    :param response_components: names of components identifing the response
+        traces (default None: all traces are used as response)
     :type winsrc: tuple (start, end, taper)
-    :param winsrc:
-        data window for source function, in seconds relative to onset,\n
-        default:\n
-        (-10, 30, 5) for method='time',\n
-        (-20, 80, 5) for method='freq'
-    :type winrsp: tuple (start, end)
-    :param winrsp: data window for response functions,\n
-        just for method='time', default: (-20, 80)
-    :type winrf: tuple (start, end)
-    :param winrf: data window for results/deconvolution/receiver functions,\n
-        just for method='time', default: (-20, 80)
-
-    Other optional parameters are passed to the underlying deconvolution
-    functions `deconvt()` and `deconvf()`
+    :param winsrc: data window for source function, in seconds relative to
+        onset. The function will be cosine tapered at both ends (seconds).\n
+        winsrc can also be a string ('P' or 'S'). In this case the function
+        defines a source time window appropriate for this type of receiver
+        function and deconvolution method (see source code for details).
+    :param tshift: Shift receiver functions (seconds). If not specified it
+        defaults to -winsrc[0] so that the peak of the deconvolution of the
+        tapered and cut source component from itself is at the previous onset.
+        Note that tshift is handled differently depending on the deconvolution
+        method.
+    :param **kwargs: other kwargs are passed to the underlying deconvolution
+        functions `deconvt()` and `deconvf()`
     .
     """
     if method not in ('time', 'freq'):
@@ -59,6 +60,8 @@ def deconvolve(stream, method='time',
     src = src[0]
     rsp = [tr for tr in stream if response_components is None or
            tr.stats.channel[-1] in response_components]
+    if 'normalize' not in kwargs and src in rsp:
+        kwargs['normalize'] = rsp.index(src)
     if not 0 < len(rsp) < 4:
         msg = 'Invalid number of response components. %d not between 0 and 4.'
         raise ValueError(msg % len(rsp))
@@ -106,9 +109,8 @@ def deconvolve(stream, method='time',
     return rsp
 
 
-def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
-            pad=0, length=None, normalize=True, normalize_to_src=False,
-            return_dict=False):
+def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
+            tshift=10., pad=0, length=None, normalize=True, return_info=False):
     """
     Frequency-domain deconvolution using waterlevel method.
 
@@ -116,19 +118,19 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
 
     :param rsp_list: either a list of arrays containing the response functions
         or a single array
-    :param src: array of source function
+    :param src: array with source function
     :param sampling_rate: sampling rate of the data
     :param water: waterlevel to stabilize the deconvolution
     :param gauss: Gauss parameter of Low-pass filter
     :param tshift: delay time 0s will be at time tshift afterwards
     :param pad: multiply number of samples used for fft by 2**pad
     :param length: number of data points in results, optional
-    :param normalize: if results are normalized
-    :param normalize_to_src: True ->  normalized so that the maximum of a
-        deconvolution of the source with itself is 1\n
-        False -> normalized so that the maximum of the deconvolution of the
-        first response array in rsp_list is 1
-    :param return_dict: return additionally a lot of different parameters in a
+    :param normalize: normalize all results so that the maximum of the first
+        result is 1 (for normalize=True) or normalize against the trace with
+        given index (for normalize of type int) or normalize against
+        waterleveled source (for normalize='src').
+        No normalization is performed for normalize in (False, None).
+    :param return_info: return additionally a lot of different parameters in a
         dict for debugging purposes
 
     :return: (list of) array(s) with deconvolution(s)
@@ -144,9 +146,10 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
     spec_src = fft(src, nfft)
     spec_src_conj = np.conjugate(spec_src)
     spec_src_water = np.abs(spec_src * spec_src_conj)
-    spec_src_water = np.maximum(spec_src_water, max(spec_src_water) * water)
+    spec_src_water = np.maximum(
+        spec_src_water, max(spec_src_water) * waterlevel)
 
-    if normalize_to_src:
+    if normalize == 'src':
         spec_src = gauss * spec_src * spec_src_conj / spec_src_water
         rf_src = ifft(spec_src, nfft)[:N]
         norm = 1 / max(rf_src)
@@ -158,21 +161,23 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
         rsp_list = [rsp_list]
     rf_list = [ifft(gauss * fft(rsp, nfft) * spec_src_conj / spec_src_water,
                     nfft)[:N] for rsp in rsp_list]
-    if normalize:
-        if not normalize_to_src:
-            norm = 1. / max(rf_list[0])
+    if normalize not in (False, None, 'src'):
+        if normalize is True:
+            normalize = 0
+        if normalize != 'src':
+            norm = 1. / max(rf_list[normalize])
         for rf in rf_list:
             rf *= norm
-    if return_dict:
-        if not normalize_to_src:
+    if return_info:
+        if normalize not in (False, None, 'src'):
             spec_src = gauss * spec_src * spec_src_conj / spec_src_water
             rf_src = ifft(spec_src, nfft)[:N]
             norm = 1 / max(rf_src)
             rf_src = norm * rf_src
-        ret_dict = {'rf_src': rf_src, 'rf_src_conj': spec_src_conj,
-                    'spec_src_water': spec_src_water, 'freq': freq,
-                    'gauss': gauss, 'norm': norm, 'N': N, 'nfft': nfft}
-        return rf_list, ret_dict
+        info = {'rf_src': rf_src, 'rf_src_conj': spec_src_conj,
+                'spec_src_water': spec_src_water, 'freq': freq,
+                'gauss': gauss, 'norm': norm, 'N': N, 'nfft': nfft}
+        return rf_list, info
     elif flag:
         return rf
     else:
@@ -180,7 +185,7 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
 
 
 def _add_zeros(a, numl, numr):
-    """Add num zeros at side of array a"""
+    """Add zeros at left and rigth side of array a"""
     return np.hstack([np.zeros(numl), a, np.zeros(numr)])
 
 
@@ -189,7 +194,7 @@ def _acorrt(a, num):
     Not normalized auto-correlation of signal a.
 
     Sample 0 corresponds to zero lag time. Auto-correlation will consist of
-    num samples. Correlation is performed in time domain by scipy.
+    num samples. Correlation is performed in time domain with scipy.
 
     :param a: Data
     :param num: Number of returned data points
@@ -273,7 +278,9 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
     :param spiking: random noise added to autocorrelation (eg. 1.0, 0.1)
     :param length: number of data points in results
     :param normalize: normalize all results so that the maximum of the first
-        result is 1
+        result is 1 (for normalize=True) or normalize against the trace with
+        given index (for normalize of type int). No normalization for normalize
+        in (False, None).
 
     :return: (list of) array(s) with deconvolution(s)
     """
@@ -292,8 +299,10 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
         assert len(STR) == len(STS)
         RF = _toeplitz_real_sym(STS, STR)
         RF_list.append(RF)
-    if normalize:
-        norm = 1 / np.max(np.abs(RF_list[0]))
+    if normalize not in (False, None):
+        if normalize is True:
+            normalize = 0
+        norm = 1 / np.max(np.abs(RF_list[normalize]))
         for RF in RF_list:
             RF *= norm
     if flag:
