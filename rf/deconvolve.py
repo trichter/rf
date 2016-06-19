@@ -16,8 +16,7 @@ except ImportError:
 
 def deconvolve(stream, method='time',
                source_components='LZ', response_components=None,
-               set_tw='P',
-               winsrc=None, tshift=None,
+               winsrc='P', tshift=None,
                **kwargs):
     """
     Deconvolve one component of a stream from all components.
@@ -66,23 +65,19 @@ def deconvolve(stream, method='time',
     # define default time windows
     lenrsp = src.stats.endtime - src.stats.starttime
     onset = src.stats.onset - src.stats.starttime
-    if set_tw == 'P' and method == 'time':
-        winsrc = winsrc or (-10, 30, 5)
-#        winrsp = winrsp or (-onset, lensec - onset)
-#        winrf = winrf or (-onset, lensec - onset)
-    elif set_tw == 'S' and method == 'time':
-        winsrc = winsrc or (-10, 30, 5)
-#        winrsp = winrsp or (onset - lensec, onset)
-#        winrf = winrf or (onset - lensec, onset)
-    elif set_tw == 'P':
-        winsrc = winsrc or (-onset + 5, lenrsp - onset - 5, 5)
-    elif set_tw == 'S':
-        winsrc = winsrc or (onset - lenrsp + 5, onset - 5),
+    if winsrc == 'P' and method == 'time':
+        winsrc = (-10, 30, 5)
+    elif winsrc == 'S' and method == 'time':
+        winsrc = (-10, 30, 5)
+    elif winsrc == 'P':
+        winsrc = (-onset, lenrsp - onset, 5)
+    elif winsrc == 'S':
+        winsrc = (-10, lenrsp - onset, 5)
 
     winsrc = list(winsrc)
     if winsrc[0] < -onset:
         winsrc[0] = -onset
-    if winsrc[1] - winsrc[0] > lenrsp:
+    if winsrc[1] > lenrsp - onset:
         winsrc[1] = lenrsp - onset
     if tshift is None:
         tshift = -winsrc[0]
@@ -95,19 +90,14 @@ def deconvolve(stream, method='time',
     src.trim(onset_utc + winsrc[0], onset_utc + winsrc[1])
     src.taper(max_percentage=None, max_length=winsrc[2])
     rsp_data = [tr.data for tr in rsp]
+    length = len(rsp[0])
     if method == 'time':
         lensrc = winsrc[1] - winsrc[0]
-#        time_rf = winrf[1] - winrf[0]
-#        shift = int(round(sr *
-#                          ((winrsp[1] - winrsp[0] - winsrc[1] + winsrc[0] -
-#                            time_rf) / 2 + winrsp[0] - winsrc[0] - winrf[0])))
-#        length = int(round(time_rf * sr)) + 1
-#        tshift = -winrf[0]
         shift = int(round(sr * (tshift - lensrc / 2)))
-        length = int(round(lenrsp * sr)) + 1
         rf_data = deconvt(rsp_data, src.data, shift, length=length, **kwargs)
     else:
-        rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, **kwargs)
+        rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, length=length,
+                          **kwargs)
     for tr in rsp:
         tr.stats.onset = tr.stats.onset + tshift + winsrc[0]
         tr.stats.tshift = tshift
@@ -189,10 +179,9 @@ def deconvf(rsp_list, src, sampling_rate, water=0.05, gauss=2., tshift=10.,
         return rf_list
 
 
-def _add_zeros(a, num, side='both'):
+def _add_zeros(a, numl, numr):
     """Add num zeros at side of array a"""
-    return np.hstack([np.zeros(num)] * (side in ('both', 'left')) + [a] +
-                     [np.zeros(num)] * (side in ('both', 'right')))
+    return np.hstack([np.zeros(numl), a, np.zeros(numr)])
 
 
 def _acorrt(a, num):
@@ -206,7 +195,7 @@ def _acorrt(a, num):
     :param num: Number of returned data points
     :return: autocorrelation
     """
-    return correlate(_add_zeros(a, num - 1, 'right'), a, 'valid')
+    return correlate(_add_zeros(a, 0, num - 1), a, 'valid')
 
 
 def _xcorrt(a, b, num, zero_sample=0):
@@ -214,21 +203,22 @@ def _xcorrt(a, b, num, zero_sample=0):
     Not normalized cross-correlation of signals a and b.
 
     :param a,b: data
-    :param num: The cross-correlation will consist of 2*num+1 samples.\n
+    :param num: The cross-correlation will consist of num samples.\n
         The sample with 0 lag time will be in the middle.
     :param zero_sample: Signals a and b are aligned around the middle of their
         signals.\n
         If zero_sample != 0 a will be shifted additionally to the left.
     :return: cross-correlation
     """
-    if zero_sample != 0:
-        a = _add_zeros(a, 2 * abs(zero_sample),
-                       'left' if zero_sample > 0 else 'right')
-    dif = len(a) - len(b) - 2 * num
+    if zero_sample > 0:
+        a = _add_zeros(a, 2 * abs(zero_sample), 0)
+    elif zero_sample < 0:
+        a = _add_zeros(a, 0, 2 * abs(zero_sample))
+    dif = len(a) - len(b) + 1 - num
     if dif > 0:
-        b = _add_zeros(b, dif // 2)
+        b = _add_zeros(b, (dif+1) // 2, (dif) // 2)
     else:
-        a = _add_zeros(a, -dif // 2)
+        a = _add_zeros(a, (-dif+1) // 2, (-dif) // 2)
     return correlate(a, b, 'valid')
 
 
@@ -298,9 +288,8 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=True):
         flag = True
         rsp_list = [rsp_list]
     for rsp in rsp_list:
-        STR = _xcorrt(rsp, src, length // 2, shift)
-        if len(STR) > len(STS):
-            STR = np.delete(STR, -1)
+        STR = _xcorrt(rsp, src, length, shift)
+        assert len(STR) == len(STS)
         RF = _toeplitz_real_sym(STS, STR)
         RF_list.append(RF)
     if normalize:

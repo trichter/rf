@@ -256,7 +256,8 @@ class RFStream(Stream):
                 stream3c.rotate(rotate)
         if deconvolve:
             for stream3c in iter3c(self):
-                stream3c.deconvolve(method=deconvolve, set_tw=method,
+                kwargs.setdefault('winsrc', method)
+                stream3c.deconvolve(method=deconvolve,
                                     source_components=source_components,
                                     **kwargs)
         # Mirrow Q/R and T component at 0s for S-receiver method for a better
