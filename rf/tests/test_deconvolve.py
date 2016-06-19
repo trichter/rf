@@ -8,12 +8,8 @@ import numpy as np
 import scipy.linalg
 from scipy.signal import get_window, convolve
 import rf.deconvolve
-from rf.rfstream import read_rf, rfstats, RFStream
+from rf.rfstream import read_rf, rfstats
 
-
-#def get_shift(trace):
-#    st = trace.stats
-#    return trace.data.argmax() * st.delta - (st.onset - st.starttime)
 
 def test_deconvolve_Lpeak(testcase, stream, *args, **kwargs):
     s1 = stream.copy()
@@ -24,10 +20,19 @@ def test_deconvolve_Lpeak(testcase, stream, *args, **kwargs):
     onset = st.onset - st.starttime
     msg = ('L component maxium at %.2fs, but should be at %.2fs. '
            'deconvolve args: %s, %s') % (onsetL, onset, args, kwargs)
-#    import matplotlib.pyplot as plt
-#    s1.plot_rf()
-#    plt.show()
     testcase.assertLess(abs(onsetL-onset), 0.1, msg=msg)
+
+
+def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
+    s1 = stream.copy()
+    s1.deconvolve(*args, winsrc='S', source_components='Q', **kwargs)
+    Qtrace = s1.select(component='Q')[0]
+    st = Qtrace.stats
+    onsetQ = Qtrace.data.argmax() * st.delta
+    onset = st.onset - st.starttime
+    msg = ('Q component maxium at %.2fs, but should be at %.2fs. '
+           'deconvolve args: %s, %s') % (onsetQ, onset, args, kwargs)
+    testcase.assertLess(abs(onsetQ-onset), 0.2, msg=msg)
 
 
 class DeconvolveTestCase(unittest.TestCase):
@@ -56,21 +61,31 @@ class DeconvolveTestCase(unittest.TestCase):
         # check that maximum in L component is at 0s (at P onset)
         test_deconvolve_Lpeak(self, stream, 'time')
         test_deconvolve_Lpeak(self, stream, 'freq')
-        test_deconvolve_Lpeak(self, stream, 'time', tshift=5)
-        test_deconvolve_Lpeak(self, stream, 'freq', tshift=5)
-        stream.trim2(5, 70, reftime='starttime')
-        test_deconvolve_Lpeak(self, stream, 'time')
-        test_deconvolve_Lpeak(self, stream, 'freq')
         test_deconvolve_Lpeak(self, stream, 'time', tshift=15)
         test_deconvolve_Lpeak(self, stream, 'freq', tshift=15)
-        stream.trim2(5, 40, reftime='starttime')
+        stream.trim2(5, 70, reftime='starttime')
         test_deconvolve_Lpeak(self, stream, 'time')
         test_deconvolve_Lpeak(self, stream, 'freq')
         test_deconvolve_Lpeak(self, stream, 'time', tshift=0)
         test_deconvolve_Lpeak(self, stream, 'freq', tshift=0)
 
+    def test_deconvolution_of_stream_Qpeak_position(self):
+        # S receiver deconvolution
+        from pkg_resources import resource_filename
+        fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
+        stream = read_rf(fname)[:3]
+        rfstats(stream=stream, phase='S')
+        stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
+        stream.trim2(10, 120, reftime='starttime')
+        stream.rotate('ZNE->LQT')
+        # check that maximum in Q component is at 0s (at S onset)
+        test_deconvolve_Qpeak(self, stream, 'time')
+        test_deconvolve_Qpeak(self, stream, 'freq')
+        test_deconvolve_Qpeak(self, stream, 'time', tshift=15)
+        test_deconvolve_Qpeak(self, stream, 'freq', tshift=15)
 
-    def test_deconvolution(self):
+    def test_deconvolution_of_convolution(self):
+        # TODO: test_deconvolution_of_convolution
         from obspy import read
         from rf import RFStream
         ms = RFStream(read())
@@ -95,7 +110,7 @@ class DeconvolveTestCase(unittest.TestCase):
             tr.stats.sampling_rate = 1
             tr.stats.onset = tr.stats.starttime + 40
         ms.deconvolve(method='time')
-        #ms.deconvolve(method='freq', tshift=45.)
+        # ms.deconvolve(method='freq', tshift=45.)
 #        print(ms)
 
 #        import pylab as plt
@@ -113,11 +128,7 @@ class DeconvolveTestCase(unittest.TestCase):
 #        ms.plot()
 #        plt.show()
 
-
 #        print(ms)
-
-
-        #TODO: test_deconvolution
 
 
 def suite():
