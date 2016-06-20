@@ -50,10 +50,10 @@ def deconvolve(stream, method='time',
         winsrc can also be a string ('P' or 'S'). In this case the function
         defines a source time window appropriate for this type of receiver
         function and deconvolution method (see source code for details).
-    :param **kwargs: other kwargs are passed to the underlying deconvolution
+    :param \*\*kwargs: other kwargs are passed to the underlying deconvolution
         functions `deconvt()` and `deconvf()`
 
-    :note:
+    .. note::
         If parameter normalize is not present in kwargs and source component is
         not excluded from the results by response_components, results will be
         normalized such that the maximum of the deconvolution of the trimmed

@@ -79,7 +79,7 @@ _H5INDEX = {
     'rf': ('{network}.{station}.{location}/{event_time%s}/' % _TF +
            '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF)),
     'profile': '{box_pos}'
-    }
+}
 
 
 def read_rf(pathname_or_url=None, format=None, **kwargs):
@@ -158,11 +158,12 @@ class RFStream(Stream):
         Alternative trim method accepting relative times.
 
         See :meth:`~obspy.core.stream.Stream.trim`.
+
         :param starttime, endttime: accept UTCDateTime or seconds relative to
-           reftime
+            reftime
         :param reftime: reference time, can be an UTCDateTime object or a
-           string. The string will be looked up in the stats dictionary
-           (e.g. 'starttime', 'endtime', 'onset').
+            string. The string will be looked up in the stats dictionary
+            (e.g. 'starttime', 'endtime', 'onset').
         """
         for tr in self.traces:
             t1 = tr._seconds2utc(starttime, reftime=reftime)

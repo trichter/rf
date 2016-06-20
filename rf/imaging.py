@@ -148,7 +148,7 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
-    :param **kwargs: other kwargs are passed to ax.scatter() call
+    :param \*\*kwargs: other kwargs are passed to ax.scatter() call
     """
     latlons, names = zip(*[((sta.latitude, sta.longitude), sta.code)
                            for net in inventory for sta in net])
@@ -177,7 +177,7 @@ def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
-    :param **kwargs: other kwargs are passed to ax.scatter() call
+    :param \*\*kwargs: other kwargs are passed to ax.scatter() call
     """
     if ax is None:
         ax = _get_geoaxes(crs=crs, latlons=ppoints)
@@ -194,14 +194,14 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
     """
     Plot profile map with stations and piercing points.
 
-    :param boxes: boxes created with `get_profile_boxes`
+    :param boxes: boxes created with `~.profile.get_profile_boxes()`
     :param inventory, label_stations: plot stations, see `plot_stations`
     :param ppoints: list of (lat, lon) tuples of piercing points,
         see `plot_ppoints`
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
-    :param **kwargs: other kwargs are passed to ax.add_geometries() call
+    :param \*\*kwargs: other kwargs are passed to ax.add_geometries() call
     """
     if ax is None:
         latlons = [boxes[len(boxes)//2]['latlat']]
@@ -228,8 +228,8 @@ def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
         Vaild values: 'hist' - Plot histogram showing the number of receiver
         functions stacked in the corresponding bin
     :param moveout_model: string with model filename. Will be loaded into a
-    `~.simple_model.SimpleModel` object to calculate depths for tick labels.
-
+        `~.simple_model.SimpleModel` object to calculate depths for
+        tick labels.
     """
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
