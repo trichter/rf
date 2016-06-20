@@ -152,7 +152,7 @@ def minimal_example_rf():
     stream.rf(winsrc=(-5, 25, 5))
     stream.moveout()
     stream.trim2(-10, 80, reftime='onset')
-    stream.ppoint(50)
+    stream.ppoints(50)
     __CACHE[cache_key] = stream
     return stream.copy()
 
@@ -172,6 +172,6 @@ def minimal_example_Srf():
     stream.trim2(10, 120, reftime='starttime')
     stream.rf(method='S', winsrc=(-5, 15, 5))
     stream.moveout(phase='Sp')
-    stream.ppoint(50, pp_phase='P')
+    stream.ppoints(50, pp_phase='P')
     __CACHE[cache_key] = stream
     return stream.copy()

@@ -295,7 +295,7 @@ class RFStream(Stream):
             tr.stats.slowness_before_moveout = tr.stats.slowness
             tr.stats.slowness = ref
 
-    def ppoint(self, pp_depth, pp_phase='S', model='iasp91'):
+    def ppoints(self, pp_depth, pp_phase='S', model='iasp91'):
         """
         Return coordinates of piercing point calculated by 1D ray tracing.
 

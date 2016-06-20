@@ -150,8 +150,15 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
         then AzimuthalEquidistant projection with appropriate center is used.)
     :param \*\*kwargs: other kwargs are passed to ax.scatter() call
     """
-    latlons, names = zip(*[((sta.latitude, sta.longitude), sta.code)
-                           for net in inventory for sta in net])
+    try:
+        # assume inventory to be stream
+        data = [((tr.stats.station_latitude, tr.stats.station_longitude),
+                 tr.stats.station) for tr in inventory]
+        latlons, names = zip(*list(set(data)))
+    except AttributeError:
+        # inventory is Inventory
+        latlons, names = zip(*[((sta.latitude, sta.longitude), sta.code)
+                               for net in inventory for sta in net])
     if ax is None:
         ax = _get_geoaxes(crs=crs, latlons=latlons)
     kw = dict(s=200, marker='v', c='darkred', linewidth=0.5, zorder=3)
@@ -204,7 +211,7 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
     :param \*\*kwargs: other kwargs are passed to ax.add_geometries() call
     """
     if ax is None:
-        latlons = [boxes[len(boxes)//2]['latlat']]
+        latlons = [boxes[len(boxes)//2]['latlon']]
         ax = _get_geoaxes(crs=crs, latlons=latlons)
     if inventory is not None:
         plot_stations(inventory, label_stations=label_stations, ax=ax)

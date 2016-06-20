@@ -27,6 +27,10 @@ class ProfileTestCase(unittest.TestCase):
         str_ = 'profile | -10.0s - 80.0s | -6.25km slow:6.40 (Ps moveout)'
         self.assertEqual(str(profile[0]), str_)
         test_io_header(self, profile[:1])
+        # test plots
+        profile.plot_profile(top='hist')
+        from rf.imaging import plot_profile_map
+        plot_profile_map(boxes)
 
 
 def suite():
