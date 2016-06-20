@@ -149,7 +149,7 @@ def minimal_example_rf():
     rfstats(stream=stream)
     stream.filter('bandpass', freqmin=0.5, freqmax=2)
     stream.trim2(10, 110, reftime='starttime')
-    stream.rf(winsrc=(-5, 25, 5), spiking=1)
+    stream.rf(winsrc=(-5, 25, 5))
     stream.moveout()
     stream.trim2(-10, 80, reftime='onset')
     stream.ppoint(50)

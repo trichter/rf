@@ -14,9 +14,19 @@ except ImportError:
     warnings.warn(msg)
 
 
+def __find_nearest(array, value):
+    """http://stackoverflow.com/a/26026189"""
+    idx = np.searchsorted(array, value, side='left')
+    expr = np.abs(value - array[idx - 1]) < np.abs(value - array[idx])
+    if idx > 0 and (idx == len(array) or expr):
+        return idx - 1
+    else:
+        return idx
+
+
 def deconvolve(stream, method='time',
                source_components='LZ', response_components=None,
-               winsrc='P', tshift=None, **kwargs):
+               winsrc='P', **kwargs):
     """
     Deconvolve one component of a stream from other components.
 
@@ -40,8 +50,6 @@ def deconvolve(stream, method='time',
         winsrc can also be a string ('P' or 'S'). In this case the function
         defines a source time window appropriate for this type of receiver
         function and deconvolution method (see source code for details).
-    :param tshift: do not use, only for testing purposes, see source code for
-        details
     :param **kwargs: other kwargs are passed to the underlying deconvolution
         functions `deconvt()` and `deconvf()`
 
@@ -68,51 +76,48 @@ def deconvolve(stream, method='time',
     if not 0 < len(rsp) < 4:
         msg = 'Invalid number of response components. %d not between 0 and 4.'
         raise ValueError(msg % len(rsp))
+
+    sr = src.stats.sampling_rate
+    # shift onset to time of nearest data sample to circumvent complications
+    # for data with low sampling rate and mtehod='time'
+    idx = __find_nearest(src.times(), src.stats.onset - src.stats.starttime)
+    src.stats.onset = onset = src.stats.starttime + idx * src.stats.delta
+    for tr in rsp:
+        tr.stats.onset = onset
     # define default time windows
-    lenrsp = src.stats.endtime - src.stats.starttime
-    onset = src.stats.onset - src.stats.starttime
+    lenrsp_sec = src.stats.endtime - src.stats.starttime
+    onset_sec = onset - src.stats.starttime
     if winsrc == 'P' and method == 'time':
         winsrc = (-10, 30, 5)
     elif winsrc == 'S' and method == 'time':
         winsrc = (-10, 30, 5)
     elif winsrc == 'P':
-        winsrc = (-onset, lenrsp - onset, 5)
+        winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
     elif winsrc == 'S':
-        winsrc = (-10, lenrsp - onset, 5)
-
-    winsrc = list(winsrc)
-    if winsrc[0] < -onset:
-        winsrc[0] = -onset
-    if winsrc[1] > lenrsp - onset:
-        winsrc[1] = lenrsp - onset
-    # Shift receiver functions (seconds). If not specified it
-    # defaults to -winsrc[0] so that the peak of the deconvolution of the
-    # tapered and cut source component from itself is at the previous onset.
-    # Note that tshift is handled differently depending on the deconvolution
-    # method.
-    if tshift is None:
-        tshift = -winsrc[0]
-    # prepare source and response data and deconvolve
-    sr = src.stats.sampling_rate
-    onset_utc = src.stats.onset
+        winsrc = (-10, lenrsp_sec - onset_sec, 5)
+#    winsrc = list(winsrc)
+#    if winsrc[0] < -onset_sec:
+#        winsrc[0] = -onset_sec
+#    if winsrc[1] > lenrsp_sec - onset_sec:
+#        winsrc[1] = lenrsp_sec - onset_sec
+    # prepare source and response list
     if src in rsp:
         src = src.copy()
-    src.trim(onset_utc + winsrc[0], onset_utc + winsrc[1])
+    src.trim(onset + winsrc[0], onset + winsrc[1], pad=True, fill_value=0.)
     src.taper(max_percentage=None, max_length=winsrc[2])
     rsp_data = [tr.data for tr in rsp]
     length = len(rsp[0])
+    tshift = -winsrc[0]
     if method == 'time':
-        lensrc = winsrc[1] - winsrc[0]
-        shift = int(round(sr * (tshift - lensrc / 2)))
+        shift = int(round(tshift * sr - len(src) / 2))
         rf_data = deconvt(rsp_data, src.data, shift, length=length, **kwargs)
     else:
         rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, length=length,
                           **kwargs)
-    for tr in rsp:
-        tr.stats.onset = tr.stats.onset + tshift + winsrc[0]
-        tr.stats.tshift = tshift
+
     for i, tr in enumerate(rsp):
         tr.data = rf_data[i].real
+        assert len(tr) == length
     return rsp
 
 
@@ -225,9 +230,9 @@ def _xcorrt(a, b, num, zero_sample=0):
         a = _add_zeros(a, 0, 2 * abs(zero_sample))
     dif = len(a) - len(b) + 1 - num
     if dif > 0:
-        b = _add_zeros(b, (dif+1) // 2, (dif) // 2)
+        b = _add_zeros(b, (dif + 1) // 2, (dif) // 2)
     else:
-        a = _add_zeros(a, (-dif+1) // 2, (-dif) // 2)
+        a = _add_zeros(a, (-dif + 1) // 2, (-dif) // 2)
     return correlate(a, b, 'valid')
 
 

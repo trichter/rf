@@ -141,12 +141,12 @@ class RFStreamTestCase(unittest.TestCase):
         # check that maximum in L component is at 0s (at P onset)
         onset = L[0].stats.onset - L[0].stats.starttime
         dt = L[0].stats.delta
-        self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 0, delta=0.1)
+        self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 0, delta=0.01)
         # check that maximum in Q component is at 8.6s
         # (subducting slab, Northern Chile)
         Q.trim2(5, 50, 'onset')
         onset = Q[0].stats.onset - Q[0].stats.starttime
-        self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 8.6, delta=0.2)
+        self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 8.6, delta=0.1)
 
     def test_minimal_example_Srf(self):
         stream = minimal_example_Srf()
@@ -161,11 +161,11 @@ class RFStreamTestCase(unittest.TestCase):
         # check that maximum in Q component is at 0s (at S onset)
         onset = Q[0].stats.onset - Q[0].stats.starttime
         dt = Q[0].stats.delta
-        self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 0, delta=0.1)
+        self.assertAlmostEqual(Q[0].data.argmax() * dt - onset, 0, delta=0.01)
         # check that maximum in L component is at 8.6s
         L.trim2(-5, 16, 'onset')
         onset = L[0].stats.onset - L[0].stats.starttime
-        self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 8.6, delta=0.2)
+        self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 8.6, delta=0.1)
 
     def test_str(self):
         str_ = '6.0M dist:46.1 baz:325.0 slow:6.40 (Ps moveout)'

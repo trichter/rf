@@ -28,14 +28,15 @@ def test_deconvolve_Lpeak(testcase, stream, *args, **kwargs):
 
 def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
     s1 = stream.copy()
-    s1.deconvolve(*args, winsrc='S', source_components='Q', **kwargs)
+    winsrc = kwargs.pop('winsrc', 'S')
+    s1.deconvolve(*args, winsrc=winsrc, source_components='Q', **kwargs)
     Qtrace = s1.select(component='Q')[0]
     st = Qtrace.stats
     onsetQ = Qtrace.data.argmax() * st.delta
     onset = st.onset - st.starttime
     msg = ('Q component maxium at %.2fs, but should be at %.2fs. '
            'deconvolve args: %s, %s') % (onsetQ, onset, args, kwargs)
-    testcase.assertLess(abs(onsetQ-onset), 0.2, msg=msg)
+    testcase.assertLess(abs(onsetQ-onset), 0.01, msg=msg)
     msg = 'maximum of Q component is %.2f, but should 1'
     max_ = Qtrace.data.max()
     testcase.assertGreater(max_, 0.999, msg=msg % max_)
@@ -67,13 +68,13 @@ class DeconvolveTestCase(unittest.TestCase):
         # check that maximum in L component is at 0s (at P onset)
         test_deconvolve_Lpeak(self, stream, 'time')
         test_deconvolve_Lpeak(self, stream, 'freq')
-        test_deconvolve_Lpeak(self, stream, 'time', tshift=15)
-        test_deconvolve_Lpeak(self, stream, 'freq', tshift=15)
+        test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
+        test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
         stream.trim2(5, 70, reftime='starttime')
         test_deconvolve_Lpeak(self, stream, 'time')
         test_deconvolve_Lpeak(self, stream, 'freq')
-        test_deconvolve_Lpeak(self, stream, 'time', tshift=0)
-        test_deconvolve_Lpeak(self, stream, 'freq', tshift=0)
+        test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
+        test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
 
     def test_deconvolution_of_stream_Qpeak_position(self):
         # S receiver deconvolution
@@ -87,8 +88,8 @@ class DeconvolveTestCase(unittest.TestCase):
         # check that maximum in Q component is at 0s (at S onset)
         test_deconvolve_Qpeak(self, stream, 'time')
         test_deconvolve_Qpeak(self, stream, 'freq')
-        test_deconvolve_Qpeak(self, stream, 'time', tshift=15)
-        test_deconvolve_Qpeak(self, stream, 'freq', tshift=15)
+        test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-20, 40, 5))
+        test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
 
     def test_deconvolution_of_convolution(self):
         # TODO: test_deconvolution_of_convolution
