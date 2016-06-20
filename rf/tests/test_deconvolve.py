@@ -21,6 +21,9 @@ def test_deconvolve_Lpeak(testcase, stream, *args, **kwargs):
     msg = ('L component maxium at %.2fs, but should be at %.2fs. '
            'deconvolve args: %s, %s') % (onsetL, onset, args, kwargs)
     testcase.assertLess(abs(onsetL-onset), 0.1, msg=msg)
+    msg = 'maximum of L component is %.2f, but should 1'
+    max_ = Ltrace.data.max()
+    testcase.assertGreater(max_, 0.999, msg=msg % max_)
 
 
 def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
@@ -33,6 +36,9 @@ def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
     msg = ('Q component maxium at %.2fs, but should be at %.2fs. '
            'deconvolve args: %s, %s') % (onsetQ, onset, args, kwargs)
     testcase.assertLess(abs(onsetQ-onset), 0.2, msg=msg)
+    msg = 'maximum of Q component is %.2f, but should 1'
+    max_ = Qtrace.data.max()
+    testcase.assertGreater(max_, 0.999, msg=msg % max_)
 
 
 class DeconvolveTestCase(unittest.TestCase):
