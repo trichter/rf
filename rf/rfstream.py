@@ -51,26 +51,26 @@ _EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
     ('event_time', __get_event_origin_prop('time')))
 
 _HEADERS = zip(*_STATION_GETTER)[0] + zip(*_EVENT_GETTER)[0] + (
-    'onset', 'type', 'phase',
+    'onset', 'type', 'phase', 'moveout',
     'distance', 'back_azimuth', 'inclination', 'slowness',
-    'pp_latitude', 'pp_longitude', 'pp_depth', 'moveout',
+    'pp_latitude', 'pp_longitude', 'pp_depth',
     'box_pos', 'box_length')
 
 # The following headers can at the moment only be stored for H5:
 # slowness_before_moveout, box_lonlat
 _FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                           'evdp', 'mag', 'o', 'a',
-                          'kuser1', 'kuser2',
+                          'kuser1', 'kuser2', 'kuser3',
                           'gcarc', 'baz', 'user0', 'user1',
-                          'user2', 'user3', 'user4', 'kuser3',
+                          'user2', 'user3', 'user4',
                           'user5', 'user6'),
                   # field 'COMMENT' is violated for different information
                   'sh': ('COMMENT', 'COMMENT', 'COMMENT',
                          'LAT', 'LON', 'DEPTH',
                          'MAGNITUDE', 'ORIGIN', 'P-ONSET',
-                         'COMMENT', 'COMMENT',
+                         'COMMENT', 'COMMENT', 'COMMENT',
                          'DISTANCE', 'AZIMUTH', 'INCI', 'SLOWNESS',
-                         'COMMENT', 'COMMENT', 'COMMENT', 'COMMENT',
+                         'COMMENT', 'COMMENT', 'COMMENT',
                          'COMMENT', 'COMMENT')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
                                'event_time': (__SAC2UTC, __UTC2SAC)}}

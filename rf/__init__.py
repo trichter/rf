@@ -91,9 +91,9 @@ is written back to the format specific headers. In this way the important
 header information is guaranteed to be saved in the waveform files.
 The following table reflects the mapping:
 
-=================  =========  =====
+=================  =========  ======
 stats              SH/Q       SAC
-=================  =========  =====
+=================  =========  ======
 station_latitude   COMMENT    stla
 station_longitude  COMMENT    stlo
 station_elevation  COMMENT    stel
@@ -103,6 +103,9 @@ event_depth        DEPTH      evdp
 event_magnitude    MAGNITUDE  mag
 event_time         ORIGIN     o
 onset              P-ONSET    a
+type               COMMENT    kuser1
+phase              COMMENT    kuser2
+moveout            COMMENT    kuser3
 distance           DISTANCE   gcarc
 back_azimuth       AZIMUTH    baz
 inclination        INCI       user0
@@ -110,7 +113,9 @@ slowness           SLOWNESS   user1
 pp_latitude        COMMENT    user2
 pp_longitude       COMMENT    user3
 pp_depth           COMMENT    user4
-=================  =========  =====
+box_pos            COMMENT    user5
+box_length         COMMENT    user6
+=================  =========  ======
 
 .. note::
     Q-file header COMMENT is used for storing some information, because
@@ -119,7 +124,8 @@ pp_depth           COMMENT    user4
 .. note::
     Alternatively the hdf5 file format can be used. It is supported via the
     obspyh5 package. In this case all supported stats
-    entries are automatically attached to the stored data.
+    entries are automatically attached to the stored data. The plugin also
+    saves entries not listed here (e.g. processing information).
 
 The first task when calculating receiver functions is calculating some ray
 specific values like azimuth and epicentral distance. An appropriate stats
