@@ -24,7 +24,7 @@ class ProfileTestCase(unittest.TestCase):
         stream.extend(stream[:3])  # to actually stack something
         profile = stream.select(component='Q').profile(boxes)
         self.assertEqual(len(profile), 3)
-        str_ = 'profile | -10.0s - 80.0s | -6.25km slow:6.40 (Ps moveout)'
+        str_ = 'Prf profile | -10.0s - 80.0s | -6.25km slow:6.40 (Ps moveout)'
         self.assertEqual(str(profile[0]), str_)
         test_io_header(self, profile[:1])
         # test plots

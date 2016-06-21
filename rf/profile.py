@@ -85,12 +85,14 @@ def get_profile(stream, boxes, crs=None):
                       'box_length': box['length'],
                       'box_latlon': box['latlon'],
                       'num': 1,
-                      'sampling_rate': tr.stats.sampling_rate,
-                      'slowness': tr.stats.slowness,
-                      'moveout': tr.stats.moveout}
+                      'sampling_rate': tr.stats.sampling_rate}
+            for entry in ('slowness', 'phase', 'moveout'):
+                if entry in tr.stats:
+                    header[entry] = tr.stats[entry]
             stack[pos] = tr2 = tr.__class__(data=tr.data, header=header)
-            onset = tr.stats.onset - tr.stats.starttime
-            tr2.stats.onset = tr2.stats.starttime + onset
+            if 'onset' in tr.stats:
+                onset = tr.stats.onset - tr.stats.starttime
+                tr2.stats.onset = tr2.stats.starttime + onset
         else:
             tr2 = stack[pos]
             tr2.data = tr2.data + tr.data

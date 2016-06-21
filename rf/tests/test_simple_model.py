@@ -12,7 +12,7 @@ import unittest
 
 def _moveout_xy(stream, phase='Ps'):
     """
-    Depreciated! Moveout correction to a slowness of 6.4s/deg.
+    Moveout correction to a slowness of 6.4s/deg by XY.
 
     The iasp91 model is used. The correction is independent from the type
     of receiver function. Needs stats attributes slowness and onset.
@@ -29,7 +29,7 @@ def _moveout_xy(stream, phase='Ps'):
 
 def _ppoint_xy(stream, depth, method='P'):
     """
-    Depreciated! Calculate coordinates of piercing point by 1D ray tracing.
+    Calculate coordinates of piercing point by 1D ray tracing by XY.
 
     The iasp91 model is used. Piercing point coordinates are stored in the
     stats attributes `plat` and `plon`. Needs stats attributes
@@ -137,6 +137,7 @@ class SimpleModelTestCase(unittest.TestCase):
         for tr in stream:
             tr.stats.slowness = 10.
             tr.stats.onset = tr.stats.starttime + 20.643
+            tr.stats.phase = 'P'
         stream.decimate(10)
         N = len(stream[0])
         t = np.linspace(0, 20*np.pi, N)

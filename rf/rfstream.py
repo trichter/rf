@@ -145,19 +145,15 @@ class RFStream(Stream):
             tr.stats.type = value
 
     @property
-    def phase(self):
-        return self.__get_unique_header('phase')
-
-    @phase.setter
-    def phase(self, value):
-        for tr in self:
-            tr.stats.phase = value
-
-    @property
     def method(self):
-        phase = self.phase
+        phase = self.__get_unique_header('phase')
         if phase is not None:
             return phase[-1].upper()
+
+    @method.setter
+    def method(self, value):
+        for tr in self:
+            tr.stats.phase = value
 
     def write(self, filename, format, **kwargs):
         """
@@ -170,13 +166,6 @@ class RFStream(Stream):
 
         if format.upper() == 'H5':
             index = self.type
-#            # TODO
-#            if self.__is_set('box_pos'):
-#                index = 'profile'
-#            elif self.__is_set('event_time'):
-#                index = 'rf'
-#            else:
-#                index = None
             if index:
                 import obspyh5
                 old_index = obspyh5._INDEX
@@ -234,14 +223,14 @@ class RFStream(Stream):
         rsp = deconvolve(self, *args, **kwargs)
         self.traces = rsp
 
-    def rf(self, method='P', filter=None, window=None, downsample=None,
+    def rf(self, method=None, filter=None, window=None, downsample=None,
            rotate='ZNE->LQT', deconvolve='time', source_components=None,
            **kwargs):
         r"""
         Calculate receiver functions in-place.
 
         :param method: 'P' for P receiver functions, 'S' for S receiver
-            functions
+            functions, if None method will be determined from the phase
         :param dict filter: filter stream with its
             `~obspy.core.stream.Stream.filter` method and given kwargs
         :type window: tuple (start, end)
@@ -275,6 +264,9 @@ class RFStream(Stream):
         def iter3c(stream):
             return IterMultipleComponents(self, key='onset',
                                           number_components=(2, 3))
+
+        if method is None:
+            method = self.method
         if method not in 'PS':
             raise NotImplementedError
         if source_components is None:
@@ -312,20 +304,23 @@ class RFStream(Stream):
             if tr.stats.channel[-1] not in source_components:
                 tr.data = -tr.data
         self.type = 'rf'
-        if self.phase is None:
-            self.phase = method
+        if self.method != method:
+            self.method = method
 
-    def moveout(self, phase='Ps', ref=6.4, model='iasp91'):
+    def moveout(self, phase=None, ref=6.4, model='iasp91'):
         """
         In-place moveout correction to a reference slowness.
 
         Needs stats attributes slowness and onset.
 
-        :param phase: 'Ps', 'Sp', 'Ppss' or other multiples
+        :param phase: 'Ps', 'Sp', 'Ppss' or other multiples, if None is set to
+            'ps' or 'Sp' depending on method
         :param ref: reference ray parameter in s/deg
         :param model: Path to model file
             (see `.SimpleModel`, default: iasp91)
         """
+        if phase is None:
+            phase = self.method + {'P': 's', 'S': 'p'}[self.method]
         model = load_model(model)
         model.moveout(self, phase=phase, ref=ref)
         for tr in self:
@@ -333,7 +328,7 @@ class RFStream(Stream):
             tr.stats.slowness_before_moveout = tr.stats.slowness
             tr.stats.slowness = ref
 
-    def ppoints(self, pp_depth, pp_phase='S', model='iasp91'):
+    def ppoints(self, pp_depth, pp_phase=None, model='iasp91'):
         """
         Return coordinates of piercing point calculated by 1D ray tracing.
 
@@ -343,9 +338,9 @@ class RFStream(Stream):
 
         :param pp_depth: depth of interface in km
         :param pp_phase: 'P' for piercing points of P wave, 'S' for piercing
-            points of S wave. Multiples are possible, too.
-        :param model: Path to model file
-            (see `.SimpleModel`, default: iasp91)
+            points of S wave or multiples, if None will be
+            set to 'P' or 'S' depending on method
+        :param model: path to model file (see `.SimpleModel`, default: iasp91)
         :return: NumPy array with coordinates of piercing points
 
         .. note::
@@ -353,6 +348,8 @@ class RFStream(Stream):
             ``phase='S'`` is usually wanted for P receiver functions and
             ``'P'`` for S receiver functions.
         """
+        if pp_phase is None:
+            pp_phase = {'P': 'S', 'S': 'P'}[self.method]
         model = load_model(model)
         for tr in self:
             model.ppoint(tr.stats, pp_depth, phase=pp_phase)
@@ -374,9 +371,14 @@ class RFStream(Stream):
             data = np.mean([tr.data for tr in self if tr.id == id], axis=0)
             header = {'network': net, 'station': sta, 'location': loc,
                       'channel': cha, 'sampling_rate': tr.stats.sampling_rate}
-            onset = tr.stats.onset - tr.stats.starttime
+            for entry in ('phase', 'moveout', 'station_latitude',
+                          'station_longitude', 'station_elevation'):
+                if entry in tr.stats:
+                    header[entry] = tr.stats[entry]
             tr2 = RFTrace(data=data, header=header)
-            tr2.stats['onset'] = tr2.stats['starttime'] + onset
+            if 'onset' in tr.stats:
+                onset = tr.stats.onset - tr.stats.starttime
+                tr2.stats.onset = tr2.stats.starttime + onset
             traces.append(tr2)
         return self.__class__(traces)
 
@@ -426,18 +428,25 @@ class RFTrace(Trace):
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
-        if 'box_pos' in self.stats:
-            out1 = 'profile'
-            if 'onset' in self.stats:
-                t1 = self.stats.starttime - self.stats.onset
-                t2 = self.stats.endtime - self.stats.onset
-                out1 = out1 + ' | %.1fs - %.1fs' % (t1, t2)
+        t = self.stats.get('type')
+        if t is not None:
+            m = self.stats.get('phase')
+            m = m[-1].upper() if m is not None else ''
+            out = m + 'rf'
+            if t != 'rf':
+                out = out + ' ' + t
         else:
-            out1 = super(RFTrace, self).__str__(id_length=id_length)
-        out = ''
-        if 'onset' in self.stats and 'box_pos' not in self.stats:
+            out = ''
+        if t == 'profile' and 'onset' in self.stats:
             t1 = self.stats.starttime - self.stats.onset
-            out = out + ', onset: %.1fs' % (-t1)
+            t2 = self.stats.endtime - self.stats.onset
+            out = out + ' | %.1fs - %.1fs' % (t1, t2)
+        else:
+            out = out + ' | '
+            out = out + super(RFTrace, self).__str__(id_length=id_length)
+        if t != 'profile' and 'onset' in self.stats:
+            onset = self.stats.onset - self.stats.starttime
+            out = out + ', onset: %.1fs' % (onset)
         if 'event_magnitude' in self.stats:
             out = out + (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
                          u'baz:{back_azimuth:.1f}')
@@ -451,7 +460,7 @@ class RFTrace(Trace):
             out = out.format(**self.stats)
         except KeyError:
             out = ''
-        return out1 + out
+        return out
 
     def _read_format_specific_header(self, format=None, warn=True):
         st = self.stats
