@@ -11,7 +11,6 @@ from rf.rfstream import (obj2stats, _HEADERS, _STATION_GETTER, _EVENT_GETTER,
                          _FORMATHEADERS)
 from rf.util import minimal_example_rf, minimal_example_Srf
 
-
 _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
                     -20.32, 10., 12.4, 6.5, -40.432,
                     20.643, 57.6, 90.1, 10.2, 10.,
@@ -85,16 +84,21 @@ class RFStreamTestCase(unittest.TestCase):
         stream = RFStream(read())[:1]
         for tr in stream:
             tr.stats.location = '11'
+            tr.stats.pop('response', None)
         write_test_header(stream)
         test_io_header(self, stream)
 
     def test_io_header_obspy_stream(self):
         stream = read()[:1]
+        for tr in stream:
+            tr.stats.pop('response', None)
         ignore = ('back_azimuth', 'inclination')
         test_io_header(self, stream, ignore=ignore)
 
     def test_io_header_rf(self):
         stream = minimal_example_rf()[:1]
+        for tr in stream:
+            tr.stats.pop('sac')
         test_io_header(self, stream)
 
     def test_obj2stats(self):
