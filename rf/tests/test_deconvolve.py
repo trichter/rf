@@ -44,14 +44,9 @@ def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
 
 class DeconvolveTestCase(unittest.TestCase):
 
-    def setUp(self):
-        # set specific seed value such that random numbers are reproducible
-        seed(42)
-        self.Z = random(412) - 0.5
-        self.N = random(412) - 0.5
-        self.E = random(412) - 0.5
-
     def test_toeplitz_real_sym(self):
+        # set specific seed value such that random numbers are reproducible
+        seed(0)
         src = random(50) - 0.5
         rsp = random(50) - 0.5
         toep = scipy.linalg.toeplitz(src)
@@ -132,7 +127,6 @@ class DeconvolveTestCase(unittest.TestCase):
         # (shift from middle of source (50) to onset (40)
         self.assertEqual(np.argmax(data) - np.argmax(stream1[1].data), 10)
         self.assertEqual(np.argmax(data) - np.argmax(stream2[1].data), 10)
-
 
 
 def suite():
