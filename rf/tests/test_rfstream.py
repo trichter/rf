@@ -12,12 +12,14 @@ from rf.rfstream import (obj2stats, _HEADERS, _STATION_GETTER, _EVENT_GETTER,
 from rf.util import minimal_example_rf, minimal_example_Srf
 
 _HEADERS_TEST_IO = (50.3, -100.2, 400.3,
-                    -20.32, 10., 12.4, 6.5, -40.432,
-                    20.643, 57.6, 90.1, 10.2, 10.,
+                    -20.32, 10., 12.4, 6.5,
+                    -40.432, 20.643,
+                    'rf', 'P',
+                    57.6, 90.1, 10.2, 10.,
                     10., -20, 150,
                     'Ps', 15.7, 2.5)
 
-_HEADERS_NOT_DETERMINED_BY_RFSTATS = ('moveout', 'box_pos', 'box_length')
+_HEADERS_NOT_BY_RFSTATS = ('moveout', 'box_pos', 'box_length', 'type')
 
 FORMATS = _FORMATHEADERS.keys()
 
@@ -109,7 +111,7 @@ class RFStreamTestCase(unittest.TestCase):
     def test_rfstats(self):
         stats = rfstats(station=self.station, event=self.event, pp_depth=100.)
         for head in _HEADERS:
-            if head not in _HEADERS_NOT_DETERMINED_BY_RFSTATS:
+            if head not in _HEADERS_NOT_BY_RFSTATS:
                 self.assertIn(head, stats)
         # event is exactly north from station and around 66.7 degrees away
         self.assertTrue(abs(stats.distance - 66.7) < 1.)

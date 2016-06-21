@@ -51,22 +51,25 @@ _EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
     ('event_time', __get_event_origin_prop('time')))
 
 _HEADERS = zip(*_STATION_GETTER)[0] + zip(*_EVENT_GETTER)[0] + (
-    'onset', 'distance', 'back_azimuth', 'inclination', 'slowness',
+    'onset', 'type', 'phase',
+    'distance', 'back_azimuth', 'inclination', 'slowness',
     'pp_latitude', 'pp_longitude', 'pp_depth', 'moveout',
     'box_pos', 'box_length')
 
 # The following headers can at the moment only be stored for H5:
 # slowness_before_moveout, box_lonlat
 _FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
-                          'evdp', 'mag',
-                          'o', 'a', 'gcarc', 'baz', 'user0', 'user1',
-                          'user2', 'user3', 'user4', 'kuser1',
+                          'evdp', 'mag', 'o', 'a',
+                          'kuser1', 'kuser2',
+                          'gcarc', 'baz', 'user0', 'user1',
+                          'user2', 'user3', 'user4', 'kuser3',
                           'user5', 'user6'),
                   # field 'COMMENT' is violated for different information
                   'sh': ('COMMENT', 'COMMENT', 'COMMENT',
                          'LAT', 'LON', 'DEPTH',
-                         'MAGNITUDE', 'ORIGIN', 'P-ONSET', 'DISTANCE',
-                         'AZIMUTH', 'INCI', 'SLOWNESS',
+                         'MAGNITUDE', 'ORIGIN', 'P-ONSET',
+                         'COMMENT', 'COMMENT',
+                         'DISTANCE', 'AZIMUTH', 'INCI', 'SLOWNESS',
                          'COMMENT', 'COMMENT', 'COMMENT', 'COMMENT',
                          'COMMENT', 'COMMENT')}
 _HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
@@ -125,6 +128,37 @@ class RFStream(Stream):
     def __is_set(self, header):
         return all(header in tr.stats for tr in self)
 
+    def __get_unique_header(self, header):
+        values = set(tr.stats[header] for tr in self if header in tr.stats)
+        if len(values) > 1:
+            warnings.warn('Header %s has different values in stream.' % header)
+        if len(values) == 1:
+            return values.pop()
+
+    @property
+    def type(self):
+        return self.__get_unique_header('type')
+
+    @type.setter
+    def type(self, value):
+        for tr in self:
+            tr.stats.type = value
+
+    @property
+    def phase(self):
+        return self.__get_unique_header('phase')
+
+    @phase.setter
+    def phase(self, value):
+        for tr in self:
+            tr.stats.phase = value
+
+    @property
+    def method(self):
+        phase = self.phase
+        if phase is not None:
+            return phase[-1].upper()
+
     def write(self, filename, format, **kwargs):
         """
         Save stream to file including format specific headers.
@@ -133,15 +167,16 @@ class RFStream(Stream):
         """
         for tr in self:
             tr._write_format_specific_header(format)
-            if format.upper() == 'Q':
-                tr.stats.station = tr.id
+
         if format.upper() == 'H5':
-            if self.__is_set('box_pos'):
-                index = 'profile'
-            elif self.__is_set('event_time'):
-                index = 'rf'
-            else:
-                index = None
+            index = self.type
+#            # TODO
+#            if self.__is_set('box_pos'):
+#                index = 'profile'
+#            elif self.__is_set('event_time'):
+#                index = 'rf'
+#            else:
+#                index = None
             if index:
                 import obspyh5
                 old_index = obspyh5._INDEX
@@ -276,6 +311,9 @@ class RFStream(Stream):
         for tr in self:
             if tr.stats.channel[-1] not in source_components:
                 tr.data = -tr.data
+        self.type = 'rf'
+        if self.phase is None:
+            self.phase = method
 
     def moveout(self, phase='Ps', ref=6.4, model='iasp91'):
         """
@@ -581,9 +619,8 @@ def rfstats(stats=None, event=None, station=None, stream=None,
                 traces.append(tr)
         stream.traces = traces
         return
-    phase = phase.upper()
-    if dist_range == 'default' and phase in 'PS':
-        dist_range = (30, 90) if phase == 'P' else (50, 85)
+    if dist_range == 'default' and phase.upper() in 'PS':
+        dist_range = (30, 90) if phase.upper() == 'P' else (50, 85)
     if stats is None:
         stats = AttribDict({})
     if event is not None and station is not None:
@@ -610,7 +647,7 @@ def rfstats(stats=None, event=None, station=None, stream=None,
     inc = arrival.incident_angle
     slowness = arrival.ray_param_sec_degree
     stats.update({'distance': dist, 'back_azimuth': baz, 'inclination': inc,
-                  'onset': onset, 'slowness': slowness})
+                  'onset': onset, 'slowness': slowness, 'phase': phase})
     if pp_depth is not None:
         model = load_model(model)
         if pp_phase is None:

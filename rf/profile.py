@@ -99,4 +99,5 @@ def get_profile(stream, boxes, crs=None):
         tr2.data = tr2.data / tr2.stats.num
     profile = stream.__class__(traces=stack.values())
     profile.sort(['box_pos'])
+    profile.type = 'profile'
     return profile
