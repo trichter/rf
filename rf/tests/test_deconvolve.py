@@ -96,50 +96,43 @@ class DeconvolveTestCase(unittest.TestCase):
         test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
 
     def test_deconvolution_of_convolution(self):
-        # TODO: test_deconvolution_of_convolution
-        from obspy import read
-        from rf import RFStream
-        ms = RFStream(read())
-        ms.decimate(10)
-        for i in range(len(ms)):
-            ms[i].stats.channel = ms[i].stats.channel[:2] + 'LQT'[i]
-        t = np.linspace(0, 30, len(ms[0]))
+        from rf.rfstream import RFStream, RFTrace
+        data = np.zeros(400)
+        data_src = np.zeros(400)
         hann1 = get_window('hann', 10)
         hann2 = get_window('hann', 50)
-        ms[0].data[:] = 0
-        ms[0].data[40:50] = hann1
-        ms[0].data[50:60] = -hann1
-
-        ms[1].data[:] = 0
-        ms[1].data[100:150] = hann2
-        ms[1].data[240:290] = hann2
-        ms_orig = ms.copy()
-        data3 = convolve(ms[1].data, ms[0].data, 'full')[50:350]/np.sum(np.abs(ms[0].data))
-        ms[1].data = data3
-        ms[2].data = -ms[1].data
-        for tr in ms:
-            tr.stats.sampling_rate = 1
+        data_src[40:50] = hann1
+        data_src[50:60] = -hann1
+        data[100:150] = hann2
+        data[240:290] = hann2
+        data_rsp = convolve(data_src, data, 'full')[50:450]/3.
+        stream1 = RFStream([RFTrace(data=data_src), RFTrace(data=data_rsp)])
+        for i, tr in enumerate(stream1):
+            tr.stats.channel = tr.stats.channel[:2] + 'LQT'[i]
             tr.stats.onset = tr.stats.starttime + 40
-        ms.deconvolve(method='time')
-        # ms.deconvolve(method='freq', tshift=45.)
-#        print(ms)
+        stream2 = stream1.copy()
+        stream1.deconvolve(spiking=10)
+        stream2.deconvolve(method='freq', waterlevel=0.1)
 
-#        import pylab as plt
-#        plt.plot(t,  ms[0].data)
-#        plt.plot(t, ms_orig[0].data)
-#        plt.plot(t, data3)
-#        plt.plot(t, ms[1].data)
-#        plt.plot(t, ms_orig[1].data)
-
-#        plt.plot(ms[0].data)
-#        plt.plot(ms_orig[0].data)
-#        plt.plot(ms[1].data)
-#        plt.plot(ms_orig[1].data)
-
-#        ms.plot()
+#        import matplotlib.pyplot as plt
+#        plt.subplot(121)
+#        plt.plot(data)
+#        plt.plot(data_src)
+#        plt.plot(data_rsp)
+#        plt.plot(stream1[0].data)
+#        plt.plot(stream1[1].data)
+#        plt.subplot(122)
+#        plt.plot(data)
+#        plt.plot(data_src)
+#        plt.plot(data_rsp)
+#        plt.plot(stream2[0].data)
+#        plt.plot(stream2[1].data)
 #        plt.show()
 
-#        print(ms)
+        # (shift from middle of source (50) to onset (40)
+        self.assertEqual(np.argmax(data) - np.argmax(stream1[1].data), 10)
+        self.assertEqual(np.argmax(data) - np.argmax(stream2[1].data), 10)
+
 
 
 def suite():
