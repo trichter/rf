@@ -75,6 +75,8 @@ class DeconvolveTestCase(unittest.TestCase):
         test_deconvolve_Lpeak(self, stream, 'freq')
         test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
         test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
+        test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-5, 18, 5))
+        test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-5, 18, 5))
 
     def test_deconvolution_of_stream_Qpeak_position(self):
         # S receiver deconvolution
@@ -88,6 +90,8 @@ class DeconvolveTestCase(unittest.TestCase):
         # check that maximum in Q component is at 0s (at S onset)
         test_deconvolve_Qpeak(self, stream, 'time')
         test_deconvolve_Qpeak(self, stream, 'freq')
+        test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-5, 18, 5))
+        test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-5, 18, 5))
         test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-20, 40, 5))
         test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
 
