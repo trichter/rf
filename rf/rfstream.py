@@ -213,7 +213,6 @@ class RFStream(Stream):
             traces.append(sliced_trace)
         return self.__class__(traces)
 
-    @_add_processing_info
     def deconvolve(self, *args, **kwargs):
         """
         Deconvolve source component of stream.
@@ -225,7 +224,7 @@ class RFStream(Stream):
         self.traces = rsp
 
     @_add_processing_info
-    def rf(self, method=None, filter=None, window=None, downsample=None,
+    def rf(self, method=None, filter=None, trim=None, downsample=None,
            rotate='ZNE->LQT', deconvolve='time', source_components=None,
            **kwargs):
         r"""
@@ -235,9 +234,9 @@ class RFStream(Stream):
             functions, if None method will be determined from the phase
         :param dict filter: filter stream with its
             `~obspy.core.stream.Stream.filter` method and given kwargs
-        :type window: tuple (start, end)
-        :param window: trim stream relative to P- or S-onset
-             with :meth:`~obspy.core.stream.Stream.trim` (seconds)
+        :type trim: tuple (start, end)
+        :param trim: trim stream relative to P- or S-onset
+             with `trim2()` (seconds)
         :param float downsample: downsample stream with its
             :meth:`~obspy.core.stream.Stream.decimate` method to the given
             frequency
@@ -275,8 +274,8 @@ class RFStream(Stream):
             source_components = 'LZ' if method == 'P' else 'QR'
         if filter:
             self.filter(**filter)
-        if window:
-            self.trim2(*window, reftime='onset')
+        if trim:
+            self.trim2(*trim, reftime='onset')
         if downsample:
             for tr in self:
                 if downsample <= tr.stats.sampling_rate:

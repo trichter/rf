@@ -13,6 +13,8 @@ except ImportError:
     msg = 'Toeplitz import error. Time domain deconvolution will not work.'
     warnings.warn(msg)
 
+from rf.util import _add_processing_info
+
 
 def __find_nearest(array, value):
     """http://stackoverflow.com/a/26026189"""
@@ -24,6 +26,7 @@ def __find_nearest(array, value):
         return idx
 
 
+@_add_processing_info
 def deconvolve(stream, method='time',
                source_components='LZ', response_components=None,
                winsrc='P', **kwargs):

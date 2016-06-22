@@ -178,6 +178,12 @@ class RFStreamTestCase(unittest.TestCase):
         stream = minimal_example_rf()
         self.assertEqual(str(stream[0]).split(' | ')[-1], str_)
 
+    def test_add_processing(self):
+        stream = minimal_example_rf()
+        proc = ' '.join(stream[0].stats.processing)
+        self.assertIn('deconvolve(', proc)
+        self.assertIn('rf(', proc)
+
 
 def suite():
     return unittest.makeSuite(RFStreamTestCase, 'test')
