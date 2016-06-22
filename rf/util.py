@@ -2,10 +2,13 @@
 Utility functions and classes for receiver function calculation.
 """
 import collections
+import inspect
 import itertools
 from pkg_resources import resource_filename
 
+from decorator import decorator
 import numpy as np
+
 
 DEG2KM = 111.2  #: Conversion factor from degrees epicentral distance to km
 
@@ -175,3 +178,28 @@ def minimal_example_Srf():
     stream.ppoints(50, pp_phase='P')
     __CACHE[cache_key] = stream
     return stream.copy()
+
+
+@decorator
+def _add_processing_info(func, *args, **kwargs):
+    from rf import __version__
+    callargs = inspect.getcallargs(func, *args, **kwargs)
+    sig = inspect.signature(func)
+    callargs.pop(sig.parameters[0].name)
+    kwargs_ = callargs.pop('kwargs', {})
+    info = 'rf {version}: {function}(%s)'.format(
+        version=__version__, function=func.__name__)
+    arguments = []
+    arguments += \
+        ['%s=%s' % (k, repr(v)) if not isinstance(v, str) else
+         "%s='%s'" % (k, v) for k, v in callargs.items()]
+    arguments += \
+        ['%s=%s' % (k, repr(v)) if not isinstance(v, str) else
+         "%s='%s'" % (k, v) for k, v in kwargs_.items()]
+    arguments.sort()
+    info = info % '::'.join(arguments)
+    stream = args[0]
+    result = func(*args, **kwargs)
+    for tr in stream:
+        tr._internal_add_processing_info(info)
+    return result

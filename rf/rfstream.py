@@ -14,7 +14,7 @@ from obspy.geodetics import gps2dist_azimuth
 from obspy.taup import TauPyModel
 from rf.deconvolve import deconvolve
 from rf.simple_model import load_model
-from rf.util import DEG2KM, IterMultipleComponents
+from rf.util import DEG2KM, IterMultipleComponents, _add_processing_info
 
 
 def __get_event_origin_prop(h):
@@ -213,6 +213,7 @@ class RFStream(Stream):
             traces.append(sliced_trace)
         return self.__class__(traces)
 
+    @_add_processing_info
     def deconvolve(self, *args, **kwargs):
         """
         Deconvolve source component of stream.
@@ -223,6 +224,7 @@ class RFStream(Stream):
         rsp = deconvolve(self, *args, **kwargs)
         self.traces = rsp
 
+    @_add_processing_info
     def rf(self, method=None, filter=None, window=None, downsample=None,
            rotate='ZNE->LQT', deconvolve='time', source_components=None,
            **kwargs):

@@ -232,7 +232,7 @@ def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
     :param top: show second axes on top of profile with additional information.
-        Vaild values: 'hist' - Plot histogram showing the number of receiver
+        Valid values: 'hist' - Plot histogram showing the number of receiver
         functions stacked in the corresponding bin
     :param moveout_model: string with model filename. Will be loaded into a
         `~.simple_model.SimpleModel` object to calculate depths for
