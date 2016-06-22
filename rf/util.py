@@ -202,6 +202,4 @@ def _add_processing_info(func, *args, **kwargs):
     result = func(*args, **kwargs)
     for tr in stream:
         tr._internal_add_processing_info(info)
-    print '\n'.join(stream[0].stats.processing)
-    print
     return result
