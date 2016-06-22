@@ -49,18 +49,6 @@
 # This option needs the module joblib.
 "cache_waveforms": null,
 
-# Possibility to define your own logging configuration. This dictionary
-# will be passed to logging.config.dictConfig.
-# null will log to a file and stdout depending on 'logfile', 'loglevel'
-# and '-v' flag (logging is quite sparse at the moment)
-"logging": null,
-
-# Log file or null. Output to stdout can be configured with the -v flag
-"logfile": "example.log",
-
-# The higher the log level the more verbose is the logging to the file (1-3)
-"loglevel": 3,
-
 # File format for receiver functions (one of "Q", "SAC" or "H5")
 #"format": "Q",
 

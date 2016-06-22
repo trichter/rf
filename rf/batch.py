@@ -4,11 +4,8 @@ rf: receiver function calculation - batch command line utility
 
 import argparse
 from argparse import SUPPRESS
-from copy import deepcopy
 from importlib import import_module
 import json
-import logging
-import logging.config
 import os
 from os.path import join
 from pkg_resources import resource_filename
@@ -17,7 +14,7 @@ import sys
 
 import obspy
 from rf.rfstream import read_rf
-from rf.util import _get_stations, iter_event_data, iter_event_metadata
+from rf.util import iter_event_data, iter_event_metadata
 try:
     from tqdm import tqdm
 except ImportError:
@@ -30,52 +27,6 @@ except ImportError:
     joblib = None
 
 IS_PY3 = sys.version_info.major == 3
-
-log = logging.getLogger('rf.batch')
-log.addHandler(logging.NullHandler())
-
-LOGLEVELS = {0: 'CRITICAL', 1: 'WARNING', 2: 'INFO', 3: 'DEBUG'}
-
-LOGGING_DEFAULT_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'capture_warnings': True,
-    'formatters': {
-        'file': {
-            'format': ('%(asctime)s %(module)-6s%(process)-6d%(levelname)-8s'
-                       '%(message)s')
-        },
-        'console': {
-            'format': '%(levelname)-8s%(message)s'
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-            'level': None,
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'formatter': 'file',
-            'level': None,
-            'filename': None,
-        },
-    },
-    'loggers': {
-        'rf': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'py.warnings': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
-        }
-
-    }
-}
 
 _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
 
@@ -216,16 +167,16 @@ def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
             seedid = '.'.join((kwargs['network'], kwargs['station'],
                                kwargs['location'], kwargs['channel']))
             msg = 'channel %s: error while retrieving data: %s'
-            log.debug(msg, seedid, ex)
+            print msg % (seedid, ex)
 
     use_cache = client_module is not None or data == 'plugin'
     use_cache = use_cache and cache_waveforms
     if use_cache and joblib:
-        log.info('use waveform cache in %s', cache_waveforms)
+        print 'use waveform cache in %s' % cache_waveforms
         memory = joblib.Memory(cachedir=cache_waveforms, verbose=0)
         return memory.cache(wrapper)
     elif use_cache:
-        log.warning('install joblib to use cache_waveforms option')
+        print 'install joblib to use cache_waveforms option'
     return wrapper
 
 
@@ -236,23 +187,6 @@ class ConfigJSONDecoder(json.JSONDecoder):
     def decode(self, s):
         s = '\n'.join(l.split('#', 1)[0] for l in s.split('\n'))
         return super(ConfigJSONDecoder, self).decode(s)
-
-
-def configure_logging(loggingc, verbose=0, loglevel=3, logfile=None):
-    if loggingc is None:
-        loggingc = deepcopy(LOGGING_DEFAULT_CONFIG)
-        if verbose > 3:
-            verbose = 3
-        loggingc['handlers']['console']['level'] = LOGLEVELS[verbose]
-        if logfile is None or loglevel == 0:
-            del loggingc['handlers']['file']
-            loggingc['loggers']['qopen']['handlers'] = ['console']
-            loggingc['loggers']['py.warnings']['handlers'] = ['console']
-        else:
-            loggingc['handlers']['file']['level'] = LOGLEVELS[loglevel]
-            loggingc['handlers']['file']['filename'] = logfile
-    logging.config.dictConfig(loggingc)
-    logging.captureWarnings(loggingc.get('capture_warnings', False))
 
 
 class ParseError(Exception):
@@ -298,12 +232,6 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
         if 'moveout_phase' in kwargs:
             kwargs.setdefault('moveout', {})
             kwargs['moveout']['phase'] = kwargs.pop('moveout_phase')
-    # Configure logging
-    kw = {'loggingc': kwargs.pop('logging', None),
-          'verbose': kwargs.pop('verbose', 0),
-          'loglevel': kwargs.pop('loglevel', 3),
-          'logfile': kwargs.pop('logfile', None)}
-    configure_logging(**kw)
     # Read events and inventory
     try:
         if command in ('stack', 'plot'):
@@ -318,7 +246,6 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
                 else:
                     events, format_ = events
                 events = obspy.read_events(events, format_)
-                log.info('read %d events', len(events))
         if command != 'print' or args[1] == 'stations':
             inventory = kwargs.pop('inventory')
             if not isinstance(inventory, obspy.Inventory):
@@ -327,12 +254,10 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
                 else:
                     inventory, format_ = inventory
                 inventory = obspy.read_inventory(inventory, format_)
-                log.info('read inventory with %d stations',
-                         len(_get_stations(inventory)))
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        log.exception('cannot read events or stations')
+        print 'cannot read events or stations'
         return
     # Initialize get_waveforms
     if command == 'data':
@@ -343,11 +268,10 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
             if get_waveforms is None:
                 data = kwargs.pop('data')
                 get_waveforms = init_data(data, **tkwargs)
-                log.info('init data from %s', data)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            log.exception('cannot initalize data')
+            print 'cannot initalize data'
             return
     # Print command
     if command == 'print':
@@ -430,9 +354,6 @@ def run_cli(args=None):
     p.add_argument('--version', action='version', version=version)
     msg = 'Configuration file to load (default: conf.json)'
     p.add_argument('-c', '--conf', default='conf.json', help=msg)
-    msg = 'Set chattiness on command line. Up to 3 -v flags are possible'
-    p.add_argument('-v', '--verbose', help=msg, action='count',
-                   default=SUPPRESS)
     p.add_argument('args', nargs='+')
 
 #
