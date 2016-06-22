@@ -72,13 +72,7 @@ def _create_dir(filename):
         os.makedirs(head)
 
 
-def _fname(fname, **kwargs):
-    fname = fname.format(**kwargs)
-    _create_dir(fname)
-    return fname
-
-
-def _write(stream, root, format, type=None):
+def write(stream, root, format, type=None):
     if len(stream) == 0:
         return
     fname_pattern = (STACK_FNAMES if type == 'stack' else
@@ -96,8 +90,8 @@ def _write(stream, root, format, type=None):
             tr.write(fname, format)
 
 
-def _iter_event_processed_data(events, inventory, pin, format,
-                               yield_traces=False, pbar=None):
+def iter_event_processed_data(events, inventory, pin, format,
+                              yield_traces=False, pbar=None):
     for meta in iter_event_metadata(events, inventory, pbar=pbar):
         meta['channel'] = '???'
         if 'event_time' not in meta and format != 'H5':
@@ -309,12 +303,12 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
         iter_ = iter_event_data(events, inventory, pin, pbar=tqdm(), **options)
     else:
         yt = command == 'profile'
-        iter_ = _iter_event_processed_data(
+        iter_ = iter_event_processed_data(
             events, inventory, pin, format, pbar=tqdm(), yield_traces=yt)
     # Run all subcommands
     if command == 'convert':
         for stream in iter_:
-            _write(stream, pout, newformat)
+            write(stream, pout, newformat)
     elif command == 'plot':
         for stream in iter_:
             channels = set(tr.stats.channel for tr in stream)
@@ -327,12 +321,12 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
     elif command == 'stack':
         for stream in iter_:
             stack = stream.stack()
-            _write(stack, pout, format, type='stack')
+            write(stack, pout, format, type='stack')
     elif command == 'profile':
         from rf.profile import get_profile_boxes, get_profile
         boxes = get_profile_boxes(**kwargs.get('boxes', {}))
         profile = get_profile(iter_, boxes, **kwargs.get('profile', {}))
-        _write(profile, pout, format, type='profile')
+        write(profile, pout, format, type='profile')
     else:
         for stream in iter_:
             for command in commands:
@@ -344,7 +338,7 @@ def run(args, conf=None, tutorial=False, get_waveforms=None, format='Q',
                     stream.moveout(**kwargs.get('moveout', {}))
                 else:
                     raise NotImplementedError
-            _write(stream, pout, format)
+            write(stream, pout, format)
 
 
 def run_cli(args=None):
