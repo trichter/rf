@@ -62,66 +62,52 @@
 "loglevel": 3,
 
 # File format for receiver functions (one of "Q", "SAC" or "H5")
-"format": "Q",
+#"format": "Q",
 
-# All receiver functions and plots are stored relative to this path
-"path": ".",
+
 
 ### Options for rf ###
 
-# Phase to use (e.g. "P", "PP", "S"), last letter will determine
-# if P- or S-receiver functions are calculated.
-"phase": "P",
-"options_by_phase": {
-    "P": {
-        # Request window of data in s relative to origin time
-        "request_window":  [-50, 150],
-        # Events with an epicentral distance not in dist_range will be discarded
-        # for a specific station
-        "dist_range": [30, 90],
-        "filter":   {"type": "bandpass", "freqmin": 0.01, "freqmax": 2.0},
-        # Trim window around P-onset
-        "window": [-30, 100]
-    },
-    "S": {
-        "request_window":  [-100, 50],
-        "filter": {"type": "bandpass", "freqmin": 0.01, "freqmax": 0.5},
-        # Trim window around S-onset
-        "window": [-80, 50]
-    }
+"options": {  # See documentation of util.iter_event_data and rfstream.rfstats for options
+    # Phase to use (e.g. "P", "PP", "S"), last letter will determine
+    # if P- or S-receiver functions are calculated.
+#    "phase": "P",
+#    "request_window":  [-50, 150],
+#    "dist_range": [30, 90],
+    # Depth of piercing points in km
+    "pp_depth": 50
 },
 
-# Downsample stream to this frequency in Hz.
-"downsample": 10,
-# Roate stream with this method.
-# rotate should be one of 'ZNE->LQT', 'NE->RT'
-"rotate": "ZNE->LQT",
+"rf": {  # See RFStream.rf for options
+    "filter":   {"type": "bandpass", "freqmin": 0.01, "freqmax": 2.0},
+    # Trim window around P-onset
+    "trim": [-30, 100],
+    # Downsample stream to this frequency in Hz.
+    "downsample": 10
+    # Roate stream with this method.
+    # rotate should be one of 'ZNE->LQT', 'NE->RT'
+#    "rotate": "ZNE->LQT",
+    # Deconvolve stream with this method.
+    # deconvolve is one of 'time' or 'freq' for time or
+    # frequency domain deconvolution.
+    # source_component is the component used as source for the deconvolution.
+#    "deconvolve": "time",
+    # time domain deconvolution options
+#    "spiking": 1.0,  # spiking factor for noise suppression
+    # frequency domain deconvolution options
+#    "water": 0.05,  # water level for noise suppression
+#    "gauss": 2.0,  # low pass Gauss filter with corner frequency in Hz
+    # window for source function relative to onset, (start, end, tapering)
+#    "winsrc": [-10, 30, 5]
+},
 
-# Deconvolve stream with this method.
-# deconvolve is one of 'time' or 'freq' for time or
-# frequency domain deconvolution.
-# source_component is the component used as source for the deconvolution.
-"deconvolve": "time",
-"source_component" : "L",
 
-# time domain deconvolution options
-"spiking": 1.0,  # spiking factor for noise suppression
+### Options for other routines ###
 
-# frequency domain deconvolution options
-"water": 0.05,  # water level for noise suppression
-"gauss": 2.0,  # low pass Gauss filter with corner frequency in Hz
+"moveout": {"phase": null},  # See documentation of RFStream.moveout
 
-# window for source function relative to onset, (start, end, tapering)
-"winsrc" : [-10, 30, 5],
+"plot": {"fillcolors": ["black", "gray"], "window": [-5, 22]},  # See documentation of RFStream.plot_rf
 
-# Depth of piercing points in km
-"pp_depth": null,
-
-### Options for other routines defined as dictionaries ###
-
-"moveout": "Ps",
-"kwargs_moveout": {},  # See documentation of RFStream.moveout
-
-"kwargs_plot": {"trace_height": 0.2, "norm": 4.0, "fill": true,
-                "window": [-5, 22]}  # See documentation of RFStream.plot_rf
+"boxes": {"latlon0": [10, 10], "azi": 90, "bins": [0, 0.1, 0.2, 0.3]},  # See profile.get_boxes
+"profile": {}  # See profile.get_profile
 }

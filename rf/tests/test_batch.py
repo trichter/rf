@@ -43,10 +43,11 @@ class BatchTestCase(unittest.TestCase):
             text = text.replace(old, new)
             with open(fname, 'w') as f:
                 f.write(text)
+        print 1
 
         # QHD
         with quiet(), tempdir():
-            script(['create'])
+            script(['create', '-t'])
             script(['calc'])
             script(['moveout'])
             script(['convert', 'Prf_Ps', 'SAC'])
@@ -57,10 +58,10 @@ class BatchTestCase(unittest.TestCase):
             script(['stack', 'Prf_Ps'])
             if not travis:
                 script(['plot', 'Prf_Ps'])
-
+        print 2
         # SAC
         with quiet(), tempdir():
-            script(['create'])
+            script(['create', '-t'])
             substitute('"format": "Q"', '"format": "SAC"')
             script(['calc'])
             script(['moveout'])
@@ -76,7 +77,7 @@ class BatchTestCase(unittest.TestCase):
         if obspyh5:
             with quiet(), tempdir(), warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                script(['create'])
+                script(['create', '-t'])
                 substitute('"format": "Q"', '"format": "H5"')
                 script(['calc'])
                 script(['moveout'])

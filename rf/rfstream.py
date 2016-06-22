@@ -163,7 +163,8 @@ class RFStream(Stream):
         """
         for tr in self:
             tr._write_format_specific_header(format)
-
+            if format.upper() == 'Q':
+                tr.stats.station = tr.id
         if format.upper() == 'H5':
             index = self.type
             if index:

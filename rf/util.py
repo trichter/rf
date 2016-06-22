@@ -13,12 +13,18 @@ import numpy as np
 DEG2KM = 111.2  #: Conversion factor from degrees epicentral distance to km
 
 
-def iter_event_data(catalog, inventory, get_waveforms, phase='P',
+def _get_stations(inventory):
+    channels = inventory.get_contents()['channels']
+    stations = {ch[:-1] + '?': ch[-1] for ch in channels}
+    return stations
+
+
+def iter_event_data(events, inventory, get_waveforms, phase='P',
                     request_window=None, pad=10, pbar=None, **kwargs):
     """
     Return iterator yielding three component streams per station and event.
 
-    :param catalog: `~obspy.core.event.Catalog` instance with events
+    :param events: list of events or `~obspy.core.event.Catalog` instance
     :param inventory: `~obspy.core.inventory.inventory.Inventory` instance
         with station and channel information
     :param get_waveforms: Function returning the data. It has to take the
@@ -29,6 +35,8 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
     :param float pad: add specified time in seconds to request window and
        trim afterwards again
     :param pbar: tqdm_ instance for displaying a progressbar
+
+    :return: three component streams with raw data
 
     Example usage with progressbar::
 
@@ -44,11 +52,10 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
     method = phase[-1].upper()
     if request_window is None:
         request_window = (-50, 150) if method == 'P' else (-100, 50)
-    channels = inventory.get_contents()['channels']
-    stations = {ch[:-1] + '?': ch[-1] for ch in channels}
+    stations = _get_stations(inventory)
     if pbar is not None:
-        pbar.total = len(catalog) * len(stations)
-    for event, seedid in itertools.product(catalog, stations):
+        pbar.total = len(events) * len(stations)
+    for event, seedid in itertools.product(events, stations):
         if pbar is not None:
             pbar.update(1)
         origin_time = (event.preferred_origin() or event.origins[0])['time']
@@ -86,6 +93,32 @@ def iter_event_data(catalog, inventory, get_waveforms, phase='P',
         for tr in stream:
             tr.stats.update(stats)
         yield RFStream(stream, warn=False)
+
+
+def iter_event_metadata(events, inventory, pbar=None):
+    """
+    Return iterator yielding metadata per station and event.
+
+    :param events: list of events or `~obspy.core.event.Catalog` instance
+    :param inventory: `~obspy.core.inventory.inventory.Inventory` instance
+        with station and channel information
+    :param pbar: tqdm_ instance for displaying a progressbar
+    """
+    stations = _get_stations(inventory)
+    if events is None:
+        events = [None]
+    if pbar is not None:
+        pbar.total = len(events) * len(stations)
+    for event, seedid in itertools.product(events, stations):
+        if pbar is not None:
+            pbar.update(1)
+        net, sta, loc, cha = seedid.split('.')
+        meta = {'network': net, 'station': sta, 'location': loc,
+                'channel': cha}
+        if event is not None:
+            ot = (event.preferred_origin() or event.origins[0])['time']
+            meta['event_time'] = ot
+        yield meta
 
 
 class IterMultipleComponents(object):

@@ -99,7 +99,11 @@ def get_profile(stream, boxes, crs=None):
             tr2.stats.num += 1
     for tr2 in stack.values():
         tr2.data = tr2.data / tr2.stats.num
-    profile = stream.__class__(traces=stack.values())
+    try:
+        profile = stream.__class__(traces=stack.values())
+    except TypeError:  # stream can be an iterator
+        from rf import RFStream
+        profile = RFStream(traces=stack.values())
     profile.sort(['box_pos'])
     profile.type = 'profile'
     return profile
