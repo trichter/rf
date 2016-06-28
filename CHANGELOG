@@ -15,6 +15,7 @@ v0.4.0:
   * rewrite batch module with updated interface
   * updated and expanded documentation
   * updated and expanded tests, test coverage is now very good
+  * remove logging from rf.batch again
   * bug fix: correct moveout for S receiver functions
   * bux fix: correct wrong shift in frequency deconvolution
   * a lot of refactoring and smaller bugfixes
