@@ -25,7 +25,8 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     :param stack_height: height of stack axes in inches
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
-    :param trim: trim stream relative to onset before plotting
+    :param trim: trim stream relative to onset before plotting using
+         `~.rfstream.RFStream.slice2()`
     :param info: Plot one additional axes showing maximal two entries of
         the stats object. Each entry in this list is a list consisting of
         three entries: key, label and color.
@@ -35,7 +36,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     if len(stream) == 0:
         return
     if trim:
-        stream = stream.select2(*trim, reftime='onset')
+        stream = stream.slice2(*trim, reftime='onset')
     N = len(stream)
     # calculate lag times
     stats = stream[0].stats
@@ -234,6 +235,8 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
     :param profile: stream holding the profile
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
+    :param trim: trim stream relative to onset before plotting using
+         `~.rfstream.RFStream.slice2()`
     :param top: show second axes on top of profile with additional information.
         Valid values: 'hist' - Plot histogram showing the number of receiver
         functions stacked in the corresponding bin
@@ -244,7 +247,7 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
     if len(profile) == 0:
         return
     if trim:
-        profile = profile.select2(*trim, reftime='onset')
+        profile = profile.slice2(*trim, reftime='onset')
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
     widths = [tr.stats.box_length for tr in profile]

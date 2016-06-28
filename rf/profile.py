@@ -97,7 +97,7 @@ def get_profile(stream, boxes, crs=None):
                       'box_longitude': box['latlon'][1],
                       'profile_latitude': boxes[0]['profile']['latlon'][0],
                       'profile_longitude': boxes[0]['profile']['latlon'][1],
-                      'profile_azi': boxes[0]['profile']['azi'],
+                      'profile_azimuth': boxes[0]['profile']['azimuth'],
                       'profile_length': boxes[0]['profile']['length'],
                       'num': 1,
                       'sampling_rate': tr.stats.sampling_rate,
