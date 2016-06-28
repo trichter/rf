@@ -182,7 +182,7 @@ def minimal_example_rf():
         return __CACHE[cache_key].copy()
     from rf.rfstream import read_rf, rfstats
     stream = read_rf()
-    rfstats(stream=stream)
+    rfstats(stream)
     stream.filter('bandpass', freqmin=0.5, freqmax=2)
     stream.trim2(10, 110, reftime='starttime')
     stream.rf(winsrc=(-5, 25, 5))
@@ -203,7 +203,7 @@ def minimal_example_Srf():
     from rf.rfstream import read_rf, rfstats
     fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
     stream = read_rf(fname)
-    rfstats(stream=stream, phase='S')
+    rfstats(stream, phase='S')
     stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
     stream.trim2(10, 120, reftime='starttime')
     stream.rf(method='S', winsrc=(-5, 15, 5))

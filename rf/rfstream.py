@@ -104,6 +104,9 @@ class RFStream(Stream):
     """
     Class providing the necessary functions for receiver function calculation.
 
+    :param traces: list of traces, single trace or stream object
+    :param warn: display warnings when reading and mapping rf headers
+
     To initialize a RFStream from a Stream object use
 
     >>> rfstream = RFStream(stream)
@@ -137,6 +140,7 @@ class RFStream(Stream):
 
     @property
     def type(self):
+        """Property for the type of stream, 'rf', 'profile' or None"""
         return self.__get_unique_header('type')
 
     @type.setter
@@ -146,6 +150,7 @@ class RFStream(Stream):
 
     @property
     def method(self):
+        """Property for used rf method, 'P' or 'S'"""
         phase = self.__get_unique_header('phase')
         if phase is not None:
             return phase[-1].upper()
@@ -607,14 +612,17 @@ def obj2stats(event=None, station=None):
     return stats
 
 
-def rfstats(stats=None, event=None, station=None, stream=None,
+def rfstats(obj=None, event=None, station=None,
             phase='P', dist_range='default', tt_model='iasp91',
             pp_depth=None, pp_phase=None, model='iasp91'):
     """
     Calculate ray specific values like slowness for given event and station.
 
-    :param stats: `~obspy.core.trace.Stats` object with event and/or station
+    :param obj: `~obspy.core.trace.Stats` object with event and/or station
         attributes. Can be None if both event and station are given.
+        It is possible to give a stream object, too. Then rfstats will be
+        called for each Trace.stats object and traces outside dist_range will
+        be discarded.
     :param event: ObsPy `~obspy.core.event.event.Event` object
     :param station: station object with attributes latitude, longitude and
         elevation
@@ -637,24 +645,24 @@ def rfstats(stats=None, event=None, station=None, stream=None,
         (see `.SimpleModel`, default: iasp91)
     :return: `~obspy.core.trace.Stats` object with event and station
         attributes, distance, back_azimuth, inclination, onset and
-        slowness or None if epicentral distance is not in the given interval
+        slowness or None if epicentral distance is not in the given interval.
+        Stream instance if stream was specified instead of stats.
     """
-    if stream is not None:
-        assert stats is None
-        kwargs = {'event': event, 'station': station, 'stream': None,
+    if isinstance(obj, (Stream, RFStream)):
+        stream = obj
+        kwargs = {'event': event, 'station': station,
                   'phase': phase, 'dist_range': dist_range,
                   'tt_model': tt_model, 'pp_depth': pp_depth,
                   'pp_phase': pp_phase, 'model': model}
         traces = []
         for tr in stream:
-            if rfstats(stats=tr.stats, **kwargs) is not None:
+            if rfstats(tr.stats, **kwargs) is not None:
                 traces.append(tr)
         stream.traces = traces
-        return
+        return stream
     if dist_range == 'default' and phase.upper() in 'PS':
         dist_range = (30, 90) if phase.upper() == 'P' else (50, 85)
-    if stats is None:
-        stats = AttribDict({})
+    stats = AttribDict({}) if obj is None else obj
     if event is not None and station is not None:
         stats.update(obj2stats(event=event, station=station))
     dist, baz, _ = gps2dist_azimuth(stats.station_latitude,

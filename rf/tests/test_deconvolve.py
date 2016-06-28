@@ -56,7 +56,7 @@ class DeconvolveTestCase(unittest.TestCase):
 
     def test_deconvolution_of_stream_Lpeak_position(self):
         stream = read_rf()[:3]
-        rfstats(stream=stream)
+        rfstats(stream)
         stream.filter('bandpass', freqmin=0.4, freqmax=1)
         stream.trim2(5, 95, reftime='starttime')
         stream.rotate('ZNE->LQT')
@@ -78,7 +78,7 @@ class DeconvolveTestCase(unittest.TestCase):
         from pkg_resources import resource_filename
         fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
         stream = read_rf(fname)[:3]
-        rfstats(stream=stream, phase='S')
+        rfstats(stream, phase='S')
         stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
         stream.trim2(10, 120, reftime='starttime')
         stream.rotate('ZNE->LQT')

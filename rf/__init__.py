@@ -103,9 +103,9 @@ event_depth        DEPTH      evdp
 event_magnitude    MAGNITUDE  mag
 event_time         ORIGIN     o
 onset              P-ONSET    a
-type               COMMENT    kuser1
-phase              COMMENT    kuser2
-moveout            COMMENT    kuser3
+type               COMMENT    kuser0
+phase              COMMENT    kuser1
+moveout            COMMENT    kuser2
 distance           DISTANCE   gcarc
 back_azimuth       AZIMUTH    baz
 inclination        INCI       user0
@@ -138,10 +138,9 @@ dictionary can be calculated with `.rfstats()`:
 
 or if the station and event information is already stored in the stats object:
 
->>> for tr in stream:
->>>     rfstats(stats=tr.stats)
+>>> rfstats(stream)
 
-Now P receiver functions can be calculated by
+A typical workflow for P receiver function calculation and writing looks like
 
 >>> stream.filter('bandpass', freqmin=0.05, freqmax=1.)
 >>> stream.rf()
@@ -162,14 +161,15 @@ the given kwargs:
 
 Please see `.RFStream.rf()`
 for a more detailed description.
-RFStream provides the possibility to perform moveout correction
-and piercing point calculation.
+RFStream provides the possibility to perform moveout correction,
+piercing point calculation and profile stacking.
 
 Command line tool for batch processing
 --------------------------------------
 
 The rf package provides a command line utility 'rf' which runs all the
-necessary steps to perform receiver function calculation.
+necessary steps to perform receiver function calculation. Use
+``rf -h`` and ``rf {your_command} -h`` to discover the interface.
 All you need is an inventory file (StationXML) and a file with events
 (QuakeML) you want to analyze.
 
@@ -180,7 +180,7 @@ The command ::
 creates a :ref:`template configuration file <config_label>` in the current
 directory. This file is in JSON format and well documented.
 After adapting the file to your needs you can use the various
-subcommands of rf to perform different tasks (e.g. receiver function
+commands of rf to perform different tasks (e.g. receiver function
 calculation, plotting).
 
 To create the tutorial with a small included dataset and working configuration
@@ -190,11 +190,10 @@ you can use ::
 
 Now start using rf ..., e.g. ::
 
-    rf calc
-    rf moveout
-    rf plot Prf_Ps
-    rf --moveout Psss moveout
-    rf plot Prf_Psss
+    rf data calc myrf
+    rf moveout myrf myrfmout
+    rf plot myrfmout myrfplot
+    rf --moveout-phase Psss moveout myrf myrfPsssmout
 
 Miscellaneous
 -------------

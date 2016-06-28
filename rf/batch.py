@@ -59,7 +59,7 @@ class _DummyDateTime(object):
 
 class _DummyUTC(object):
 
-    """Dummy UTCDateTime class returning '*' when formating"""
+    """Dummy UTCDateTime class returning '*' when formating."""
 
     def __init__(self):
         self.datetime = _DummyDateTime()
@@ -75,6 +75,7 @@ def _create_dir(filename):
 
 
 def write(stream, root, format, type=None):
+    """Write stream to one or more files depending on format."""
     format = format.upper()
     if len(stream) == 0:
         return
@@ -95,6 +96,7 @@ def write(stream, root, format, type=None):
 
 def iter_event_processed_data(events, inventory, pin, format,
                               yield_traces=False, pbar=None):
+    """Iterator yielding streams or traces which are read from disc."""
     for meta in iter_event_metadata(events, inventory, pbar=pbar):
         meta['channel'] = '???'
         if 'event_time' not in meta and format != 'H5':
@@ -122,7 +124,7 @@ def _iter_profile(pin, format):
 
 
 def load_func(modulename, funcname):
-    """Load and return function from Python module"""
+    """Load and return function from Python module."""
     sys.path.append(os.path.curdir)
     module = import_module(modulename)
     sys.path.pop(-1)
@@ -131,9 +133,9 @@ def load_func(modulename, funcname):
 
 
 def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
-    """Return appropriate get_waveforms function
+    """Return appropriate get_waveforms function.
 
-    See example configuration file for a description of the options"""
+    See example configuration file for a description of the options."""
     if client_options is None:
         client_options = {}
     try:
@@ -183,8 +185,7 @@ def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
 
 
 class ConfigJSONDecoder(json.JSONDecoder):
-
-    """Strip lines from comments"""
+    """Strip lines from comments."""
 
     def decode(self, s):
         s = '\n'.join(l.split('#', 1)[0] for l in s.split('\n'))
@@ -195,8 +196,11 @@ class ParseError(Exception):
     pass
 
 
-def run(command, conf=None, tutorial=False, **kwargs):
-    # Create example configuration file and tutorial
+def run(command, conf=None, tutorial=False, **kw):
+    """Create example configuration file and tutorial or load config.
+
+    After that call `run_commands`.
+    """
     if command == 'create':
         if conf is None:
             conf = 'conf.json'
@@ -217,7 +221,7 @@ def run(command, conf=None, tutorial=False, **kwargs):
     if conf in ('None', 'none', 'null', ''):
         conf = None
     if conf and (command != 'print' or
-                 kwargs.get('objects', [''])[0] in ('stations', 'events')):
+                 kw.get('objects', [''])[0] in ('stations', 'events')):
         try:
             with open(conf) as f:
                 conf = json.load(f, cls=ConfigJSONDecoder)
@@ -228,15 +232,9 @@ def run(command, conf=None, tutorial=False, **kwargs):
             print(ex)
             return
         # Populate kwargs with conf, but prefer kwargs
-        conf.update(kwargs)
-        kwargs = conf
-    if 'moveout_phase' in kwargs:
-        kwargs.setdefault('moveout', {})
-        kwargs['moveout']['phase'] = kwargs.pop('moveout_phase')
-    if 'boxbins' in kwargs:
-        kwargs.setdefault('boxes', {})
-        kwargs['boxes']['bins'] = np.linspace(*kwargs.pop('boxbins'))
-    run_commands(command, **kwargs)
+        conf.update(kw)
+        kw = conf
+    run_commands(command, **kw)
 
 
 DICT_OPTIONS = ['client_options', 'options', 'rf', 'moveout',
@@ -246,8 +244,10 @@ DICT_OPTIONS = ['client_options', 'options', 'rf', 'moveout',
 def run_commands(command, commands=(), events=None, inventory=None,
                  objects=None, get_waveforms=None, data=None,
                  plugin=None, cache_waveforms=None,
-                 phase=None, path_in=None, path_out=None, format='Q',
+                 phase=None, moveout_phase=None,
+                 path_in=None, path_out=None, format='Q',
                  newformat=None, **kw):
+    """Load files, apply commands and write result files."""
     for opt in kw:
         if opt not in DICT_OPTIONS:
             raise ParseError('Unknown config option: %s' % opt)
@@ -258,6 +258,8 @@ def run_commands(command, commands=(), events=None, inventory=None,
             kw[opt] = json.loads(d)
     if phase is not None:
         kw['options']['phase'] = phase
+    if moveout_phase is not None:
+        kw['moveout']['phase'] = moveout_phase
     if kw['boxbins'] is not None:
         kw['boxes']['bins'] = np.linspace(*kw['boxbins'])
 
@@ -377,6 +379,10 @@ def run_commands(command, commands=(), events=None, inventory=None,
 
 
 def run_cli(args=None):
+    """Command line interface of rf.
+
+    After parsing call `run`.
+    """
     from rf import __version__
     p = argparse.ArgumentParser(description=__doc__)
     version = '%(prog)s ' + __version__
