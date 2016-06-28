@@ -447,40 +447,47 @@ class RFTrace(Trace):
         self._read_format_specific_header(warn=warn)
 
     def __str__(self, id_length=None):
-        t = self.stats.get('type')
-        if t is not None:
+        if 'onset' not in self.stats:
+            return super(RFTrace, self).__str__(id_length=id_length)
+        out = []
+        type_ = self.stats.get('type')
+        if type_ is not None:
             m = self.stats.get('phase')
             m = m[-1].upper() if m is not None else ''
-            out = m + 'rf'
-            if t != 'rf':
-                out = out + ' ' + t
+            o1 = m + 'rf'
+            if type_ != 'rf':
+                o1 = o1 + ' ' + type_
+            if self.id.startswith('...'):
+                o1 = o1 + ' (%s)' % self.id[-1]
+            else:
+                o1 = o1 + ' ' + self.id
         else:
-            out = ''
-        if t == 'profile' and 'onset' in self.stats:
-            comp = self.stats.channel[-1]
-            t1 = self.stats.starttime - self.stats.onset
-            t2 = self.stats.endtime - self.stats.onset
-            out = out + ' (%s) | %.1fs - %.1fs' % (comp, t1, t2)
-        else:
-            out = out + ' | '
-            out = out + super(RFTrace, self).__str__(id_length=id_length)
-        if t != 'profile' and 'onset' in self.stats:
-            onset = self.stats.onset - self.stats.starttime
-            out = out + ', onset: %.1fs' % onset
+            o1 = self.id
+        out.append(o1)
+        t1 = self.stats.starttime - self.stats.onset
+        t2 = self.stats.endtime - self.stats.onset
+        o2 = '%.1fs - %.1fs' % (t1, t2)
+        if self.stats.starttime.timestamp != 0:
+            o2 = o2 + ' onset:%s' % self.stats.onset
+        out.append(o2)
+        out.append('{sampling_rate} Hz, {npts} samples')
+        o3 = []
         if 'event_magnitude' in self.stats:
-            out = out + (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
-                         u'baz:{back_azimuth:.1f}')
+            o3.append('mag:{event_magnitude:.1f}')
+        if 'distance' in self.stats:
+            o3.append('dist:{distance:.1f}')
+        if'back_azimuth' in self.stats:
+            o3.append('baz:{back_azimuth:.1f}')
         if 'box_pos' in self.stats:
-            out = out + u' | {box_pos:.2f}km'
+            o3.append('pos:{box_pos:.2f}km')
         if 'slowness' in self.stats:
-            out = out + u' slow:{slowness:.2f}'
-            if 'moveout' in self.stats:
-                out = out + u' ({moveout} moveout)'
-        try:
-            out = out.format(**self.stats)
-        except KeyError:
-            out = ''
-        return out
+            o3.append('slow:{slowness:.2f}')
+        if 'moveout' in self.stats:
+            o3.append('({moveout} moveout)')
+        if np.ma.count_masked(self.data):
+            o3.append('(masked)')
+        out.append(' '.join(o3))
+        return ' | '.join(out).format(**self.stats)
 
     def _read_format_specific_header(self, format=None, warn=True):
         st = self.stats

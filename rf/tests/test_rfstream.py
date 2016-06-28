@@ -172,9 +172,11 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 8.6, delta=0.1)
 
     def test_str(self):
-        str_ = '6.0M dist:46.1 baz:325.0 slow:6.40 (Ps moveout)'
+        s = ('Prf CX.PB01..BHT | -10.0s - 80.0s onset:'
+             '2011-02-25T13:15:38.169539Z | 5.0 Hz, 451 samples | '
+             'mag:6.0 dist:46.1 baz:325.0 slow:6.40 (Ps moveout)')
         stream = minimal_example_rf()
-        self.assertEqual(str(stream[0]).split(' | ')[-1], str_)
+        self.assertEqual(str(stream[0]), s)
 
     def test_add_processing(self):
         stream = minimal_example_rf()
