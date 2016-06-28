@@ -279,8 +279,9 @@ class RFStream(Stream):
 
         if method is None:
             method = self.method
-        if method not in 'PS':
-            raise NotImplementedError
+        if method is None or method not in 'PS':
+            msg = "method must be one of 'P', 'S', but is '%s'"
+            raise ValueError(msg % method)
         if source_components is None:
             source_components = 'LZ' if method == 'P' else 'QR'
         if filter:
@@ -403,10 +404,10 @@ class RFStream(Stream):
         """
         Return profile of receiver functions in the stream.
 
-        See `.profile.get_profile()` for help on arguments.
+        See `.profile.profile()` for help on arguments.
         """
-        from rf.profile import get_profile
-        return get_profile(self, *args, **kwargs)
+        from rf.profile import profile
+        return profile(self, *args, **kwargs)
 
     def plot_rf(self, *args, **kwargs):
         """

@@ -30,7 +30,7 @@ def _get_box(latlon0, azimuth, length, width=_LARGE_BOX_WIDTH, offset=0):
 
 def get_profile_boxes(latlon0, azimuth, bins, width=_LARGE_BOX_WIDTH):
     """
-    Create 2D boxes for usage in `get_profile()` function.
+    Create 2D boxes for usage in `profile()` function.
 
     :param tuple latlon0: coordinates of starting point of profile
     :param azimuth: azimuth of profile direction
@@ -72,7 +72,7 @@ def _find_box(latlon, boxes, crs=None):
 
 
 @_add_processing_info
-def get_profile(stream, boxes, crs=None):
+def profile(stream, boxes, crs=None):
     """
     Stack traces in stream by piercing point coordinates in defined boxes.
 

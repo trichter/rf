@@ -359,9 +359,9 @@ def run_commands(command, commands=(), events=None, inventory=None,
             stack = stream.stack()
             write(stack, path_out, format, type='stack')
     elif command == 'profile':
-        from rf.profile import get_profile_boxes, get_profile
+        from rf.profile import get_profile_boxes, profile
         boxx = get_profile_boxes(**kw['boxes'])
-        prof = get_profile(iter_, boxx, **kw['profile'])
+        prof = profile(iter_, boxx, **kw['profile'])
         write(prof, path_out, format, type='profile')
     else:
         commands = [command] + list(commands)
