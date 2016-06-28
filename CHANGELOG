@@ -18,7 +18,6 @@ v0.4.0:
   * bug fix: correct moveout for S receiver functions
   * bux fix: correct wrong shift in frequency deconvolution
   * a lot of refactoring and smaller bugfixes
-
 v0.3.0:
   * fix ObsPy depreciation warnings
   * remove support for ObsPy<1.0
