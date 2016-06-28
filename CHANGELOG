@@ -1,12 +1,24 @@
-dev:
+v0.4.0:
   * add profile module and possibility to calculate profiles
-  * add new imaging and util module
-  * add helper class to iterate through a collection of threecomponent streams
+  * add new imaging and util modules
+  * add plots for station map, piercing point map, profile map
+  * add plot for profile
+  * add class to iterate through a collection of threecomponent streams
     (IterMultipleComponents)
-  * add helper class to iterate through data of event-station pairs
-    (IterEventData)
-  * refactor rf method to use this iterator
-  * refactor parameters of deconvolve method
+  * add iterator yielding metadata or data of event-station pairs
+    (iter_event_metadata and iter_event_data)
+  * add RFStream.trim2 and slice2 methods to trim/slice around given time
+    (e.g. onset)
+  * refactor rf method to use the new iterators
+  * refactor parameters of deconvolve method,
+    discard a lot of unnecessary parameters
+  * rewrite batch module with updated interface
+  * updated and expanded documentation
+  * updated and expanded tests, test coverage is now very good
+  * bug fix: correct moveout for S receiver functions
+  * bux fix: correct wrong shift in frequency deconvolution
+  * a lot of refactoring and smaller bugfixes
+
 v0.3.0:
   * fix ObsPy depreciation warnings
   * remove support for ObsPy<1.0
