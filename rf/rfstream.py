@@ -166,6 +166,8 @@ class RFStream(Stream):
 
         See `Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
         """
+        if len(self) == 0:
+            return
         for tr in self:
             tr._write_format_specific_header(format)
             if format.upper() == 'Q':
