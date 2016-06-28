@@ -53,7 +53,7 @@ def test_format(testcase, format):
         testcase.assertEqual(nums, nums2[format])
         if format in ('Q', 'H5'):
             script(['convert', 'mout1', 'mout_SAC', 'SAC'])
-        if format in ('H5', ):  # TODO add SAC
+        if format in ('H5', 'SAC'):
             script(['convert', 'mout1', 'mout_Q', 'Q'])
         if obspyh5 and format in ('Q', 'SAC'):
             with warnings.catch_warnings():

@@ -11,13 +11,13 @@ from rf.rfstream import (obj2stats, _HEADERS, _STATION_GETTER, _EVENT_GETTER,
                          _FORMATHEADERS)
 from rf.util import minimal_example_rf, minimal_example_Srf
 
-_HEADERS_TEST_IO = (50.3, -100.2, 400.3,
-                    -20.32, 10., 12.4, 6.5,
-                    -40.432, 20.643,
-                    'rf', 'P',
-                    57.6, 90.1, 10.2, 10.,
-                    10., -20, 150,
-                    'Ps', 15.7, 2.5)
+_HEADERS_TEST_IO = (50.3, -100.2, 400.3,  # station coordinates
+                    -20.32, 10., 12.4, 6.5, -40.432,  # event properties
+                    20.643,  # onset
+                    'rf', 'P', 'Ps',  # type, phase, moveout
+                    57.6, 90.1, 10.2, 10.,  # arrival properties
+                    10., -20, 150,  # piercing points
+                    15.7, 2.5)  # box properties
 
 _HEADERS_NOT_BY_RFSTATS = ('moveout', 'box_pos', 'box_length', 'type')
 
@@ -26,7 +26,7 @@ FORMATS = _FORMATHEADERS.keys()
 try:
     import obspyh5
 except ImportError:
-    pass
+    obspyh5 = None
 else:
     FORMATS.append('h5')
 
@@ -44,11 +44,12 @@ def test_io_header(testcase, stream, ignore=()):
     for format in FORMATS:
         stream1 = stream.copy()
         suffix = '.' + format.upper()
-        if format in ('sac', 'sh'):  # TODO!!
-            continue
         if format == 'sh':
             format = 'q'
             suffix = '.QHD'
+        elif format == 'h5':
+            for tr in stream1:
+                tr.stats.pop('sac', None)
         with NamedTemporaryFile(suffix=suffix) as ft:
             fname = ft.name
             stream1.write(fname, format.upper())
@@ -57,14 +58,11 @@ def test_io_header(testcase, stream, ignore=()):
         st2 = stream2[0].stats
         for head in _HEADERS:
             if head in st1 and head not in ignore:
-                if head not in st2:
-                    from IPython import embed
-                    embed()
                 testcase.assertIn(head, st2)
                 msg = ("AssertionError for header '%s' with format '%s': "
-                       "%s and %s not equal within 3 places")
+                       "%s and %s not equal within 2 places")
                 testcase.assertAlmostEqual(
-                    st1[head], st2[head], 3,
+                    st1[head], st2[head], 2,
                     msg=msg % (head, format, st1[head], st2[head])
                     )
         if len(ignore) == 0 or format != 'q':
@@ -99,8 +97,8 @@ class RFStreamTestCase(unittest.TestCase):
 
     def test_io_header_rf(self):
         stream = minimal_example_rf()[:1]
-        for tr in stream:
-            tr.stats.pop('sac')
+#        for tr in stream:
+#            tr.stats.pop('sac')
         test_io_header(self, stream)
 
     def test_obj2stats(self):

@@ -28,7 +28,7 @@ class ProfileTestCase(unittest.TestCase):
                 '-6.25km slow:6.40 (Ps moveout)')
         self.assertEqual(str(profile[0]), str_)
         test_io_header(self, profile[:1])
-        self.assertIn('profile', ' '.join(profile[0].stats.processing))
+        self.assertIn('profile(', ' '.join(profile[0].stats.processing))
         # test plots
         profile.plot_profile(top='hist')
         from rf.imaging import plot_profile_map
