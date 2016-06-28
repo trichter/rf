@@ -191,7 +191,7 @@ class RFStream(Stream):
 
         See :meth:`~obspy.core.stream.Stream.trim`.
 
-        :param starttime, endttime: accept UTCDateTime or seconds relative to
+        :param starttime, endtime: accept UTCDateTime or seconds relative to
             reftime
         :param reftime: reference time, can be an UTCDateTime object or a
             string. The string will be looked up in the stats dictionary
@@ -261,6 +261,8 @@ class RFStream(Stream):
             method. See `~.deconvolve.deconvolve()`,
             `.deconvt()` and `.deconvf()`
             for further documentation.
+        :param source_components: parameter is passed to deconvolve.
+            If None, source components will be chosen depending on method.
         :param \*\*kwargs: all other kwargs not mentioned here are
             passed to deconvolve
 
@@ -272,7 +274,7 @@ class RFStream(Stream):
         deconvolution windows.
         """
         def iter3c(stream):
-            return IterMultipleComponents(self, key='onset',
+            return IterMultipleComponents(stream, key='onset',
                                           number_components=(2, 3))
 
         if method is None:
@@ -431,7 +433,9 @@ class RFTrace(Trace):
     Class providing the Trace object for receiver function calculation.
     """
 
-    def __init__(self, data=np.array([]), header={}, trace=None, warn=True):
+    def __init__(self, data=np.array([]), header=None, trace=None, warn=True):
+        if header is None:
+            header = {}
         if trace is not None:
             data = trace.data
             header = trace.stats
@@ -462,7 +466,7 @@ class RFTrace(Trace):
             out = out + super(RFTrace, self).__str__(id_length=id_length)
         if t != 'profile' and 'onset' in self.stats:
             onset = self.stats.onset - self.stats.starttime
-            out = out + ', onset: %.1fs' % (onset)
+            out = out + ', onset: %.1fs' % onset
         if 'event_magnitude' in self.stats:
             out = out + (u' | {event_magnitude:.1f}M dist:{distance:.1f} '
                          u'baz:{back_azimuth:.1f}')
@@ -620,14 +624,12 @@ def rfstats(obj=None, event=None, station=None,
 
     :param obj: `~obspy.core.trace.Stats` object with event and/or station
         attributes. Can be None if both event and station are given.
-        It is possible to give a stream object, too. Then rfstats will be
+        It is possible to specify a stream object, too. Then, rfstats will be
         called for each Trace.stats object and traces outside dist_range will
         be discarded.
     :param event: ObsPy `~obspy.core.event.event.Event` object
     :param station: station object with attributes latitude, longitude and
         elevation
-    :param stream: If a stream is given, stats has to be None. In this case
-        rfstats will be called for every stats object in the stream.
     :param phase: string with phase. Usually this will be 'P' or
         'S' for P and S receiver functions, respectively.
     :type dist_range: tuple of length 2
@@ -641,7 +643,7 @@ def rfstats(obj=None, event=None, station=None,
         (in km, default: None -> No calculation)
     :param pp_phase: Phase for pp calculation (default: 'S' for P-receiver
         function and 'P' for S-receiver function)
-    :param model': Path to model file for pp calculation
+    :param model: Path to model file for pp calculation
         (see `.SimpleModel`, default: iasp91)
     :return: `~obspy.core.trace.Stats` object with event and station
         attributes, distance, back_azimuth, inclination, onset and

@@ -13,11 +13,12 @@ import numpy as np
 
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             stack_height=0.5, scale=1, fillcolors=(None, None), trim=None,
-            info=[('back_azimuth', u'baz (°)', 'b'),
-                  ('distance', u'dist (°)', 'r')]):
+            info=(('back_azimuth', u'baz (°)', 'b'),
+                  ('distance', u'dist (°)', 'r'))):
     """
     Plot receiver functions.
 
+    :param stream: stream to plot
     :param fname: filename to save plot to. Can be None. In this case
         the figure is left open.
     :param fig_width: width of figure in inches
@@ -233,6 +234,8 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
     Plot receiver function profile.
 
     :param profile: stream holding the profile
+    :param fname: filename to save plot to. Can be None. In this case
+        the figure is left open.
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
     :param trim: trim stream relative to onset before plotting using

@@ -42,10 +42,10 @@ def deconvolve(stream, method='time',
     :param stream: stream including responses and source
     :param method:
         'time' -> use time domain deconvolution in `deconvt()`,\n
-        'freq' -> use freqeuency domain deconvolution in `deconvf()`
-    :param source_components: names of components identifing the source traces,
+        'freq' -> use frequency domain deconvolution in `deconvf()`
+    :param source_components: names of components identifying the source traces,
         e.g. 'LZ' for P receiver functions and 'QR' for S receiver functions
-    :param response_components: names of components identifing the response
+    :param response_components: names of components identifying the response
         traces (default None: all traces are used as response)
     :type winsrc: tuple (start, end, taper)
     :param winsrc: data window for source function, in seconds relative to
@@ -82,7 +82,7 @@ def deconvolve(stream, method='time',
 
     sr = src.stats.sampling_rate
     # shift onset to time of nearest data sample to circumvent complications
-    # for data with low sampling rate and mtehod='time'
+    # for data with low sampling rate and method='time'
     idx = __find_nearest(src.times(), src.stats.onset - src.stats.starttime)
     src.stats.onset = onset = src.stats.starttime + idx * src.stats.delta
     for tr in rsp:
@@ -135,7 +135,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
         or a single array
     :param src: array with source function
     :param sampling_rate: sampling rate of the data
-    :param water: waterlevel to stabilize the deconvolution
+    :param waterlevel: waterlevel to stabilize the deconvolution
     :param gauss: Gauss parameter of Low-pass filter
     :param tshift: delay time 0s will be at time tshift afterwards
     :param pad: multiply number of samples used for fft by 2**pad
@@ -233,7 +233,7 @@ def _xcorrt(a, b, num, zero_sample=0):
         a = _add_zeros(a, 0, 2 * abs(zero_sample))
     dif = len(a) - len(b) + 1 - num
     if dif > 0:
-        b = _add_zeros(b, (dif + 1) // 2, (dif) // 2)
+        b = _add_zeros(b, (dif + 1) // 2, dif // 2)
     else:
         a = _add_zeros(a, (-dif + 1) // 2, (-dif) // 2)
     return correlate(a, b, 'valid')

@@ -59,7 +59,7 @@ class _DummyDateTime(object):
 
 class _DummyUTC(object):
 
-    """Dummy UTCDateTime class returning '*' when formating."""
+    """Dummy UTCDateTime class returning '*' when formatting."""
 
     def __init__(self):
         self.datetime = _DummyDateTime()
