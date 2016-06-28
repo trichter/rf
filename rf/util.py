@@ -175,7 +175,7 @@ __CACHE = {}
 
 def minimal_example_rf():
     """
-    Return receiver functions calculated from the data returned by read_rf()
+    Return receiver functions calculated from the data returned by read_rf().
     """
     cache_key = 'minimal_example_rf'
     if cache_key in __CACHE:
@@ -195,7 +195,7 @@ def minimal_example_rf():
 
 def minimal_example_Srf():
     """
-    Return S receiver functions calculated from example data
+    Return S receiver functions calculated from example data.
     """
     cache_key = 'minimal_example_Srf'
     if cache_key in __CACHE:
