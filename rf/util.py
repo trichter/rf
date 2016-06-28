@@ -216,23 +216,25 @@ def minimal_example_Srf():
 @decorator
 def _add_processing_info(func, *args, **kwargs):
     from rf import __version__
-    callargs = inspect.getcallargs(func, *args, **kwargs)
-    if callargs.pop('self', None) is None:
-        callargs.pop('stream')
-    kwargs_ = callargs.pop('kwargs', {})
+    args_ = inspect.getcallargs(func, *args, **kwargs)
+    if args_.pop('self', None) is None:
+        args_.pop('stream')
+    kw = args_.pop('kwargs', {})
+    kw.update(args_)
+    boxes = kw.pop('boxes', None)
+    if boxes:
+        kw['latlon'] = boxes[0]['profile']['latlon']
+        kw['azimuth'] = boxes[0]['profile']['azimuth']
+        kw['length'] = boxes[0]['profile']['length']
     info = 'rf {version}: {function}(%s)'.format(
         version=__version__, function=func.__name__)
-    arguments = []
-    arguments += \
-        ['%s=%s' % (k, repr(v)) if not isinstance(v, str) else
-         "%s='%s'" % (k, v) for k, v in callargs.items()]
-    arguments += \
-        ['%s=%s' % (k, repr(v)) if not isinstance(v, str) else
-         "%s='%s'" % (k, v) for k, v in kwargs_.items()]
-    arguments.sort()
-    info = info % '::'.join(arguments)
-    stream = args[0]
-    result = func(*args, **kwargs)
-    for tr in stream:
-        tr._internal_add_processing_info(info)
-    return result
+    arguments = ['%s=%s' % (k, repr(v)) if not isinstance(v, str) else
+                 "%s='%s'" % (k, v) for k, v in kw.items()]
+    info = info % '::'.join(sorted(arguments))
+    stream = func(*args, **kwargs)
+    try:
+        for tr in stream:
+            tr._internal_add_processing_info(info)
+    except:
+        pass
+    return stream

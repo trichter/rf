@@ -49,7 +49,7 @@
 # This option needs the module joblib.
 "cache_waveforms": null,
 
-# File format for receiver functions (one of "Q", "SAC" or "H5")
+# File format for output of script (one of "Q", "SAC" or "H5")
 #"format": "Q",
 
 
@@ -60,7 +60,9 @@
     # Phase to use (e.g. "P", "PP", "S"), last letter will determine
     # if P- or S-receiver functions are calculated.
 #    "phase": "P",
+    # Data request window around onset in seconds
 #    "request_window":  [-50, 150],
+    # Events outside this distance range (epicentral degree) will be discarded
 #    "dist_range": [30, 90],
     # Depth of piercing points in km
     "pp_depth": 50
@@ -69,16 +71,15 @@
 "rf": {  # See RFStream.rf for options
     "filter":   {"type": "bandpass", "freqmin": 0.01, "freqmax": 2.0},
     # Trim window around P-onset
-    "trim": [-30, 100],
+    "trim": [-30, 100]
     # Downsample stream to this frequency in Hz.
-    "downsample": 10
+#    "downsample": 10,
     # Roate stream with this method.
     # rotate should be one of 'ZNE->LQT', 'NE->RT'
 #    "rotate": "ZNE->LQT",
     # Deconvolve stream with this method.
     # deconvolve is one of 'time' or 'freq' for time or
     # frequency domain deconvolution.
-    # source_component is the component used as source for the deconvolution.
 #    "deconvolve": "time",
     # time domain deconvolution options
 #    "spiking": 1.0,  # spiking factor for noise suppression
@@ -92,10 +93,11 @@
 
 ### Options for other routines ###
 
-"moveout": {"phase": null},  # See documentation of RFStream.moveout
+#"moveout": {},  # See RFStream.moveout
 
-"plot": {"fillcolors": ["black", "gray"], "window": [-5, 22]},  # See documentation of RFStream.plot_rf
+"plot": {"fillcolors": ["black", "gray"], "trim": [-5, 22]},  # See RFStream.plot_rf
 
-"boxes": {"latlon0": [10, 10], "azi": 90, "bins": [0, 0.1, 0.2, 0.3]},  # See profile.get_boxes
-"profile": {}  # See profile.get_profile
+"boxbins": [0, 10, 10],  # [start of profile in km, end of profile in km, number of bins], if specified, these values will be passed to np.linspace to generate a bin list for the boxes dictionary
+"boxes": {"latlon0": [-21.0, -69.6], "azimuth": 90},  # See profile.get_boxes
+#"profile": {}  # See profile.get_profile
 }

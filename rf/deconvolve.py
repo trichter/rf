@@ -121,7 +121,7 @@ def deconvolve(stream, method='time',
     for i, tr in enumerate(rsp):
         tr.data = rf_data[i].real
         assert len(tr) == length
-    return rsp
+    return stream.__class__(rsp)
 
 
 def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,

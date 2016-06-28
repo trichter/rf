@@ -1,29 +1,76 @@
 """
 Tests for batch module.
 """
+from glob import glob
 import unittest
 import os
 from pkg_resources import load_entry_point
-from subprocess import check_call
-
 import warnings
 
-from rf.batch import _no_pbar, init_data, run_cli as script
+from rf.batch import init_data, run_cli as script
 from rf.tests.util import quiet, tempdir
 try:
     import obspyh5
 except ImportError:
     obspyh5 = None
 
-_no_pbar()
+
+def substitute(old, new):
+    fname = 'conf.json'
+    with open(fname) as f:
+        text = f.read()
+    text = text.replace(old, new)
+    with open(fname, 'w') as f:
+        f.write(text)
 
 
-def _call(command):
-    print command
-    check_call(command, shell=False)
+def test_format(testcase, format):
+    travis = os.environ.get('TRAVIS') == 'true'
+    join = os.path.join
+
+    # QHD
+    with tempdir():
+        script(['create', '-t'])
+        substitute('#"format": "Q"', '"format": "%s"' % format)
+        script(['data', 'data'])
+        script(['calc', 'moveout', 'data', 'mout1'])
+        script(['data', 'calc', 'datarf'])
+        script(['moveout', 'datarf', 'mout2'])
+        script(['stack', 'mout1', 'stack'])
+        script(['profile', 'mout1', 'profile'])
+        if format in ('Q', 'SAC'):
+            patterns = [join('data', '*', '*'), join('mout1', '*', '*'),
+                        join('mout2', '*', '*'), join('stack', '*'),
+                        join('profile', '*') if format == 'SAC' else
+                        'profile*.*']
+        else:
+            patterns = ['data.h5', 'mout1.h5', 'mout2.h5', 'stack.h5',
+                        'profile.h5']
+        nums = [len(glob(p)) for p in patterns]
+        nums2 = {'Q': [14, 14, 14, 2, 2],
+                 'SAC': [21, 21, 21, 3, 6],
+                 'H5': [1, 1, 1, 1, 1]}
+        testcase.assertEqual(nums, nums2[format])
+        if format in ('Q', 'H5'):
+            script(['convert', 'mout1', 'mout_SAC', 'SAC'])
+        if format in ('H5', ):  # TODO add SAC
+            script(['convert', 'mout1', 'mout_Q', 'Q'])
+        if obspyh5 and format in ('Q', 'SAC'):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                script(['convert', 'mout1', 'mout_H5', 'H5'])
+        if not travis:
+            script(['plot', 'mout1', 'plot'])
+            script(['plot-profile', 'profile', 'plot_profile'])
+            testcase.assertEqual(len(glob(join('plot', '*.pdf'))), 3)
+            testcase.assertEqual(len(glob(join('plot_profile', '*.pdf'))), 3)
 
 
 class BatchTestCase(unittest.TestCase):
+    def setUp(self):
+        # turn off progressbar
+        import rf.batch
+        rf.batch.tqdm = lambda: None
 
     def test_entry_point(self):
         ep_script = load_entry_point('rf', 'console_scripts', 'rf')
@@ -33,59 +80,15 @@ class BatchTestCase(unittest.TestCase):
         except SystemExit:
             pass
 
-    def test_batch_command_interface(self):
-        travis = os.environ.get('TRAVIS') == 'true'
+    def test_batch_command_interface_Q(self):
+        test_format(self, 'Q')
 
-        def substitute(old, new):
-            fname = 'conf.json'
-            with open(fname) as f:
-                text = f.read()
-            text = text.replace(old, new)
-            with open(fname, 'w') as f:
-                f.write(text)
-        print 1
+    def test_batch_command_interface_SAC(self):
+        test_format(self, 'SAC')
 
-        # QHD
-        with quiet(), tempdir():
-            script(['create', '-t'])
-            script(['calc'])
-            script(['moveout'])
-            script(['convert', 'Prf_Ps', 'SAC'])
-            if obspyh5:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    script(['convert', 'Prf_Ps', 'H5'])
-            script(['stack', 'Prf_Ps'])
-            if not travis:
-                script(['plot', 'Prf_Ps'])
-        print 2
-        # SAC
-        with quiet(), tempdir():
-            script(['create', '-t'])
-            substitute('"format": "Q"', '"format": "SAC"')
-            script(['calc'])
-            script(['moveout'])
-            script(['convert', 'Prf_Ps', 'Q'])
-            if obspyh5:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    script(['convert', 'Prf_Ps', 'H5'])
-            script(['stack', 'Prf_Ps'])
-            if not travis:
-                script(['plot', 'Prf'])
-        # H5
-        if obspyh5:
-            with quiet(), tempdir(), warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                script(['create', '-t'])
-                substitute('"format": "Q"', '"format": "H5"')
-                script(['calc'])
-                script(['moveout'])
-                script(['convert', 'Prf_Ps', 'Q'])
-                script(['convert', 'Prf_Ps', 'SAC'])
-                script(['stack', 'Prf_Ps'])
-                if not travis:
-                    script(['plot', 'Prf'])
+    @unittest.skipIf(obspyh5 is None, 'obspyh5 not installed')
+    def test_batch_command_interface_H5(self):
+        test_format(self, 'H5')
 
     def test_plugin_option(self):
         f = init_data('plugin', plugin='rf.tests.test_batch : gw_test')

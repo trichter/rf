@@ -60,7 +60,7 @@ _HEADERS = zip(*_STATION_GETTER)[0] + zip(*_EVENT_GETTER)[0] + (
 # slowness_before_moveout, box_lonlat
 _FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                           'evdp', 'mag', 'o', 'a',
-                          'kuser1', 'kuser2', 'kuser3',
+                          'kuser0', 'kuser1', 'kuser2',
                           'gcarc', 'baz', 'user0', 'user1',
                           'user2', 'user3', 'user4',
                           'user5', 'user6'),
@@ -81,7 +81,7 @@ _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
 _H5INDEX = {
     'rf': ('{network}.{station}.{location}/{event_time%s}/' % _TF +
            '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF)),
-    'profile': '{box_pos}'
+    'profile': '{channel[2]}_{box_pos}'
 }
 
 
@@ -167,6 +167,8 @@ class RFStream(Stream):
                 tr.stats.station = tr.id
         if format.upper() == 'H5':
             index = self.type
+            if index is None and 'event_time' in self[0].stats:
+                index = 'rf'
             if index:
                 import obspyh5
                 old_index = obspyh5._INDEX
@@ -222,7 +224,8 @@ class RFStream(Stream):
         `~rf.deconvolve.deconvolve()`.
         """
         rsp = deconvolve(self, *args, **kwargs)
-        self.traces = rsp
+        self.traces = rsp.traces
+        return self
 
     @_add_processing_info
     def rf(self, method=None, filter=None, trim=None, downsample=None,
@@ -308,7 +311,9 @@ class RFStream(Stream):
         self.type = 'rf'
         if self.method != method:
             self.method = method
+        return self
 
+    @_add_processing_info
     def moveout(self, phase=None, ref=6.4, model='iasp91'):
         """
         In-place moveout correction to a reference slowness.
@@ -329,6 +334,7 @@ class RFStream(Stream):
             tr.stats.moveout = phase
             tr.stats.slowness_before_moveout = tr.stats.slowness
             tr.stats.slowness = ref
+        return self
 
     def ppoints(self, pp_depth, pp_phase=None, model='iasp91'):
         """
@@ -358,6 +364,7 @@ class RFStream(Stream):
         return np.array([(tr.stats.pp_latitude, tr.stats.pp_longitude)
                          for tr in self])
 
+    @_add_processing_info
     def stack(self):
         """
         Return stack of traces with same seed ids.
@@ -374,7 +381,8 @@ class RFStream(Stream):
             header = {'network': net, 'station': sta, 'location': loc,
                       'channel': cha, 'sampling_rate': tr.stats.sampling_rate}
             for entry in ('phase', 'moveout', 'station_latitude',
-                          'station_longitude', 'station_elevation'):
+                          'station_longitude', 'station_elevation',
+                          'processing'):
                 if entry in tr.stats:
                     header[entry] = tr.stats[entry]
             tr2 = RFTrace(data=data, header=header)
@@ -440,9 +448,10 @@ class RFTrace(Trace):
         else:
             out = ''
         if t == 'profile' and 'onset' in self.stats:
+            comp = self.stats.channel[-1]
             t1 = self.stats.starttime - self.stats.onset
             t2 = self.stats.endtime - self.stats.onset
-            out = out + ' | %.1fs - %.1fs' % (t1, t2)
+            out = out + ' (%s) | %.1fs - %.1fs' % (comp, t1, t2)
         else:
             out = out + ' | '
             out = out + super(RFTrace, self).__str__(id_length=id_length)

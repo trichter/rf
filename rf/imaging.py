@@ -12,7 +12,7 @@ import numpy as np
 
 
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
-            stack_height=0.5, scale=1, fillcolors=(None, None),
+            stack_height=0.5, scale=1, fillcolors=(None, None), trim=None,
             info=[('back_azimuth', u'baz (°)', 'b'),
                   ('distance', u'dist (°)', 'r')]):
     """
@@ -25,6 +25,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     :param stack_height: height of stack axes in inches
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
+    :param trim: trim stream relative to onset before plotting
     :param info: Plot one additional axes showing maximal two entries of
         the stats object. Each entry in this list is a list consisting of
         three entries: key, label and color.
@@ -33,6 +34,8 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
 
     if len(stream) == 0:
         return
+    if trim:
+        stream = stream.select2(*trim, reftime='onset')
     N = len(stream)
     # calculate lag times
     stats = stream[0].stats
@@ -223,8 +226,8 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
         ax.add_geometries([box['poly']], crs=__pc(), **kw)
 
 
-def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
-                 moveout_model='iasp91'):
+def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
+                 trim=None, top=None, moveout_model='iasp91'):
     """
     Plot receiver function profile.
 
@@ -238,6 +241,10 @@ def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
         `~.simple_model.SimpleModel` object to calculate depths for
         tick labels.
     """
+    if len(profile) == 0:
+        return
+    if trim:
+        profile = profile.select2(*trim, reftime='onset')
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
     widths = [tr.stats.box_length for tr in profile]
@@ -298,4 +305,6 @@ def plot_profile(profile, scale=1, fillcolors=('r', 'b'), top=None,
     elif top is not None:
         raise NotImplementedError("'%s' not supported for top parameter" % top)
     ax.set_xlim(*xlim)
-    return fig
+    if fname:
+        fig.savefig(fname)
+        plt.close(fig)

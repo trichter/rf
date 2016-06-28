@@ -3,6 +3,8 @@ Tests for imaging module.
 """
 
 import unittest
+import warnings
+
 from rf.util import minimal_example_rf
 
 try:
@@ -16,7 +18,9 @@ class ImagingTestCase(unittest.TestCase):
     def test_plot_rf(self):
         stream = minimal_example_rf()
         stream.select(component='Q').plot_rf()
-        stream.plot_rf()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            stream.plot_rf()
 
     @unittest.skipIf(cartopy is None, 'cartopy not installed')
     def test_plot_ppoints(self):
