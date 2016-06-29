@@ -214,11 +214,10 @@ version is |buildstatus|.
     branch=master
    :target: https://travis-ci.org/trichter/rf
 """
-# Suggest people to cite rf.
 
-from profile import get_profile_boxes
-from rfstream import read_rf, RFStream, rfstats
-from util import iter_event_data, IterMultipleComponents
+from rf.profile import get_profile_boxes
+from rf.rfstream import read_rf, RFStream, rfstats
+from rf.util import iter_event_data, IterMultipleComponents
 
 __version__ = '0.4.0'
 
