@@ -27,6 +27,7 @@ LONG_DESCRIPTION = '\n'.join(readme[5:])
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests:run',
                         'rf = rf.batch:run_cli']}
+REQUIRES = ['obspy>=1.0', 'toeplitz', 'geographiclib', 'shapely', 'cartopy']
 
 setup(name='rf',
       version=version,
@@ -38,7 +39,7 @@ setup(name='rf',
       license='MIT',
       packages=find_packages(),
       package_dir={'rf': 'rf'},
-      install_requires=['obspy>=1.0', 'toeplitz', 'geographiclib'],
+      install_requires=REQUIRES,
       entry_points=ENTRY_POINTS,
       include_package_data=True,
       zip_safe=False

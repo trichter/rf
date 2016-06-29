@@ -41,8 +41,8 @@ Installation
 Dependencies of rf are
 
     * ObsPy_ and its dependencies,
-    * toeplitz_ for time domain deconvolution,
-    * geographiclib_ for ppoint calculation,
+    * geographiclib, shapely, cartopy,
+    * toeplitz_ for time domain deconvolution and
     * obspyh5_ for hdf5 file support (optional).
 
 After the installation of Obspy rf can be installed with ::
@@ -208,7 +208,6 @@ version is |buildstatus|.
 .. _pip: http://www.pip-installer.org/
 .. _obspyh5: https://github.com/trichter/obspyh5/
 .. _toeplitz: https://github.com/trichter/toeplitz/
-.. _geographiclib: https://pypi.python.org/pypi/geographiclib/
 .. _GitHub: https://github.com/trichter/rf/
 .. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
     branch=master
