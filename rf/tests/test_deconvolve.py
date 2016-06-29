@@ -99,7 +99,7 @@ class DeconvolveTestCase(unittest.TestCase):
         data_src[40:50] = hann1
         data_src[50:60] = -hann1
         data[100:150] = hann2
-        data[240:290] = hann2
+        data[240:290] = 0.5 * hann2
         data_rsp = convolve(data_src, data, 'full')[50:450]/3.
         stream1 = RFStream([RFTrace(data=data_src), RFTrace(data=data_rsp)])
         for i, tr in enumerate(stream1):
@@ -111,11 +111,12 @@ class DeconvolveTestCase(unittest.TestCase):
 
 #        import matplotlib.pyplot as plt
 #        plt.subplot(121)
-#        plt.plot(data)
-#        plt.plot(data_src)
-#        plt.plot(data_rsp)
-#        plt.plot(stream1[0].data)
-#        plt.plot(stream1[1].data)
+#        plt.plot(data, label='desired')
+#        plt.plot(data_src, label='source')
+#        plt.plot(data_rsp, label='convolution')
+#        plt.plot(stream1[0].data, label='deconv src')
+#        plt.plot(stream1[1].data, label='deconv')
+#        plt.legend()
 #        plt.subplot(122)
 #        plt.plot(data)
 #        plt.plot(data_src)
@@ -125,13 +126,9 @@ class DeconvolveTestCase(unittest.TestCase):
 #        plt.show()
 
         # (shift from middle of source (50) to onset (40)
-        print np.argmax(data)
-        print np.argmax(stream1[1].data)
-        print np.argmax(stream2[1].data)
-        print stream1
-        print stream2
-        self.assertEqual(np.argmax(data) - np.argmax(stream1[1].data), 10)
-        self.assertEqual(np.argmax(data) - np.argmax(stream2[1].data), 10)
+        peakpos = np.argmax(data)
+        self.assertEqual(peakpos - np.argmax(stream1[1].data), 10)
+        self.assertEqual(peakpos - np.argmax(stream2[1].data), 10)
 
 
 def suite():
