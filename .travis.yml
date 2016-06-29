@@ -17,8 +17,9 @@ before_install:
   - conda config --set always_yes yes
   - conda update -q conda
   - conda info -a
-  - conda config --add channels obspy
-  - conda install python=$TRAVIS_PYTHON_VERSION gcc obspy
+  - conda install python=$TRAVIS_PYTHON_VERSION gcc
+  - conda install -c obspy obspy
+  - conda install -c conda-forge shapely cartopy
   - pip install toeplitz geographiclib
   - if [[ $USE_OBSPYH5 == true ]]; then conda install python=$TRAVIS_PYTHON_VERSION cython h5py; pip install obspyh5; fi  
 install:
