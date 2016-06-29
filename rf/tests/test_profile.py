@@ -3,9 +3,6 @@ Tests for profile module.
 """
 import unittest
 
-import matplotlib
-matplotlib.use('Agg')
-
 import numpy as np
 from rf.profile import get_profile_boxes
 from rf.tests.test_rfstream import test_io_header

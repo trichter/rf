@@ -5,9 +5,6 @@ Tests for imaging module.
 import unittest
 import warnings
 
-import matplotlib
-matplotlib.use('Agg')
-
 from rf.util import minimal_example_rf
 
 try:

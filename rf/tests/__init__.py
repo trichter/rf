@@ -6,6 +6,9 @@ from pkg_resources import resource_filename
 import sys
 import unittest
 
+import matplotlib
+matplotlib.use('Agg')
+
 
 def run():
     loader = unittest.TestLoader()

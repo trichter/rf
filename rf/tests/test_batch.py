@@ -25,7 +25,6 @@ def substitute(old, new):
 
 
 def test_format(testcase, format):
-    travis = os.environ.get('TRAVIS') == 'true'
     join = os.path.join
 
     # QHD
@@ -59,11 +58,10 @@ def test_format(testcase, format):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 script(['convert', 'mout1', 'mout_H5', 'H5'])
-        if not travis:
-            script(['plot', 'mout1', 'plot'])
-            script(['plot-profile', 'profile', 'plot_profile'])
-            testcase.assertEqual(len(glob(join('plot', '*.pdf'))), 3)
-            testcase.assertEqual(len(glob(join('plot_profile', '*.pdf'))), 3)
+        script(['plot', 'mout1', 'plot'])
+        script(['plot-profile', 'profile', 'plot_profile'])
+        testcase.assertEqual(len(glob(join('plot', '*.pdf'))), 3)
+        testcase.assertEqual(len(glob(join('plot_profile', '*.pdf'))), 3)
 
 
 class BatchTestCase(unittest.TestCase):
