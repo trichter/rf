@@ -56,7 +56,7 @@
 
 ### Options for rf ###
 
-"options": {  # See documentation of util.iter_event_data and rfstream.rfstats for options
+"options": {  # See documentation of util.iter_event_data and rfstream.rfstats
     # Phase to use (e.g. "P", "PP", "S"), last letter will determine
     # if P- or S-receiver functions are calculated.
 #    "phase": "P",
@@ -97,8 +97,11 @@
 
 "plot": {"fillcolors": ["black", "gray"], "trim": [-5, 22]},  # See RFStream.plot_rf
 
-"boxbins": [0, 10, 10],  # [start of profile in km, end of profile in km, number of bins], if specified, these values will be passed to np.linspace to generate a bin list for the boxes dictionary
-"boxes": {"latlon0": [-21.0, -69.6], "azimuth": 90}  # See profile.get_boxes
+# [start of profile in km, end of profile in km, number of bins],
+# if specified, these values will be passed to np.linspace to generate a
+# bin list for the boxes dictionary
+"boxbins": [0, 10, 10],
+"boxes": {"latlon0": [-21.0, -69.6], "azimuth": 90}  # See profile.get_profile_boxes
 #"profile": {}  # See profile.profile
 #"plot_profile": {}  # See RFStream.plot_profile
 }
