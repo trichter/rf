@@ -125,6 +125,11 @@ class DeconvolveTestCase(unittest.TestCase):
 #        plt.show()
 
         # (shift from middle of source (50) to onset (40)
+        print np.argmax(data)
+        print np.argmax(stream1[1].data)
+        print np.argmax(stream2[1].data)
+        print stream1
+        print stream2
         self.assertEqual(np.argmax(data) - np.argmax(stream1[1].data), 10)
         self.assertEqual(np.argmax(data) - np.argmax(stream2[1].data), 10)
 
