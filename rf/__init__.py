@@ -216,11 +216,11 @@ version is |buildstatus|.
 """
 # Suggest people to cite rf.
 
-from _version import __version__
 from profile import get_profile_boxes
 from rfstream import read_rf, RFStream, rfstats
 from util import iter_event_data, IterMultipleComponents
 
+__version__ = '0.4.0'
 
 if 'dev' not in __version__:  # get image for correct version from travis-ci
     _travis_version = 'v' + __version__
