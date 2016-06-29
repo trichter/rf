@@ -126,9 +126,9 @@ class DeconvolveTestCase(unittest.TestCase):
 #        plt.show()
 
         # (shift from middle of source (50) to onset (40)
-        peakpos = np.argmax(data)
-        self.assertEqual(peakpos - np.argmax(stream1[1].data), 10)
-        self.assertEqual(peakpos - np.argmax(stream2[1].data), 10)
+        peakpos = np.argmax(data) - 10
+        self.assertEqual(peakpos, np.argmax(stream1[1].data))
+        self.assertEqual(peakpos, np.argmax(stream2[1].data))
 
 
 def suite():
