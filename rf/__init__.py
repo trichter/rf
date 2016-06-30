@@ -214,11 +214,11 @@ version is |buildstatus|.
    :target: https://travis-ci.org/trichter/rf
 """
 
+__version__ = '0.4.1-dev'
+
 from rf.profile import get_profile_boxes
 from rf.rfstream import read_rf, RFStream, rfstats
 from rf.util import iter_event_data, IterMultipleComponents
-
-__version__ = '0.4.0'
 
 if 'dev' not in __version__:  # get image for correct version from travis-ci
     _travis_version = 'v' + __version__
