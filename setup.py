@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os.path
 import re
+
 from setuptools import find_packages, setup
 
 
@@ -27,7 +28,12 @@ LONG_DESCRIPTION = '\n'.join(readme[5:])
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests:run',
                         'rf = rf.batch:run_cli']}
-REQUIRES = ['obspy>=1.0', 'toeplitz', 'geographiclib', 'shapely', 'cartopy']
+
+REQUIRES = ['decorator', 'matplotlib', 'numpy', 'scipy',
+            'setuptools', 'obspy>=1.0',
+            'cartopy', 'geographiclib', 'shapely', 'toeplitz', 'tqdm']
+# optional: joblib, obspyh5
+# documentation: sphinx, alabaster, obspy
 
 setup(name='rf',
       version=version,

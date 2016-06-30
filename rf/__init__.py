@@ -40,9 +40,9 @@ Installation
 
 Dependencies of rf are
 
-    * ObsPy_ and its dependencies,
-    * geographiclib, shapely, cartopy,
-    * toeplitz_ for time domain deconvolution and
+    * ObsPy_ and some of its dependencies,
+    * cartopy, geographiclib, shapely,
+    * toeplitz_ (time domain deconvolution), tqdm,
     * obspyh5_ for hdf5 file support (optional).
 
 After the installation of Obspy rf can be installed with ::
