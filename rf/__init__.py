@@ -57,8 +57,8 @@ To install the development version of obspy download the source code and run ::
 
     python setup.py install
 
-Using the underlying Python module
------------------------------------
+Using the Python module
+-----------------------
 
 The main functionality is provided by the class `.RFStream`
 which is derived from ObsPy's `~obspy.core.stream.Stream` class.
