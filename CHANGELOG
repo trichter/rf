@@ -1,3 +1,5 @@
+v0.4.1:
+  * fix online documentation
 v0.4.0:
   * add profile module and possibility to calculate profiles
   * add new imaging and util modules
