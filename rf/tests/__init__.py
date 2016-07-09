@@ -17,6 +17,3 @@ def run():
     runner = unittest.runner.TextTestRunner()
     ret = not runner.run(suite).wasSuccessful()
     sys.exit(ret)
-
-if __name__ == '__main__':
-    run()

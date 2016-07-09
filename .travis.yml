@@ -26,7 +26,8 @@ install:
   - pip install .
 script:
   - mkdir empty; cd empty  
-  - rf-runtests
+  - coverage run --include='*/rf/*' --omit='*/tests/*' -m rf.tests
 after_success:
+  - bash <(curl -s https://codecov.io/bash)
 notifications:
     email: false
