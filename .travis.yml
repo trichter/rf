@@ -17,7 +17,7 @@ before_install:
   - conda config --set always_yes yes
   - conda update -q conda
   - conda info -a
-  - conda install python=$TRAVIS_PYTHON_VERSION gcc
+  - conda install python=$TRAVIS_PYTHON_VERSION gcc coverage
   - conda install -c obspy obspy
   - conda install -c conda-forge shapely cartopy
   - pip install toeplitz geographiclib
