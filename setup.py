@@ -15,15 +15,13 @@ def find_version(*paths):
     raise RuntimeError("Unable to find version string.")
 
 
-version = find_version('rf', '__init__.py')
+VERSION = find_version('rf', '__init__.py')
+DESCRIPTION = 'Receiver function calculation in seismology'
+STATUS = """|buildstatus|
 
-with open('README.rst') as f:
-    README = f.read()
-if 'dev' not in version:  # get image for correct version from travis-ci
-    README = README.replace('branch=master', 'branch=v%s' % version)
-readme = README.split('\n')
-DESCRIPTION = readme[2]
-LONG_DESCRIPTION = '\n'.join(readme[5:])
+.. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
+    branch=master
+   :target: https://travis-ci.org/trichter/rf"""
 
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests:run',
@@ -32,13 +30,27 @@ ENTRY_POINTS = {
 REQUIRES = ['decorator', 'matplotlib', 'numpy', 'scipy',
             'setuptools', 'obspy>=1.0',
             'cartopy', 'geographiclib', 'shapely', 'toeplitz', 'tqdm']
+
 # optional: joblib, obspyh5
 # documentation: sphinx, alabaster, obspy
 
+CLASSIFIERS = [
+    'Environment :: Console',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 2.7',
+    'Topic :: Scientific/Engineering :: Physics'
+    ]
+
+if 'dev' not in VERSION:  # get image for correct version from travis-ci
+    STATUS = STATUS.replace('branch=master', 'branch=v%s' % VERSION)
+
 setup(name='rf',
-      version=version,
+      version=VERSION,
       description=DESCRIPTION,
-      long_description=LONG_DESCRIPTION,
+      long_description=STATUS,
       url='https://github.com/trichter/rf',
       author='Tom Eulenfeld',
       author_email='tom.eulenfeld@gmail.de',
@@ -48,5 +60,6 @@ setup(name='rf',
       install_requires=REQUIRES,
       entry_points=ENTRY_POINTS,
       include_package_data=True,
-      zip_safe=False
+      zip_safe=False,
+      classifiers=CLASSIFIERS
       )

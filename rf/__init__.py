@@ -221,5 +221,4 @@ from rf.rfstream import read_rf, RFStream, rfstats
 from rf.util import iter_event_data, IterMultipleComponents
 
 if 'dev' not in __version__:  # get image for correct version from travis-ci
-    _travis_version = 'v' + __version__
     __doc__ = __doc__.replace('branch=master', 'branch=v%s' % __version__)
