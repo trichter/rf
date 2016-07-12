@@ -42,13 +42,6 @@
 # starttime, endtime and event
 "plugin": "module : func",
 
-# Directory for optional waveform caching from webservice or plugin.
-# This works only if the waveforms are requested with the exact same
-# parameters (start and end time) i.e. if options
-# events and request_window are left untouched.
-# This option needs the module joblib.
-"cache_waveforms": null,
-
 # File format for output of script (one of "Q", "SAC" or "H5")
 #"format": "Q",
 

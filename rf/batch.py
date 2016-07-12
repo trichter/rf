@@ -23,10 +23,6 @@ except ImportError:
     def tqdm():
         return None
 
-try:
-    import joblib
-except ImportError:
-    joblib = None
 
 IS_PY3 = sys.version_info.major == 3
 
@@ -132,7 +128,7 @@ def load_func(modulename, funcname):
     return func
 
 
-def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
+def init_data(data, client_options=None, plugin=None):
     """Return appropriate get_waveforms function.
 
     See example configuration file for a description of the options."""
@@ -173,14 +169,6 @@ def init_data(data, client_options=None, plugin=None, cache_waveforms=False):
             msg = 'channel %s: error while retrieving data: %s'
             print msg % (seedid, ex)
 
-    use_cache = client_module is not None or data == 'plugin'
-    use_cache = use_cache and cache_waveforms
-    if use_cache and joblib:
-        print 'use waveform cache in %s' % cache_waveforms
-        memory = joblib.Memory(cachedir=cache_waveforms, verbose=0)
-        return memory.cache(wrapper)
-    elif use_cache:
-        print 'install joblib to use cache_waveforms option'
     return wrapper
 
 
