@@ -230,8 +230,7 @@ DICT_OPTIONS = ['client_options', 'options', 'rf', 'moveout',
 
 
 def run_commands(command, commands=(), events=None, inventory=None,
-                 objects=None, get_waveforms=None, data=None,
-                 plugin=None, cache_waveforms=None,
+                 objects=None, get_waveforms=None, data=None, plugin=None,
                  phase=None, moveout_phase=None,
                  path_in=None, path_out=None, format='Q',
                  newformat=None, **kw):
@@ -292,8 +291,7 @@ def run_commands(command, commands=(), events=None, inventory=None,
             # Initialize get_waveforms
             if get_waveforms is None:
                 get_waveforms = init_data(
-                    data, client_options=kw['client_options'],
-                    plugin=plugin, cache_waveforms=cache_waveforms)
+                    data, client_options=kw['client_options'], plugin=plugin)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

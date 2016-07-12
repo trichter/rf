@@ -7,6 +7,9 @@ import os
 from pkg_resources import load_entry_point
 import warnings
 
+import matplotlib
+matplotlib.use('Agg')
+
 from rf.batch import init_data, run_cli as script
 from rf.tests.util import quiet, tempdir
 try:
