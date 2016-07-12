@@ -17,11 +17,8 @@ def find_version(*paths):
 
 VERSION = find_version('rf', '__init__.py')
 DESCRIPTION = 'Receiver function calculation in seismology'
-STATUS = """|buildstatus|
-
-.. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
-    branch=master
-   :target: https://travis-ci.org/trichter/rf"""
+LONG_DESCRIPTION = (
+    'Please look at the project site for tutorials and information.')
 
 ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests:run',
@@ -31,8 +28,9 @@ REQUIRES = ['decorator', 'matplotlib', 'numpy', 'scipy',
             'setuptools', 'obspy>=1.0',
             'cartopy', 'geographiclib', 'shapely', 'toeplitz', 'tqdm']
 
-# optional: joblib, obspyh5
-# documentation: sphinx, alabaster, obspy
+EXTRAS_REQUIRE = {
+    'doc': ['sphinx', 'alabaster'],  # and decorator, obspy
+    'h5': ['obspyh5']}
 
 CLASSIFIERS = [
     'Environment :: Console',
@@ -44,13 +42,11 @@ CLASSIFIERS = [
     'Topic :: Scientific/Engineering :: Physics'
     ]
 
-if 'dev' not in VERSION:  # get image for correct version from travis-ci
-    STATUS = STATUS.replace('branch=master', 'branch=v%s' % VERSION)
 
 setup(name='rf',
       version=VERSION,
       description=DESCRIPTION,
-      long_description=STATUS,
+      long_description=LONG_DESCRIPTION,
       url='https://github.com/trichter/rf',
       author='Tom Eulenfeld',
       author_email='tom.eulenfeld@gmail.de',
@@ -58,6 +54,7 @@ setup(name='rf',
       packages=find_packages(),
       package_dir={'rf': 'rf'},
       install_requires=REQUIRES,
+      extras_require=EXTRAS_REQUIRE,
       entry_points=ENTRY_POINTS,
       include_package_data=True,
       zip_safe=False,
