@@ -10,7 +10,7 @@
 ##### Documentation: https://rf.readthedocs.io/
 ##### Tutorials:
   1. Calculate receiver functions - minimal example ([notebook][nb1])
-  2. Calculate receiver functions and stack them to create a profile ([notebook][nb2])
+  2. Calculate receiver functions and stack them by common conversion points to create a profile ([notebook][nb2])
 
 [nb1]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/notebooks/receiver_function_minimal_example.ipynb
 [nb2]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/notebooks/receiver_function_profile_chile.ipynb
