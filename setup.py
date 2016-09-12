@@ -25,7 +25,7 @@ ENTRY_POINTS = {
                         'rf = rf.batch:run_cli']}
 
 REQUIRES = ['decorator', 'matplotlib', 'numpy', 'scipy',
-            'setuptools', 'obspy>=1.0',
+            'setuptools', 'obspy>=1.0.3',
             'cartopy', 'geographiclib', 'shapely', 'toeplitz', 'tqdm']
 
 EXTRAS_REQUIRE = {
@@ -39,6 +39,10 @@ CLASSIFIERS = [
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
     'Topic :: Scientific/Engineering :: Physics'
     ]
 

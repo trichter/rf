@@ -1,3 +1,5 @@
+dev:
+  * add support for python3 (requires ObsPy>=1.0.3)
 v0.4.2:
   * remove caching support (joblib)
   * first steps towards python3 compatibility
