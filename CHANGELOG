@@ -1,4 +1,6 @@
-dev:
+v0.4.2:
+  * remove caching support (joblib)
+  * first steps towards python3 compatibility
   * small bug fix for obspy v1.0.2 (see obspy issue 1507)
 v0.4.1:
   * fix online documentation
