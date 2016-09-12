@@ -167,7 +167,7 @@ def init_data(data, client_options=None, plugin=None):
             seedid = '.'.join((kwargs['network'], kwargs['station'],
                                kwargs['location'], kwargs['channel']))
             msg = 'channel %s: error while retrieving data: %s'
-            print msg % (seedid, ex)
+            print(msg % (seedid, ex))
 
     return wrapper
 
@@ -283,7 +283,7 @@ def run_commands(command, commands=(), events=None, inventory=None,
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        print 'cannot read events or stations'
+        print('cannot read events or stations')
         return
     # Initialize get_waveforms
     if command == 'data':
@@ -295,7 +295,7 @@ def run_commands(command, commands=(), events=None, inventory=None,
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            print 'cannot initalize data'
+            print('cannot initalize data')
             return
     # Print command
     if command == 'print':

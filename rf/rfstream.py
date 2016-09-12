@@ -50,7 +50,7 @@ _EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
     ('event_magnitude', __get_event_magnitude),
     ('event_time', __get_event_origin_prop('time')))
 
-_HEADERS = zip(*_STATION_GETTER)[0] + zip(*_EVENT_GETTER)[0] + (
+_HEADERS = list(zip(*_STATION_GETTER))[0] + list(zip(*_EVENT_GETTER))[0] + (
     'onset', 'type', 'phase', 'moveout',
     'distance', 'back_azimuth', 'inclination', 'slowness',
     'pp_latitude', 'pp_longitude', 'pp_depth',
@@ -384,6 +384,7 @@ class RFStream(Stream):
         id.
         """
         ids = set(tr.id for tr in self)
+        tr = self[0]
         traces = []
         for id in ids:
             net, sta, loc, cha = id.split('.')

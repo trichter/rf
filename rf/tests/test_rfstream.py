@@ -21,7 +21,7 @@ _HEADERS_TEST_IO = (50.3, -100.2, 400.3,  # station coordinates
 
 _HEADERS_NOT_BY_RFSTATS = ('moveout', 'box_pos', 'box_length', 'type')
 
-FORMATS = _FORMATHEADERS.keys()
+FORMATS = list(_FORMATHEADERS.keys())
 
 try:
     import obspyh5

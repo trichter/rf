@@ -168,7 +168,7 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
         ax = _get_geoaxes(crs=crs, latlons=latlons)
     kw = dict(s=200, marker='v', c='darkred', linewidth=0.5, zorder=3)
     kw.update(kwargs)
-    ax.scatter(*zip(*latlons)[::-1], transform=__pc(), **kw)
+    ax.scatter(*list(zip(*latlons))[::-1], transform=__pc(), **kw)
     if label_stations:
         path_effect = PathEffects.withStroke(linewidth=3, foreground="white")
         kw = {'xycoords': __pc()._as_mpl_transform(ax),
@@ -197,7 +197,7 @@ def plot_ppoints(ppoints, inventory=None, label_stations=True, ax=None,
         plot_stations(inventory, label_stations=label_stations, ax=ax)
     kw = dict(s=50, marker='x', color='k', alpha=0.2, zorder=2)
     kw.update(kwargs)
-    ax.scatter(*zip(*ppoints)[::-1], transform=__pc(), **kw)
+    ax.scatter(*list(zip(*ppoints))[::-1], transform=__pc(), **kw)
     return ax
 
 
