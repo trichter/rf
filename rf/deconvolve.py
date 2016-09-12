@@ -112,7 +112,7 @@ def deconvolve(stream, method='time',
     length = len(rsp[0])
     tshift = -winsrc[0]
     if method == 'time':
-        shift = int(round(tshift * sr - len(src) / 2))
+        shift = int(round(tshift * sr - len(src) // 2))
         rf_data = deconvt(rsp_data, src.data, shift, length=length, **kwargs)
     else:
         rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, length=length,
