@@ -1,3 +1,5 @@
+dev:
+  * small bug fix for obspy v1.0.2 (see obspy issue 1507)
 v0.4.1:
   * fix online documentation
 v0.4.0:

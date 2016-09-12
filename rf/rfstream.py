@@ -548,6 +548,10 @@ class RFTrace(Trace):
             from obspy.io.sac.util import obspy_to_sac_header
             self.stats.pop('sac', None)
             self.stats.sac = obspy_to_sac_header(self.stats)
+            # workaround for obspy issue 1507, introduced in obspy v1.0.2
+            # and fixed in obspy v1.0.3
+            self.stats.sac.lpspol = True
+            self.stats.sac.lcalda = False
         try:
             header_map = zip(_HEADERS, _FORMATHEADERS[format])
         except KeyError:
