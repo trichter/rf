@@ -23,7 +23,10 @@ except ImportError:
     def tqdm():
         return None
 
-
+try:
+    basestring
+except NameError:
+    basestring = str
 IS_PY3 = sys.version_info.major == 3
 
 _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
@@ -267,15 +270,15 @@ def run_commands(command, commands=(), events=None, inventory=None,
         elif command != 'print' or objects[0] == 'events':
             if (not isinstance(events, obspy.Catalog) or
                     not isinstance(events, list) or
-                    (len(events) == 2 and isinstance(events[0], str))):
-                if isinstance(events, (basestring, str)):
+                    (len(events) == 2 and isinstance(events[0], basestring))):
+                if isinstance(events, basestring):
                     format_ = None
                 else:
                     events, format_ = events
                 events = obspy.read_events(events, format_)
         if command != 'print' or objects[0] == 'stations':
             if not isinstance(inventory, obspy.Inventory):
-                if isinstance(inventory, (basestring, str)):
+                if isinstance(inventory, basestring):
                     format_ = None
                 else:
                     inventory, format_ = inventory
