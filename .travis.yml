@@ -25,9 +25,8 @@ before_install:
     fi
   - conda create -q -n testenv
       python=$TRAVIS_PYTHON_VERSION
-      obspy
-      gcc coverage
-      shapely cartopy
+      obspy gcc coverage
+      tqdm shapely cartopy
       $OBSPYH5DEP
   - source activate testenv
   - pip install toeplitz geographiclib $OBSPYH5
