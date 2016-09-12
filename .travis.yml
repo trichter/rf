@@ -16,12 +16,22 @@ before_install:
   - hash -r
   - conda config --set always_yes yes
   - conda update -q conda
+  - conda config --add channels conda-forge
   - conda info -a
-  - conda install python=$TRAVIS_PYTHON_VERSION gcc coverage
-  - conda install -c obspy obspy
-  - conda install -c conda-forge shapely cartopy
-  - pip install toeplitz geographiclib
-  - if [[ $USE_OBSPYH5 == true ]]; then conda install python=$TRAVIS_PYTHON_VERSION cython h5py; pip install obspyh5; fi  
+  - if [[ $USE_OBSPYH5 == true ]]; then
+      $OBSPYH5DEP="cython h5py"; $OBSPYH5="obspyh5";
+    else
+      $OBSPYH5DEP=""; $OBSPYH5="";
+    fi
+  - conda create -q -n testenv
+      python=$TRAVIS_PYTHON_VERSION
+      obspy
+      gcc coverage
+      shapely cartopy
+      $OBSPYH5DEP
+  - source activate testenv
+  - pip install toeplitz geographiclib $OBSPYH5
+  - conda list
 install:
   - pip install .
 script:
