@@ -1,3 +1,4 @@
+# Copyright 2013-2016 Tom Eulenfeld, MIT license
 """
 rf: receiver function calculation - batch command line utility
 """

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright 2013-2016 Tom Eulenfeld, MIT license
 """
 Functions for receiver function plotting.
 """

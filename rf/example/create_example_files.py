@@ -1,3 +1,4 @@
+# Copyright 2013-2016 Tom Eulenfeld, MIT license
 from obspy import read_events, read_inventory, Stream, UTCDateTime as UTC
 from obspy.clients.fdsn import Client
 

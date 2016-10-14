@@ -1,3 +1,4 @@
+# Copyright 2013-2016 Tom Eulenfeld, MIT license
 """
 Tests for simple_model module.
 """

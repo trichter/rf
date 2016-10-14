@@ -1,3 +1,4 @@
+# Copyright 2013-2016 Tom Eulenfeld, MIT license
 """
 Simple move out and piercing point calculation.
 """
