@@ -194,7 +194,7 @@ class RFStream(Stream):
 
         See :meth:`~obspy.core.stream.Stream.trim`.
 
-        :param starttime, endtime: accept UTCDateTime or seconds relative to
+        :param starttime,endtime: accept UTCDateTime or seconds relative to
             reftime
         :param reftime: reference time, can be an UTCDateTime object or a
             string. The string will be looked up in the stats dictionary
