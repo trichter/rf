@@ -1,16 +1,33 @@
-language: python
-python:
-  - "2.7"
-  - "3.5"
-env:
-  -
-  - USE_OBSPYH5=true
+language: c
 sudo: false
+matrix:
+  include:
+    - os: linux
+      env: PYTHON_VERSION=2.7
+    - os: linux
+      env: PYTHON_VERSION=2.7 USE_OBSPYH5="false"
+    - os: linux
+      env: PYTHON_VERSION=3.4 USE_OBSPYH5="true"
+    - os: linux
+      env: PYTHON_VERSION=3.5 USE_OBSPYH5="true"
+    - os: linux
+      env: PYTHON_VERSION=3.6
+    - os: linux
+      env: PYTHON_VERSION=3.6 USE_OBSPYH5="true"
+    - os: osx
+      env: PYTHON_VERSION=2.7 USE_OBSPYH5="true"
+    - os: osx
+      env: PYTHON_VERSION=3.6 USE_OBSPYH5="true"
 before_install:
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      export OS="MacOSX";
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      export OS="Linux";
+    fi
+  - if [[ "$PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-${OS}-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-${OS}-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"  
@@ -19,13 +36,13 @@ before_install:
   - conda update -q conda
   - conda config --add channels conda-forge
   - conda info -a
-  - if [[ $USE_OBSPYH5 == true ]]; then
+  - if [[ $USE_OBSPYH5 == "true" ]]; then
       OBSPYH5DEP="cython h5py"; OBSPYH5="obspyh5";
     else
       OBSPYH5DEP=""; OBSPYH5="";
     fi
   - conda create -q -n testenv
-      python=$TRAVIS_PYTHON_VERSION
+      python=$PYTHON_VERSION
       obspy gcc coverage
       tqdm shapely cartopy
       $OBSPYH5DEP
@@ -33,7 +50,7 @@ before_install:
   - pip install toeplitz geographiclib $OBSPYH5
   - conda list
 install:
-  - pip install .
+  - pip install --no-deps .
 script:
   - mkdir empty; cd empty  
   - coverage run --include='*/rf/*' -m rf.tests
