@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright 2013-2016 Tom Eulenfeld, MIT license
 import os.path
 import re
