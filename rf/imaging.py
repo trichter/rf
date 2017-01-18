@@ -129,6 +129,8 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     if fname:
         fig.savefig(fname)
         plt.close(fig)
+    else:
+        return fig
 
 
 def _get_geoaxes(crs=None, latlons=None):
@@ -227,6 +229,7 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
     kw.update(kwargs)
     for box in boxes:
         ax.add_geometries([box['poly']], crs=__pc(), **kw)
+    return ax
 
 
 def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
@@ -315,3 +318,5 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
     if fname:
         fig.savefig(fname)
         plt.close(fig)
+    else:
+        return fig
