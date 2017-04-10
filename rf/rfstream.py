@@ -542,17 +542,9 @@ class RFTrace(Trace):
         elif format == 'h5':
             return
         elif format == 'sac':
-            # workaround for obspy issue 1285, fixed in obspy v1.0.1
-            # and obspy issue 1457, fixed in obspy v1.0.2
-            # https://github.com/obspy/obspy/pull/1285
-            # https://github.com/obspy/obspy/pull/1457
+            # make sure SAC reference time is set
             from obspy.io.sac.util import obspy_to_sac_header
-            self.stats.pop('sac', None)
             self.stats.sac = obspy_to_sac_header(self.stats)
-            # workaround for obspy issue 1507, introduced in obspy v1.0.2
-            # and fixed in obspy v1.0.3
-            self.stats.sac.lpspol = True
-            self.stats.sac.lcalda = False
         try:
             header_map = zip(_HEADERS, _FORMATHEADERS[format])
         except KeyError:
@@ -583,14 +575,10 @@ class RFTrace(Trace):
                 pass
             st[format][head_format] = val
         if format == 'sh' and len(comment) > 0:
-            # workaround for obspy issue #1456, fixed in obspy v1.0.2
-            # https://github.com/obspy/obspy/pull/1456
-            for k, v in comment.items():
-                try:
-                    comment[k] = np.asscalar(v)
-                except AttributeError:
-                    pass
-            st[format]['COMMENT'] = json.dumps(comment, separators=(',', ':'))
+            def default(obj):  # convert numpy types
+                return np.asscalar(obj)
+            st[format]['COMMENT'] = json.dumps(comment, separators=(',', ':'),
+                                               default=default)
 
     def _seconds2utc(self, seconds, reftime=None):
         """Return UTCDateTime given as seconds relative to reftime"""
