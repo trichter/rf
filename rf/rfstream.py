@@ -106,7 +106,6 @@ class RFStream(Stream):
     Class providing the necessary functions for receiver function calculation.
 
     :param traces: list of traces, single trace or stream object
-    :param warn: display warnings when reading and mapping rf headers
 
     To initialize a RFStream from a Stream object use
 
@@ -119,14 +118,14 @@ class RFStream(Stream):
     Format specific headers are loaded into the stats object of all traces.
     """
 
-    def __init__(self, traces=None, warn=True):
+    def __init__(self, traces=None):
         self.traces = []
         if isinstance(traces, Trace):
             traces = [traces]
         if traces:
             for tr in traces:
                 if not isinstance(tr, RFTrace):
-                    tr = RFTrace(trace=tr, warn=warn)
+                    tr = RFTrace(trace=tr)
                 self.traces.append(tr)
 
     def __is_set(self, header):
@@ -438,7 +437,7 @@ class RFTrace(Trace):
     Class providing the Trace object for receiver function calculation.
     """
 
-    def __init__(self, data=np.array([]), header=None, trace=None, warn=True):
+    def __init__(self, data=np.array([]), header=None, trace=None):
         if header is None:
             header = {}
         if trace is not None:
@@ -449,7 +448,7 @@ class RFTrace(Trace):
         if ('_format'in st and st._format.upper() == 'Q' and
                 st.station.count('.') > 0):
             st.network, st.station, st.location = st.station.split('.')[:3]
-        self._read_format_specific_header(warn=warn)
+        self._read_format_specific_header()
 
     def __str__(self, id_length=None):
         if 'onset' not in self.stats:
@@ -494,7 +493,7 @@ class RFTrace(Trace):
         out.append(' '.join(o3))
         return ' | '.join(out).format(**self.stats)
 
-    def _read_format_specific_header(self, format=None, warn=True):
+    def _read_format_specific_header(self, format=None):
         st = self.stats
         if format is None:
             if '_format' not in st:
@@ -503,14 +502,10 @@ class RFTrace(Trace):
         format = format.lower()
         if format == 'q':
             format = 'sh'
-        if format == 'h5':
-            return
         try:
             header_map = zip(_HEADERS, _FORMATHEADERS[format])
         except KeyError:
-            if warn:
-                warnings.warn('Reading rf header of a file with this format '
-                              'is not supported.')
+            # file format is H5 or not supported
             return
         read_comment = False
         for head, head_format in header_map:
@@ -539,8 +534,6 @@ class RFTrace(Trace):
         format = format.lower()
         if format == 'q':
             format = 'sh'
-        elif format == 'h5':
-            return
         elif format == 'sac':
             # make sure SAC reference time is set
             from obspy.io.sac.util import obspy_to_sac_header
@@ -548,10 +541,7 @@ class RFTrace(Trace):
         try:
             header_map = zip(_HEADERS, _FORMATHEADERS[format])
         except KeyError:
-            if format != 'h5':
-                msg = ("rf in-/output of file format '%s' is not supported" %
-                       format)
-                warnings.warn(msg)
+            # file format is H5 or not supported
             return
         if format not in st:
             st[format] = AttribDict({})
@@ -684,10 +674,9 @@ def rfstats(obj=None, event=None, station=None,
         raise Exception('TauPy does not return phase %s at distance %s' %
                         (phase, dist))
     if len(arrivals) > 1:
-        from warnings import warn
         msg = ('TauPy returns more than one arrival for phase %s at '
                'distance -> take first arrival')
-        warn(msg % (phase, dist))
+        warnings.warn(msg % (phase, dist))
     arrival = arrivals[0]
     onset = stats.event_time + arrival.time
     inc = arrival.incident_angle

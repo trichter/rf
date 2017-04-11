@@ -93,7 +93,7 @@ def iter_event_data(events, inventory, get_waveforms, phase='P',
             continue
         for tr in stream:
             tr.stats.update(stats)
-        yield RFStream(stream, warn=False)
+        yield RFStream(stream)
 
 
 def iter_event_metadata(events, inventory, pbar=None):

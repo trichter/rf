@@ -1,6 +1,7 @@
 dev:
   * add support for python3 (requires ObsPy>=1.0.3)
-  * add possibility of custom deconvolution
+  * add possibility to use custom deconvolution
+  * remove warnings and warn keyword for unsupported file formats
 v0.4.2:
   * remove caching support (joblib)
   * first steps towards python3 compatibility
