@@ -1,4 +1,4 @@
-dev:
+v0.5.0:
   * add support for python3 (requires ObsPy>=1.0.3)
   * add possibility to use custom deconvolution
   * remove warnings and warn keyword for unsupported file formats
