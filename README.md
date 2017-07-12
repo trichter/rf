@@ -15,7 +15,7 @@
 [nb2]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/notebooks/receiver_function_profile_chile.ipynb
 
 ##### Get Help:
- - [Subscribe](seistools-join@listserv.uni-jena.de?subject=Join) to [seistools](https://lserv.uni-jena.de/mailman/listinfo/seistools) mailing list
+ - [Subscribe](mailto:seistools-join@listserv.uni-jena.de?subject=Join) to [seistools](https://lserv.uni-jena.de/mailman/listinfo/seistools) mailing list
  - [Browse](https://lserv.uni-jena.de/pipermail/seistools/) the archive
- - [Post](seistools@listserv.uni-jena.de?subject=[rf]) a message and ensure the subject contains `[rf]`
+ - [Post](mailto:seistools@listserv.uni-jena.de?subject=[rf]) a message and ensure the subject contains `[rf]`
  
