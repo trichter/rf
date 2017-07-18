@@ -14,8 +14,4 @@
 [nb1]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/notebooks/receiver_function_minimal_example.ipynb
 [nb2]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/notebooks/receiver_function_profile_chile.ipynb
 
-##### Get Help:
- - [Subscribe](mailto:seistools-join@listserv.uni-jena.de?subject=Join) to [seistools](https://lserv.uni-jena.de/mailman/listinfo/seistools) mailing list
- - [Browse](https://lserv.uni-jena.de/pipermail/seistools/) the archive
- - [Post](mailto:seistools@listserv.uni-jena.de?subject=[rf]) a message and ensure the subject contains `[rf]`
- 
+##### Get help and discuss: [seistools](https://lserv.uni-jena.de/mailman/listinfo/seistools) mailing list
