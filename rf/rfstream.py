@@ -80,9 +80,9 @@ _HEADER_CONVERSIONS = {'sac': {'onset': (__SAC2UTC, __UTC2SAC),
 _TF = '.datetime:%Y-%m-%dT%H:%M:%S'
 
 _H5INDEX = {
-    'rf': ('{network}.{station}.{location}/{event_time%s}/' % _TF +
+    'rf': ('waveforms/{network}.{station}.{location}/{event_time%s}/' % _TF +
            '{channel}_{starttime%s}_{endtime%s}' % (_TF, _TF)),
-    'profile': '{channel[2]}_{box_pos}'
+    'profile': 'waveforms/{channel[2]}_{box_pos}'
 }
 
 

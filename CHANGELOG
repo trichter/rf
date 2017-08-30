@@ -1,3 +1,5 @@
+v0.5.1:
+  * adaptions for obspyh5 v0.3
 v0.5.0:
   * add support for python3 (requires ObsPy>=1.0.3)
   * add possibility to use custom deconvolution

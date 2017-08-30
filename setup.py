@@ -30,7 +30,7 @@ REQUIRES = ['decorator', 'matplotlib', 'numpy', 'scipy',
 
 EXTRAS_REQUIRE = {
     'doc': ['sphinx', 'alabaster'],  # and decorator, obspy
-    'h5': ['obspyh5']}
+    'h5': ['obspyh5>=0.3']}
 
 CLASSIFIERS = [
     'Environment :: Console',
