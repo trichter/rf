@@ -7,8 +7,6 @@ matrix:
     - os: linux
       env: PYTHON_VERSION=2.7 USE_OBSPYH5="true"
     - os: linux
-      env: PYTHON_VERSION=3.3 USE_OBSPYH5="true"
-    - os: linux
       env: PYTHON_VERSION=3.4 USE_OBSPYH5="true"
     - os: linux
       env: PYTHON_VERSION=3.5
