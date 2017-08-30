@@ -12,10 +12,6 @@ matrix:
       env: PYTHON_VERSION=3.5
     - os: linux
       env: PYTHON_VERSION=3.5 USE_OBSPYH5="true"
-    - os: osx
-      env: PYTHON_VERSION=2.7 USE_OBSPYH5="true"
-    - os: osx
-      env: PYTHON_VERSION=3.5 USE_OBSPYH5="true"
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       export OS="MacOSX";
