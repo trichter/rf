@@ -36,6 +36,7 @@ def iter_event_data(events, inventory, get_waveforms, phase='P',
     :param float pad: add specified time in seconds to request window and
        trim afterwards again
     :param pbar: tqdm_ instance for displaying a progressbar
+    :param kwargs: all other kwargs are passed to `~rf.rfstream.rfstats()`
 
     :return: three component streams with raw data
 
