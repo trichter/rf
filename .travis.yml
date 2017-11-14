@@ -7,11 +7,11 @@ matrix:
     - os: linux
       env: PYTHON_VERSION=2.7 USE_OBSPYH5="true"
     - os: linux
-      env: PYTHON_VERSION=3.4 USE_OBSPYH5="true"
-    - os: linux
-      env: PYTHON_VERSION=3.5
-    - os: linux
       env: PYTHON_VERSION=3.5 USE_OBSPYH5="true"
+    - os: linux
+      env: PYTHON_VERSION=3.6
+    - os: linux
+      env: PYTHON_VERSION=3.6 USE_OBSPYH5="true"
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       export OS="MacOSX";
@@ -39,9 +39,10 @@ before_install:
       python=$PYTHON_VERSION
       obspy gcc coverage
       tqdm shapely cartopy
+      geographiclib
       $OBSPYH5DEP
   - source activate testenv
-  - pip install toeplitz geographiclib $OBSPYH5
+  - pip install toeplitz $OBSPYH5
   - conda list
 install:
   - pip install --no-deps .
