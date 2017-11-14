@@ -1,3 +1,6 @@
+v0.6.0:
+  * use new matplotlib colors (requires matploltib>2)
+  * small bugs fixed
 v0.5.1:
   * adaptions for obspyh5 v0.3
 v0.5.0:

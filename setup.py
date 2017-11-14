@@ -24,7 +24,7 @@ ENTRY_POINTS = {
     'console_scripts': ['rf-runtests = rf.tests:run',
                         'rf = rf.batch:run_cli']}
 
-REQUIRES = ['decorator', 'matplotlib', 'numpy', 'scipy',
+REQUIRES = ['decorator', 'matplotlib>=2', 'numpy', 'scipy',
             'setuptools', 'obspy>=1.0.3',
             'cartopy', 'geographiclib', 'shapely', 'toeplitz', 'tqdm']
 

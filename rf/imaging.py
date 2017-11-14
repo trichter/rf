@@ -14,8 +14,8 @@ import numpy as np
 
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             stack_height=0.5, scale=1, fillcolors=(None, None), trim=None,
-            info=(('back_azimuth', u'baz (°)', 'b'),
-                  ('distance', u'dist (°)', 'r'))):
+            info=(('back_azimuth', u'baz (°)', 'C0'),
+                  ('distance', u'dist (°)', 'C3'))):
     """
     Plot receiver functions.
 
@@ -232,7 +232,7 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
     return ax
 
 
-def plot_profile(profile, fname=None, scale=1, fillcolors=('r', 'b'),
+def plot_profile(profile, fname=None, scale=1, fillcolors=('C3', 'C0'),
                  trim=None, top=None, moveout_model='iasp91'):
     """
     Plot receiver function profile.
