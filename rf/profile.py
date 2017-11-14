@@ -118,7 +118,7 @@ def profile(stream, boxes, crs=None):
         tr2.data = tr2.data / tr2.stats.num
     try:
         profile = stream.__class__(traces=stack.values())
-    except TypeError:  # stream can be an iterator
+    except:  # stream can be an iterator
         from rf import RFStream
         profile = RFStream(traces=stack.values())
     profile.sort(['channel', 'box_pos'])
