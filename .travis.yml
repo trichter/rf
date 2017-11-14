@@ -40,7 +40,6 @@ before_install:
       obspy gcc coverage
       tqdm shapely cartopy
       geographiclib
-      'scipy<1'
       $OBSPYH5DEP
   - source activate testenv
   - pip install toeplitz $OBSPYH5
