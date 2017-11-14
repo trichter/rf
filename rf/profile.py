@@ -116,9 +116,13 @@ def profile(stream, boxes, crs=None):
             tr2.stats.num += 1
     for tr2 in stack.values():
         tr2.data = tr2.data / tr2.stats.num
+    if hasattr(stream, 'iterable'):  # support tqdm objects
+        cls = stream.iterable.__class__
+    else:
+        cls = stream.__class__
     try:
-        profile = stream.__class__(traces=stack.values())
-    except:  # stream can be an iterator
+        profile = cls(traces=stack.values())
+    except TypeError:  # stream can be an iterator
         from rf import RFStream
         profile = RFStream(traces=stack.values())
     profile.sort(['channel', 'box_pos'])
