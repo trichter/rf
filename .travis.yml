@@ -14,9 +14,9 @@ matrix:
       env: PYTHON_VERSION=3.6 USE_OBSPYH5="true"
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      export OS="MacOSX";
+      OS="MacOSX";
     else
-      export OS="Linux";
+      OS="Linux";
     fi
   - if [[ "$PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-${OS}-x86_64.sh -O miniconda.sh;
@@ -35,11 +35,13 @@ before_install:
     else
       OBSPYH5DEP=""; OBSPYH5="";
     fi
+# explicitely specify scipy because of https://github.com/conda/conda/issues/6199
   - conda create -q -n testenv
       python=$PYTHON_VERSION
       obspy gcc coverage
       tqdm shapely cartopy
       geographiclib
+      scipy
       $OBSPYH5DEP
   - source activate testenv
   - pip install toeplitz $OBSPYH5
