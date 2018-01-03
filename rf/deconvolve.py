@@ -111,21 +111,23 @@ def deconvolve(stream, method='time', func=None,
     src.trim(onset + winsrc[0], onset + winsrc[1], pad=True, fill_value=0.)
     src.taper(max_percentage=None, max_length=winsrc[2])
     rsp_data = [tr.data for tr in rsp]
-    length = len(rsp[0])
     tshift = -winsrc[0]
     if method == 'time':
         shift = int(round(tshift * sr - len(src) // 2))
-        rf_data = deconvt(rsp_data, src.data, shift, length=length, **kwargs)
+        rf_data = deconvt(rsp_data, src.data, shift,  **kwargs)
     elif method == 'freq':
-        rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, length=length,
-                          **kwargs)
+        rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, **kwargs)
     else:
-        rf_data = func(rsp_data, src.data, sr=sr, shift=shift, tshift=tshift,
-                       length=length, **kwargs)
+        rf_data = func(rsp_data, src.data, sr=sr, tshift=tshift, **kwargs)
     for i, tr in enumerate(rsp):
         tr.data = rf_data[i].real
-        assert len(tr) == length
     return stream.__class__(rsp)
+
+
+def __get_length(rsp_list):
+    if isinstance(rsp_list, (list, tuple)):
+        rsp_list = rsp_list[0]
+    return len(rsp_list)
 
 
 def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
@@ -154,7 +156,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
     :return: (list of) array(s) with deconvolution(s)
     """
     if length is None:
-        length = len(src)
+        length = __get_length(rsp_list)
     N = length
     nfft = next_pow_2(N) * 2 ** pad
     freq = np.fft.fftfreq(nfft, d=1. / sampling_rate)
@@ -299,7 +301,7 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0):
     :return: (list of) array(s) with deconvolution(s)
     """
     if length is None:
-        length = len(src)
+        length = __get_length(rsp_list)
     flag = False
     RF_list = []
     STS = _acorrt(src, length)

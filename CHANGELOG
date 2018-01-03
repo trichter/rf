@@ -1,3 +1,5 @@
+v0.6.1:
+  * less forced parameters for custom deconvolution function
 v0.6.0:
   * use new matplotlib colors (requires matplotlib>2)
   * small bugs fixed
