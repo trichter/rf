@@ -19,6 +19,5 @@
 ##### Contribute:
 
 All contributions are welcome ... e.g. report bugs, discuss or add new features.
-
-The package can profit from more advanced deconvolution techniques.
-It is possible to test new deconvolution functions by just passing them to the func parameter of the deconvolve method.
+For example, the package could profit from more advanced deconvolution techniques.
+New deconvolution functions can be testst by just passing them to deconvolve method (see docs).
