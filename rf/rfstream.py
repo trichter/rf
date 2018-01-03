@@ -331,7 +331,7 @@ class RFStream(Stream):
         Needs stats attributes slowness and onset.
 
         :param phase: 'Ps', 'Sp', 'Ppss' or other multiples, if None is set to
-            'ps' or 'Sp' depending on method
+            'Ps' for P receiver functions or 'Sp' for S receiver functions
         :param ref: reference ray parameter in s/deg
         :param model: Path to model file
             (see `.SimpleModel`, default: iasp91)
@@ -357,14 +357,9 @@ class RFStream(Stream):
         :param pp_depth: depth of interface in km
         :param pp_phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave or multiples, if None will be
-            set to 'P' or 'S' depending on method
+            set to 'S' for P receiver functions or 'S' for S receiver functions
         :param model: path to model file (see `.SimpleModel`, default: iasp91)
         :return: NumPy array with coordinates of piercing points
-
-        .. note::
-
-            ``phase='S'`` is usually wanted for P receiver functions and
-            ``'P'`` for S receiver functions.
         """
         if pp_phase is None:
             pp_phase = {'P': 'S', 'S': 'P'}[self.method]

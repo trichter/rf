@@ -43,7 +43,7 @@ def deconvolve(stream, method='time', func=None,
     :param stream: stream including responses and source
     :param method:
         'time' -> use time domain deconvolution in `deconvt()`,\n
-        'freq' -> use frequency domain deconvolution in `deconvf()`
+        'freq' -> use frequency domain deconvolution in `deconvf()`\n
         'func' -> user defined function (func keyword)
     :param source_components: names of components identifying the source traces,
         e.g. 'LZ' for P receiver functions and 'QR' for S receiver functions

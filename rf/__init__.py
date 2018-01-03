@@ -3,6 +3,17 @@
 rf Documentation
 ================
 
+rf is a Python framework for receiver function analysis.
+Read and write support of necessary metadata is provided for
+SAC, SeismicHandler and HDF5 waveform files.
+Data is handled by the ``RFStream`` class which inherits a lot of useful
+methods from its ObsPy ancestor ``Stream``,
+but also has some unique methods necessary for receiver function calculation.
+
+
+Method
+------
+
 The receiver function method is a popular technique to investigate crustal and
 upper mantle velocity discontinuities. Basic concept of the method is that a
 small part of incident P-waves from a teleseismic event gets converted to
@@ -169,7 +180,8 @@ Command line tool for batch processing
 --------------------------------------
 
 The rf package provides a command line utility 'rf' which runs all the
-necessary steps to perform receiver function calculation. Use
+necessary steps to perform receiver function calculation.
+Use
 ``rf -h`` and ``rf {your_command} -h`` to discover the interface.
 All you need is an inventory file (StationXML) and a file with events
 (QuakeML) you want to analyze.
@@ -195,6 +207,9 @@ Now start using rf ..., e.g. ::
     rf moveout myrf myrfmout
     rf plot myrfmout myrfplot
     rf --moveout-phase Psss moveout myrf myrfPsssmout
+
+.. note::
+    Development of the batch module has a lower priority than the Python API.
 
 Miscellaneous
 -------------

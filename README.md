@@ -15,3 +15,10 @@
 [nb2]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
 
 ##### Get help and discuss: [seistools](https://lserv.uni-jena.de/mailman/listinfo/seistools) mailing list
+
+##### Contribute:
+
+All contributions are welcome ... e.g. report bugs, discuss or add new features.
+
+The package can profit from more advanced deconvolution techniques.
+It is possible to test new deconvolution functions by just passing them to the func parameter of the deconvolve method.
