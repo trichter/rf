@@ -38,7 +38,7 @@ def load_model(fname='iasp91'):
     values = np.loadtxt(fname, unpack=True)
     try:
         z, vp, vs, n = values
-        n.astype(int)
+        n = n.astype(int)
     except ValueError:
         n = None
         z, vp, vs = values
