@@ -50,7 +50,7 @@ install:
   - pip install --no-deps .
 script:
   - mkdir empty; cd empty
-  - coverage run --include='../rf/*' -m rf.tests
+  - coverage run --include='*/rf/*' -m rf.tests
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 notifications:
