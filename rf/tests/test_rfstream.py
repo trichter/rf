@@ -172,6 +172,19 @@ class RFStreamTestCase(unittest.TestCase):
         onset = L[0].stats.onset - L[0].stats.starttime
         self.assertAlmostEqual(L[0].data.argmax() * dt - onset, 8.6, delta=0.1)
 
+    def test_polarity_R_component(self):
+        """issue #4"""
+        stream = read_rf()
+        rfstats(stream)
+        stream.filter('bandpass', freqmin=0.5, freqmax=2)
+        stream.trim2(10, 110, reftime='starttime')
+        stream.rf(rotate='NE->RT')
+        for tr in stream.select(component='R'):
+            onset = tr.stats.onset - tr.stats.starttime
+            dt = tr.stats.delta
+            self.assertAlmostEqual(tr.data.argmax() * dt - onset, 0,
+                                   delta=0.01)
+
     def test_str(self):
         s = ('Prf CX.PB01..BHT | -10.0s - 80.0s onset:'
              '2011-02-25T13:15:38.169539Z | 5.0 Hz, 451 samples | '

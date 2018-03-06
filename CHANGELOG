@@ -1,3 +1,5 @@
+v0.6.2:
+  * fix wrong polarization in R and T components (see #4)
 v0.6.1:
   * less forced parameters for custom deconvolution function
 v0.6.0:

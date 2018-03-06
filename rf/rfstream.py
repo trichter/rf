@@ -297,6 +297,16 @@ class RFStream(Stream):
         if rotate:
             for stream3c in iter3c(self):
                 stream3c.rotate(rotate)
+        # Multiply -1 on Q component, because Q component is pointing
+        # towards the event after the rotation with ObsPy.
+        # For a positive phase at a Moho-like velocity contrast,
+        # the Q component has to point away from the event.
+        # This is not necessary for the R component which points already
+        # away from the event.
+        # (compare issue #4)
+        for tr in self:
+            if tr.stats.channel.endswith('Q'):
+                tr.data = -tr.data
         if deconvolve:
             for stream3c in iter3c(self):
                 kwargs.setdefault('winsrc', method)
@@ -311,13 +321,6 @@ class RFStream(Stream):
                 tr.data = tr.data[::-1]
                 tr.stats.onset = tr.stats.starttime + (tr.stats.endtime -
                                                        tr.stats.onset)
-        # Multiply -1 on Q/R and T component, because Q/R component is pointing
-        # towards the event after the rotation. For a positive phase at
-        # a Moho-like velocity contrast, the Q/R component has to
-        # point away from the event.
-        for tr in self:
-            if tr.stats.channel[-1] not in source_components:
-                tr.data = -tr.data
         self.type = 'rf'
         if self.method != method:
             self.method = method
