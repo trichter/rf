@@ -620,7 +620,7 @@ def rfstats(obj=None, event=None, station=None,
         called for each Trace.stats object and traces outside dist_range will
         be discarded.
     :param event: ObsPy `~obspy.core.event.event.Event` object
-    :param station: station object with attributes latitude, longitude and
+    :param station: dictionary like object with items latitude, longitude and
         elevation
     :param phase: string with phase. Usually this will be 'P' or
         'S' for P and S receiver functions, respectively.
