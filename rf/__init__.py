@@ -1,4 +1,4 @@
-# Copyright 2013-2016 Tom Eulenfeld, MIT license
+# Copyright 2013-2018 Tom Eulenfeld, MIT license
 """
 rf Documentation
 ================
@@ -68,6 +68,14 @@ The tests can be run with the script ::
 To install the development version of obspy download the source code and run ::
 
     python setup.py install
+
+Here are some instructions to install rf into a fresh conda environment::
+
+    conda config --add channels conda-forge
+    conda create -n rfenv decorator matplotlib numpy scipy obspy tqdm shapely cartopy geographiclib gcc h5py
+    conda activate rfenv
+    pip install obspyh5 rf
+    rf-runtests
 
 Using the Python module
 -----------------------

@@ -31,18 +31,17 @@ before_install:
   - conda config --add channels conda-forge
   - conda info -a
   - if [[ $USE_OBSPYH5 == "true" ]]; then
-      OBSPYH5DEP="cython h5py"; OBSPYH5="obspyh5";
+      OBSPYH5DEP="h5py"; OBSPYH5="obspyh5";
     else
       OBSPYH5DEP=""; OBSPYH5="";
     fi
-# explicitely specify scipy because of https://github.com/conda/conda/issues/6199
   - conda create -q -n testenv
       python=$PYTHON_VERSION
-      obspy gcc coverage
-      tqdm shapely cartopy
-      geographiclib
-      scipy
+      decorator matplotlib numpy scipy obspy
+      tqdm shapely cartopy geographiclib
+      gcc
       $OBSPYH5DEP
+      coverage
   - source activate testenv
   - pip install toeplitz $OBSPYH5
   - conda list
