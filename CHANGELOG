@@ -1,3 +1,5 @@
+v0.6.3:
+  * fix blocking of KeyBoardInterrupt (see #6)
 v0.6.2:
   * fix wrong polarization in R and T components (see #4)
 v0.6.1:
