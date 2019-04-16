@@ -19,7 +19,7 @@ seedid = 'CX.PB01..BH?'
 def get_events():
     try:
         return read_events(evname)
-    except:
+    except Exception:
         pass
     client = Client()
     events = client.get_events(starttime=t1, endtime=t2, latitude=lat,
@@ -32,7 +32,7 @@ def get_events():
 def get_inventory():
     try:
         return read_inventory(invname)
-    except:
+    except Exception:
         pass
     client = Client('GFZ')
     net, sta, loc, cha = seedid.split('.')

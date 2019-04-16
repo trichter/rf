@@ -108,7 +108,7 @@ def iter_event_processed_data(events, inventory, pin, format,
             kwargs['readonly'] = meta
         try:
             stream = read_rf(fname, format, **kwargs)
-        except:
+        except Exception:
             pass
         else:
             if yield_traces:
@@ -261,7 +261,7 @@ def run_commands(command, commands=(), events=None, inventory=None,
                 assert commands[0] != commands[1]
         elif command == 'calc':
             assert len(commands) < 2
-    except:
+    except Exception:
         raise ParseError('calc or moveout command given more than once')
 
     # Read events and inventory
@@ -284,9 +284,7 @@ def run_commands(command, commands=(), events=None, inventory=None,
                 else:
                     inventory, format_ = inventory
                 inventory = obspy.read_inventory(inventory, format_)
-    except (KeyboardInterrupt, SystemExit):
-        raise
-    except:
+    except Exception:
         print('cannot read events or stations')
         return
     # Initialize get_waveforms
@@ -296,9 +294,7 @@ def run_commands(command, commands=(), events=None, inventory=None,
             if get_waveforms is None:
                 get_waveforms = init_data(
                     data, client_options=kw['client_options'], plugin=plugin)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
+        except Exception:
             print('cannot initalize data')
             return
     # Print command

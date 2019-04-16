@@ -64,7 +64,7 @@ def iter_event_data(events, inventory, get_waveforms, phase='P',
         try:
             args = (seedid[:-1] + stations[seedid], origin_time)
             coords = inventory.get_coordinates(*args)
-        except:  # station not available at that time
+        except Exception:  # station not available at that time
             continue
         stats = rfstats(station=coords, event=event, phase=phase, **kwargs)
         if not stats:
@@ -77,7 +77,7 @@ def iter_event_data(events, inventory, get_waveforms, phase='P',
                'endtime': endtime + pad}
         try:
             stream = get_waveforms(**kws)
-        except:  # no data available
+        except Exception:  # no data available
             continue
         stream.trim(starttime, endtime)
         stream.merge()
@@ -237,6 +237,6 @@ def _add_processing_info(func, *args, **kwargs):
     try:
         for tr in stream:
             tr._internal_add_processing_info(info)
-    except:
+    except Exception:
         pass
     return stream
