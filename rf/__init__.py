@@ -72,10 +72,13 @@ To install the development version of obspy download the source code and run ::
 Here are some instructions to install rf into a fresh conda environment::
 
     conda config --add channels conda-forge
-    conda create -n rfenv decorator matplotlib numpy scipy obspy tqdm shapely cartopy geographiclib gcc h5py
+    conda create -n rfenv decorator matplotlib numpy scipy obspy tqdm shapely cartopy geographiclib h5py gfortran_linux-64
     conda activate rfenv
     pip install obspyh5 rf
     rf-runtests
+
+For OSX the package gfortran_osx-64 must be used instead of gfortran_linux-64.
+For Windows you need to install the FORTRAN compiler yourself (MinGW).
 
 Using the Python module
 -----------------------
