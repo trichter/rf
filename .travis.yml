@@ -29,6 +29,7 @@ before_install:
     else
       OBSPYH5DEP=""; OBSPYH5="";
     fi
+  - conda config --add channels conda-forge
   - conda create -q -n testenv
       python=$PYTHON_VERSION
       decorator matplotlib numpy scipy obspy
