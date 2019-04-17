@@ -77,7 +77,7 @@ Here are some instructions to install rf into a fresh conda environment::
     pip install obspyh5 rf
     rf-runtests
 
-For OSX the package gfortran_osx-64 must be used instead of gfortran_linux-64.
+For OSX the package ``gfortran_osx-64`` must be used instead of ``gfortran_linux-64``.
 For Windows you need to install the FORTRAN compiler yourself (MinGW).
 
 Using the Python module
