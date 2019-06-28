@@ -20,7 +20,12 @@ from rf.util import DEG2KM, IterMultipleComponents, _add_processing_info
 
 def __get_event_origin_prop(h):
     def wrapper(event):
-        r = (event.preferred_origin() or event.origins[0])[h]
+        try:
+            r = (event.preferred_origin() or event.origins[0])[h]
+        except IndexError:
+            raise ValueError('No origin')
+        if r is None:
+            raise ValueError('No origin ' + h)
         if h == 'depth':
             r = r / 1000
         return r
@@ -28,7 +33,10 @@ def __get_event_origin_prop(h):
 
 
 def __get_event_magnitude(event):
-    return (event.preferred_magnitude() or event.magnitudes[0])['mag']
+    try:
+        return (event.preferred_magnitude() or event.magnitudes[0])['mag']
+    except IndexError:
+        raise ValueError('No magnitude')
 
 
 def __SAC2UTC(stats, head):

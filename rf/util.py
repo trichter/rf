@@ -66,7 +66,13 @@ def iter_event_data(events, inventory, get_waveforms, phase='P',
             coords = inventory.get_coordinates(*args)
         except Exception:  # station not available at that time
             continue
-        stats = rfstats(station=coords, event=event, phase=phase, **kwargs)
+        try:
+            stats = rfstats(station=coords, event=event, phase=phase, **kwargs)
+        except Exception as ex:
+            from warnings import warn
+            warn('Error "%s" in rfstats call for event %s, station %s.'
+                 % (ex, event.resource_id, seedid))
+            continue
         if not stats:
             continue
         net, sta, loc, cha = seedid.split('.')

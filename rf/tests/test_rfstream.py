@@ -65,7 +65,7 @@ def test_io_header(testcase, stream, ignore=()):
                 testcase.assertAlmostEqual(
                     st1[head], st2[head], 2,
                     msg=msg % (head, format, st1[head], st2[head])
-                    )
+                )
         if len(ignore) == 0 or format != 'q':
             testcase.assertEqual(stream1[0].id, stream2[0].id)
 
@@ -116,6 +116,25 @@ class RFStreamTestCase(unittest.TestCase):
         self.assertTrue(abs(stats.distance - 66.7) < 1.)
         self.assertTrue(abs(stats.back_azimuth % 360.) < 0.1)
         self.assertTrue(abs(stats.slowness - 6.4) < 0.1)
+        # test issue 7
+        event = self.event.copy()
+        event.preferred_origin_id = None
+        event.origins = []
+        with self.assertRaisesRegex(ValueError, 'No origin'):
+            stats = rfstats(station=self.station, event=event, pp_depth=100.)
+        event = self.event.copy()
+        event.preferred_magnitude_id = None
+        event.magnitudes = []
+        with self.assertRaisesRegex(ValueError, 'No magnitude'):
+            stats = rfstats(station=self.station, event=event, pp_depth=100.)
+        event = self.event.copy()
+        del event.origins[0].latitude
+        with self.assertRaisesRegex(ValueError, 'No origin'):
+            stats = rfstats(station=self.station, event=event, pp_depth=100.)
+        event = self.event.copy()
+        del event.origins[0].depth
+        with self.assertRaisesRegex(ValueError, 'No origin'):
+            stats = rfstats(station=self.station, event=event, pp_depth=100.)
 
     def test_trim2(self):
         stream = read_rf()

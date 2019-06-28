@@ -1,3 +1,6 @@
+dev:
+  * remove python2 support, use previous version of rf if you need it
+  * catch error from rfstats call in iter_event_data and issue a warning (see #7)
 v0.7.0:
   * add official support for python 3.7 and 3.8
 v0.6.3:
