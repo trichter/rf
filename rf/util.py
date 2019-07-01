@@ -153,7 +153,8 @@ class IterMultipleComponents(object):
             substreams[k].append(tr)
         n = number_components
         self.substreams = [s for _, s in sorted(substreams.items())
-                           if n is None or len(s) == n or len(s) in n]
+                           if n is None or len(s) == n or
+                           (not isinstance(n, int) and len(s) in n)]
 
     def __len__(self):
         return len(self.substreams)
