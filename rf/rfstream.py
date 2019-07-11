@@ -39,6 +39,13 @@ def __get_event_magnitude(event):
         raise ValueError('No magnitude')
 
 
+def __get_event_id(event):
+    evid = event.get('resource_id')
+    if evid is not None:
+        evid = str(evid)
+    return evid
+
+
 def __SAC2UTC(stats, head):
     from obspy.io.sac.util import get_sac_reftime
     return get_sac_reftime(stats.sac) + stats[head]
@@ -52,21 +59,26 @@ def __UTC2SAC(stats, head):
 _STATION_GETTER = (('station_latitude', itemgetter('latitude')),
                    ('station_longitude', itemgetter('longitude')),
                    ('station_elevation', itemgetter('elevation')))
-_EVENT_GETTER = (  # ('event_id', lambda event: _get_event_id(event)),
+_EVENT_GETTER = (
     ('event_latitude', __get_event_origin_prop('latitude')),
     ('event_longitude', __get_event_origin_prop('longitude')),
     ('event_depth', __get_event_origin_prop('depth')),
     ('event_magnitude', __get_event_magnitude),
-    ('event_time', __get_event_origin_prop('time')))
+    ('event_time', __get_event_origin_prop('time')),
+    ('event_id', __get_event_id))
 
-_HEADERS = list(zip(*_STATION_GETTER))[0] + list(zip(*_EVENT_GETTER))[0] + (
-    'onset', 'type', 'phase', 'moveout',
-    'distance', 'back_azimuth', 'inclination', 'slowness',
-    'pp_latitude', 'pp_longitude', 'pp_depth',
-    'box_pos', 'box_length')
+# header values which will be written to waveform formats (SAC and Q)
+# H5 simply writes all stats entries
+_HEADERS = (tuple(zip(*_STATION_GETTER))[0] +
+            tuple(zip(*_EVENT_GETTER))[0][:-1] + (  # do not write event_id
+            'onset', 'type', 'phase', 'moveout',
+            'distance', 'back_azimuth', 'inclination', 'slowness',
+            'pp_latitude', 'pp_longitude', 'pp_depth',
+            'box_pos', 'box_length'))
 
+# The corresponding header fields in the format
 # The following headers can at the moment only be stored for H5:
-# slowness_before_moveout, box_lonlat
+# slowness_before_moveout, box_lonlat, event_id
 _FORMATHEADERS = {'sac': ('stla', 'stlo', 'stel', 'evla', 'evlo',
                           'evdp', 'mag', 'o', 'a',
                           'kuser0', 'kuser1', 'kuser2',
