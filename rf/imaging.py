@@ -15,7 +15,8 @@ import numpy as np
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             stack_height=0.5, scale=1, fillcolors=(None, None), trim=None,
             info=(('back_azimuth', u'baz (°)', 'C0'),
-                  ('distance', u'dist (°)', 'C3'))):
+                  ('distance', u'dist (°)', 'C3')),
+            show_vlines=False):
     """
     Plot receiver functions.
 
@@ -33,6 +34,8 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
         the stats object. Each entry in this list is a list consisting of
         three entries: key, label and color.
         info can be None. In this case no additional axes is plotted.
+    :param show_vlines: If True, show vertical alignment grid lines on plot
+        at positions of the major x-tick marks.
     """
 
     if len(stream) == 0:
@@ -106,6 +109,9 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     ax1.set_yticklabels('')
     ax1.set_xlabel('time (s)')
     ax1.xaxis.set_minor_locator(AutoMinorLocator())
+    aligner_color = "#a0a0a080"
+    if show_vlines:
+        ax1.xaxis.grid(True, color=aligner_color, linestyle=':')
 
     # plot stack
     stack = stream.stack()
@@ -119,6 +125,8 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
         ax2.yaxis.set_major_locator(MaxNLocator(4))
         for l in ax2.get_yticklabels():
             l.set_fontsize('small')
+        if show_vlines:
+            ax2.xaxis.grid(True, color=aligner_color, linestyle=':')
         # annotate plot with seed id
         bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
         text = '%s traces  %s' % (len(stream), stack[0].id)
