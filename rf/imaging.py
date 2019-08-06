@@ -15,7 +15,7 @@ import numpy as np
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             stack_height=0.5, scale=1, fillcolors=(None, None), trim=None,
             info=(('back_azimuth', u'baz (°)', 'C0'),
-                  ('distance', u'dist (°)', 'C3'))):
+                  ('distance', u'dist (°)', 'C3')), **kwargs):
     """
     Plot receiver functions.
 
@@ -33,6 +33,8 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
         the stats object. Each entry in this list is a list consisting of
         three entries: key, label and color.
         info can be None. In this case no additional axes is plotted.
+    :param \*\*kwargs: other kwargs are passed to fig.savefig() call if
+        fname is not None.
     """
 
     if len(stream) == 0:
@@ -127,7 +129,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
                      bbox=bbox, clip_on=False)
     # save plot
     if fname:
-        fig.savefig(fname)
+        fig.savefig(fname, **kwargs)
         plt.close(fig)
     else:
         return fig
