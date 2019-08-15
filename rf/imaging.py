@@ -13,7 +13,8 @@ import numpy as np
 
 
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
-            stack_height=0.5, scale=1, fillcolors=(None, None), trim=None,
+            stack_height=0.5, dpi=None,
+            scale=1, fillcolors=(None, None), trim=None,
             info=(('back_azimuth', u'baz (°)', 'C0'),
                   ('distance', u'dist (°)', 'C3')),
             show_vlines=False):
@@ -26,6 +27,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     :param fig_width: width of figure in inches
     :param trace_height: height of one trace in inches
     :param stack_height: height of stack axes in inches
+    :param dpi: dots per inch for the created figure
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
     :param trim: trim stream relative to onset before plotting using
@@ -68,7 +70,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     fw2 = FW2 / FW
     fw3 = FW3 / FW
     # init figure and axes
-    fig = plt.figure(figsize=(FW, FH))
+    fig = plt.figure(figsize=(FW, FH), dpi=dpi)
     ax1 = fig.add_axes([fl, fb, fw2, h * (N + 2)])
     if info:
         ax3 = fig.add_axes(
@@ -135,7 +137,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
                      bbox=bbox, clip_on=False)
     # save plot
     if fname:
-        fig.savefig(fname)
+        fig.savefig(fname, dpi=dpi)
         plt.close(fig)
     else:
         return fig
@@ -240,7 +242,8 @@ def plot_profile_map(boxes, inventory=None, label_stations=True, ppoints=None,
     return ax
 
 
-def plot_profile(profile, fname=None, scale=1, fillcolors=('C3', 'C0'),
+def plot_profile(profile, fname=None, figsize=None, dpi=None,
+                 scale=1, fillcolors=('C3', 'C0'),
                  trim=None, top=None, moveout_model='iasp91'):
     """
     Plot receiver function profile.
@@ -248,6 +251,8 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('C3', 'C0'),
     :param profile: stream holding the profile
     :param fname: filename to save plot to. Can be None. In this case
         the figure is left open.
+    :param figsize: figsize of the created figure
+    :param dpi: dots per inch for the created figure
     :param scale: scale for individual traces
     :param fillcolors: fill colors for positive and negative wiggles
     :param trim: trim stream relative to onset before plotting using
@@ -263,7 +268,7 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('C3', 'C0'),
         return
     if trim:
         profile = profile.slice2(*trim, reftime='onset')
-    fig = plt.figure()
+    fig = plt.figure(figsize=figsize, dpi=dpi)
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.7])
     widths = [tr.stats.box_length for tr in profile]
     pad = max(1, scale) * min(widths)
@@ -324,7 +329,7 @@ def plot_profile(profile, fname=None, scale=1, fillcolors=('C3', 'C0'),
         raise NotImplementedError("'%s' not supported for top parameter" % top)
     ax.set_xlim(*xlim)
     if fname:
-        fig.savefig(fname)
+        fig.savefig(fname, dpi=dpi)
         plt.close(fig)
     else:
         return fig
