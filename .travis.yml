@@ -21,18 +21,18 @@ before_install:
       GF="gfortran_osx-64";
     elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       GF="gfortran_linux-64";
-    else
-      GF="";
     fi
   - if [[ $USE_OBSPYH5 == "true" ]]; then
       OBSPYH5DEP="h5py"; OBSPYH5="obspyh5";
-    else
-      OBSPYH5DEP=""; OBSPYH5="";
+    fi
+  - # fix for taupy fails, see Obspy #2319, can be removed at a later point
+  - if [[ $PYTHON_VERSION == 3.7 ]]; then
+      OBSPYVERSION=">=1.1.1";
     fi
   - conda config --add channels conda-forge
   - conda create -q -n testenv
       python=$PYTHON_VERSION
-      decorator matplotlib numpy scipy obspy>=1.1.1
+      decorator matplotlib numpy scipy "obspy$OBSPYVERSION"
       tqdm shapely cartopy geographiclib
       $GF $OBSPYH5DEP
       coverage
