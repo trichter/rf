@@ -32,7 +32,7 @@ before_install:
   - conda config --add channels conda-forge
   - conda create -q -n testenv
       python=$PYTHON_VERSION
-      decorator matplotlib numpy scipy obspy
+      decorator matplotlib numpy scipy obspy>=1.1.1
       tqdm shapely cartopy geographiclib
       $GF $OBSPYH5DEP
       coverage
