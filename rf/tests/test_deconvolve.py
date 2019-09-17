@@ -131,9 +131,26 @@ class DeconvolveTestCase(unittest.TestCase):
         self.assertEqual(peakpos, np.argmax(stream1[1].data))
         self.assertEqual(peakpos, np.argmax(stream2[1].data))
 
+    def test_deconvolve_custom_function(self):
+        def test_func(rsp_data, src_data, **kw):
+            for r_ in rsp_data:
+                r_[:] = 1
+            return rsp_data
+
+        stream = read_rf()[:3]
+        rfstats(stream)
+        stream1 = stream.copy()
+        stream1.rf(deconvolve='func', func=test_func)
+        for tr in stream1:
+            np.testing.assert_equal(tr.data, 1)
+        stream.deconvolve(method='func', func=test_func)
+        for tr in stream:
+            np.testing.assert_equal(tr.data, 1)
+
 
 def suite():
     return unittest.makeSuite(DeconvolveTestCase, 'test')
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')

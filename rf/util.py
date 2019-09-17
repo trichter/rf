@@ -223,9 +223,9 @@ def minimal_example_Srf():
 
 
 @decorator
-def _add_processing_info(func, *args, **kwargs):
+def _add_processing_info(_func_, *args, **kwargs):
     from rf import __version__
-    args_ = inspect.getcallargs(func, *args, **kwargs)
+    args_ = inspect.getcallargs(_func_, *args, **kwargs)
     if args_.pop('self', None) is None:
         args_.pop('stream')
     kw = args_.pop('kwargs', {})
@@ -236,11 +236,11 @@ def _add_processing_info(func, *args, **kwargs):
         kw['azimuth'] = boxes[0]['profile']['azimuth']
         kw['length'] = boxes[0]['profile']['length']
     info = 'rf {version}: {function}(%s)'.format(
-        version=__version__, function=func.__name__)
+        version=__version__, function=_func_.__name__)
     arguments = ['%s=%s' % (k, repr(v)) if not isinstance(v, str) else
                  "%s='%s'" % (k, v) for k, v in kw.items()]
     info = info % '::'.join(sorted(arguments))
-    stream = func(*args, **kwargs)
+    stream = _func_(*args, **kwargs)
     try:
         for tr in stream:
             tr._internal_add_processing_info(info)
