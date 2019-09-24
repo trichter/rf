@@ -5,6 +5,8 @@ dev:
   * add dpi and figsize option where applicable (see #13, #14)
   * Gauss parameter of the Gaussian low pass filter in the frequency
     deconvolution is now directly related to the cut-off frequency (see #15)
+  * switch from pad to nfft parameter for specifying the number of FFT samples
+    in deconvf
   * fix bug in IterMultipleComponents (see #9)
   * fix error when using custom deconvolution function with Stream.rf
 v0.7.0:

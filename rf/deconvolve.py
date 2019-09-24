@@ -4,8 +4,7 @@ Frequency and time domain deconvolution.
 """
 import numpy as np
 from numpy import max, pi
-from obspy.signal.util import next_pow_2
-from scipy.fftpack import fft, ifft
+from scipy.fftpack import fft, ifft, next_fast_len
 from scipy.signal import correlate
 try:
     from toeplitz import sto_sl
@@ -131,7 +130,8 @@ def __get_length(rsp_list):
 
 
 def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
-            tshift=10., pad=0, length=None, normalize=0, return_info=False):
+            tshift=10., length=None, normalize=0, nfft=None,
+            return_info=False):
     """
     Frequency-domain deconvolution using waterlevel method.
 
@@ -146,7 +146,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
         same as the cut-off frequency in Hz for a response value of
         exp(0.5)=0.607.
     :param tshift: delay time 0s will be at time tshift afterwards
-    :param pad: multiply number of samples used for fft by 2**pad
+    :param nfft: explicitely set number of samples for the fft
     :param length: number of data points in results, optional
     :param normalize: normalize all results so that the maximum of the trace
         with supplied index is 1. Set normalize to 'src' to normalize
@@ -160,7 +160,8 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     if length is None:
         length = __get_length(rsp_list)
     N = length
-    nfft = next_pow_2(N) * 2 ** pad
+    if nfft is None:
+        nfft = next_fast_len(N)
     freq = np.fft.fftfreq(nfft, d=1. / sampling_rate)
     gauss = np.exp(np.maximum(-0.5 * (freq / gauss) ** 2, -700.) -
                    1j * tshift * 2 * pi * freq)
