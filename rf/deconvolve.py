@@ -142,8 +142,9 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     :param src: array with source function
     :param sampling_rate: sampling rate of the data
     :param waterlevel: waterlevel to stabilize the deconvolution
-    :param gauss: Gauss parameter of the Gaussian Low-pass filter, it is the
-        same as the cut-off frequency in Hz for a response value of
+    :param gauss: Gauss parameter (standard deviation) of the
+        Gaussian Low-pass filter,
+        corresponds to cut-off frequency in Hz for a response value of
         exp(0.5)=0.607.
     :param tshift: delay time 0s will be at time tshift afterwards
     :param nfft: explicitely set number of samples for the fft
