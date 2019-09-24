@@ -3,6 +3,8 @@ dev:
   * catch error from rfstats call in iter_event_data and issue a warning (see #7)
   * also add event_id to stats object (will not be written to SAC and Q format, see #10)
   * add dpi and figsize option where applicable (see #13, #14)
+  * Gauss parameter of the Gaussian low pass filter in the frequency
+    deconvolution is now directly related to the cut-off frequency (see #15)
   * fix bug in IterMultipleComponents (see #9)
   * fix error when using custom deconvolution function with Stream.rf
 v0.7.0:

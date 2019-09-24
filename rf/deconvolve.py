@@ -130,7 +130,7 @@ def __get_length(rsp_list):
     return len(rsp_list)
 
 
-def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
+def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
             tshift=10., pad=0, length=None, normalize=0, return_info=False):
     """
     Frequency-domain deconvolution using waterlevel method.
@@ -142,7 +142,9 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
     :param src: array with source function
     :param sampling_rate: sampling rate of the data
     :param waterlevel: waterlevel to stabilize the deconvolution
-    :param gauss: Gauss parameter of Low-pass filter
+    :param gauss: Gauss parameter of the Gaussian Low-pass filter, it is the
+        same as the cut-off frequency in Hz for a response value of
+        exp(0.5)=0.607.
     :param tshift: delay time 0s will be at time tshift afterwards
     :param pad: multiply number of samples used for fft by 2**pad
     :param length: number of data points in results, optional
@@ -160,9 +162,8 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=2.,
     N = length
     nfft = next_pow_2(N) * 2 ** pad
     freq = np.fft.fftfreq(nfft, d=1. / sampling_rate)
-    gauss = np.exp(np.maximum(-(0.5 * 2 * pi * freq / gauss) ** 2, -700.) -
+    gauss = np.exp(np.maximum(-0.5 * (freq / gauss) ** 2, -700.) -
                    1j * tshift * 2 * pi * freq)
-
     spec_src = fft(src, nfft)
     spec_src_conj = np.conjugate(spec_src)
     spec_src_water = np.abs(spec_src * spec_src_conj)
