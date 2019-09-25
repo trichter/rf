@@ -70,6 +70,11 @@ def test_format(testcase, format):
 
 
 class BatchTestCase(unittest.TestCase):
+    """
+    For now batch tests are not run on windows.
+    See https://travis-ci.org/trichter/rf/jobs/589375488 for failures.
+    The batch module has a low priority.
+    """
     def setUp(self):
         # turn off progressbar
         import rf.batch
