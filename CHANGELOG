@@ -1,4 +1,4 @@
-dev:
+v0.8.0:
   * remove python2 support, use previous version of rf if you need it
   * catch error from rfstats call in iter_event_data and issue a warning (see #7)
   * also add event_id to stats object (will not be written to SAC and Q format, see #10)
