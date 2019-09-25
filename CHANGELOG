@@ -7,6 +7,9 @@ dev:
     deconvolution is now directly related to the cut-off frequency (see #15)
   * switch from pad to nfft parameter for specifying the number of FFT samples
     in deconvf
+  * Add solve_toeplitz parameter to deconvt to specify solver for the
+    real symmetric Toeplitz system, also add a fall-back to Scipy
+    if the toeplitz package is not installed (see #16)
   * fix bug in IterMultipleComponents (see #9)
   * fix error when using custom deconvolution function with Stream.rf
 v0.7.0:

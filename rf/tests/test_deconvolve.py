@@ -4,11 +4,8 @@ Tests for deconvolve module.
 """
 import unittest
 
-from numpy.random import random, seed
 import numpy as np
-import scipy.linalg
 from scipy.signal import get_window, convolve
-import rf.deconvolve
 from rf.rfstream import read_rf, rfstats
 
 
@@ -45,15 +42,16 @@ def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
 
 class DeconvolveTestCase(unittest.TestCase):
 
-    def test_toeplitz_real_sym(self):
-        # set specific seed value such that random numbers are reproducible
-        seed(0)
-        src = random(50) - 0.5
-        rsp = random(50) - 0.5
-        toep = scipy.linalg.toeplitz(src)
-        x = np.dot(scipy.linalg.inv(toep), rsp)  # compare to scipy.linalg
-        x2 = rf.deconvolve._toeplitz_real_sym(src, rsp)
-        np.testing.assert_array_almost_equal(x, x2, decimal=3)
+    # should be tested in toeplitz module
+#    def test_toeplitz_real_sym(self):
+#        # set specific seed value such that random numbers are reproducible
+#        seed(0)
+#        src = random(50) - 0.5
+#        rsp = random(50) - 0.5
+#        toep = scipy.linalg.toeplitz(src)
+#        x = np.dot(scipy.linalg.inv(toep), rsp)  # compare to scipy.linalg
+#        x2 = rf.deconvolve._toeplitz_real_sym(src, rsp)
+#        np.testing.assert_array_almost_equal(x, x2, decimal=3)
 
     def test_deconvolution_of_stream_Lpeak_position(self):
         stream = read_rf()[:3]
@@ -63,6 +61,7 @@ class DeconvolveTestCase(unittest.TestCase):
         stream.rotate('ZNE->LQT')
         # check that maximum in L component is at 0s (at P onset)
         test_deconvolve_Lpeak(self, stream, 'time')
+        test_deconvolve_Lpeak(self, stream, 'time', solve_toeplitz='scipy')
         test_deconvolve_Lpeak(self, stream, 'freq')
         test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
         test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
@@ -85,6 +84,7 @@ class DeconvolveTestCase(unittest.TestCase):
         stream.rotate('ZNE->LQT')
         # check that maximum in Q component is at 0s (at S onset)
         test_deconvolve_Qpeak(self, stream, 'time')
+        test_deconvolve_Qpeak(self, stream, 'time', solve_toeplitz='scipy')
         test_deconvolve_Qpeak(self, stream, 'freq')
         test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-5, 18, 5))
         test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-5, 18, 5))

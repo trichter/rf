@@ -6,13 +6,6 @@ import numpy as np
 from numpy import max, pi
 from scipy.fftpack import fft, ifft, next_fast_len
 from scipy.signal import correlate
-try:
-    from toeplitz import sto_sl
-except ImportError:
-    import warnings
-    msg = 'Toeplitz import error. Time domain deconvolution will not work.'
-    warnings.warn(msg)
-
 from rf.util import _add_processing_info
 
 
@@ -248,20 +241,10 @@ def _xcorrt(a, b, num, zero_sample=0):
     return correlate(a, b, 'valid')
 
 
-def _toeplitz_real_sym(a, b):
-    """
-    Solve linear system Ax=b for real symmetric Toeplitz matrix A.
-
-    :param a: first row of Toeplitz matrix A
-    :param b: vector b
-    :return: x=A^-1*b
-    """
-    return sto_sl(np.hstack((a, a[1:])), b, job=0)
-
-
 # Gives similar results as a deconvolution with Seismic handler,
 # but SH is faster
-def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0):
+def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0,
+            solve_toeplitz='toeplitz'):
     """
     Time domain deconvolution.
 
@@ -300,9 +283,33 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0):
     :param length: number of data points in results
     :param normalize: normalize all results so that the maximum of the trace
         with supplied index is 1. Set normalize to None for no normalization.
+    :param solve_toeplitz: Python function to use as a solver for Toeplitz
+        system. Possible values are
+        ``'toeplitz'`` for using the toeplitz package (default),
+        ``'scipy'`` for using solve_toeplitz from the SciPy package, or
+        a custom function.
 
     :return: (list of) array(s) with deconvolution(s)
     """
+    if solve_toeplitz == 'toeplitz':
+        try:
+            from toeplitz import sto_sl
+        except ImportError:
+            from warnings import warn
+            warn('Toeplitz import error. Fallback to slower Scipy version.')
+            from scipy.linalg import solve_toeplitz
+        else:
+            def solve_toeplitz(a, b):
+                """
+                Solve linear system Ax=b for real symmetric Toeplitz matrix A.
+
+                :param a: first row of Toeplitz matrix A
+                :param b: vector b
+                :return: x=A^-1*b
+                """
+                return sto_sl(np.hstack((a, a[1:])), b, job=0)
+    elif solve_toeplitz == 'scipy':
+        from scipy.linalg import solve_toeplitz
     if length is None:
         length = __get_length(rsp_list)
     flag = False
@@ -316,7 +323,7 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0):
     for rsp in rsp_list:
         STR = _xcorrt(rsp, src, length, shift)
         assert len(STR) == len(STS)
-        RF = _toeplitz_real_sym(STS, STR)
+        RF = solve_toeplitz(STS, STR)
         RF_list.append(RF)
     if normalize is not None:
         norm = 1 / np.max(np.abs(RF_list[normalize]))
