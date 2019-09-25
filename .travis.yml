@@ -15,8 +15,6 @@ matrix:
     - os: osx
       env: PYTHON_VERSION=3.7 USE_OBSPYH5="true"
     - os: windows
-      env: PYTHON_VERSION=3.7
-    - os: windows
       env: PYTHON_VERSION=3.7 USE_OBSPYH5="true"
 before_install:
   - wget https://raw.githubusercontent.com/trichter/conda4travis/latest/conda4travis.sh -O conda4travis.sh
