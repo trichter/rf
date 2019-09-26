@@ -37,6 +37,11 @@ def deconvolve(stream, method='time', func=None,
         'time' -> use time domain deconvolution in `deconvt()`,\n
         'freq' -> use frequency domain deconvolution in `deconvf()`\n
         'func' -> user defined function (func keyword)
+    :param func: Custom deconvolution function with the following signature
+
+             def custom_deconv(rsp: RFStream, src: RFTrace, tshift=10,
+                               **other_kwargs_possible) -> RFStream:
+
     :param source_components: names of components identifying the source traces,
         e.g. 'LZ' for P receiver functions and 'QR' for S receiver functions
     :param response_components: names of components identifying the response
@@ -102,17 +107,20 @@ def deconvolve(stream, method='time', func=None,
         src = src.copy()
     src.trim(onset + winsrc[0], onset + winsrc[1], pad=True, fill_value=0.)
     src.taper(max_percentage=None, max_length=winsrc[2])
-    rsp_data = [tr.data for tr in rsp]
     tshift = -winsrc[0]
     if method == 'time':
         shift = int(round(tshift * sr - len(src) // 2))
+        rsp_data = [tr.data for tr in rsp]
         rf_data = deconvt(rsp_data, src.data, shift,  **kwargs)
+        for i, tr in enumerate(rsp):
+            tr.data = rf_data[i].real
     elif method == 'freq':
+        rsp_data = [tr.data for tr in rsp]
         rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, **kwargs)
+        for i, tr in enumerate(rsp):
+            tr.data = rf_data[i].real
     else:
-        rf_data = func(rsp_data, src.data, sr=sr, tshift=tshift, **kwargs)
-    for i, tr in enumerate(rsp):
-        tr.data = rf_data[i].real
+        rsp = func(stream.__class__(rsp), src, tshift=tshift, **kwargs)
     return stream.__class__(rsp)
 
 
