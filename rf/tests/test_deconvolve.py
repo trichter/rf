@@ -135,6 +135,7 @@ class DeconvolveTestCase(unittest.TestCase):
         def test_func_stream(rsp, src, **kw):
             for r_ in rsp:
                 r_.data[:] = 1
+                r_.stats.custom = 'X'
             src.data
             return rsp
 
@@ -145,10 +146,12 @@ class DeconvolveTestCase(unittest.TestCase):
         stream1.rf(deconvolve='func', func=test_func_stream)
         for tr in stream1:
             np.testing.assert_equal(tr.data, 1)
+            self.assertIn('custom', tr.stats)
         stream1 = stream
         stream1.deconvolve(method='func', func=test_func_stream)
         for tr in stream1:
             np.testing.assert_equal(tr.data, 1)
+            self.assertIn('custom', tr.stats)
 
 
 def suite():
