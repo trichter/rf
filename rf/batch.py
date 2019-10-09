@@ -1,4 +1,4 @@
-# Copyright 2013-2016 Tom Eulenfeld, MIT license
+# Copyright 2013-2019 Tom Eulenfeld, MIT license
 """
 rf: receiver function calculation - batch command line utility
 """
@@ -370,7 +370,9 @@ def run_cli(args=None):
     After parsing call `run`.
     """
     from rf import __version__
-    p = argparse.ArgumentParser(description=__doc__)
+    msg = ('*Note*: The command line tool is rather low priority in the '
+           'development. It might also be depreciated in the future.')
+    p = argparse.ArgumentParser(description=__doc__, epilog=msg)
     version = '%(prog)s ' + __version__
     p.add_argument('-v', '--version', action='version', version=version)
     msg = 'Configuration file to load (default: conf.json)'
