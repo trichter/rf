@@ -1,4 +1,4 @@
-# Copyright 2013-2018 Tom Eulenfeld, MIT license
+# Copyright 2013-2019 Tom Eulenfeld, MIT license
 """
 rf Documentation
 ================
@@ -169,7 +169,7 @@ A typical workflow for P receiver function calculation and writing looks like
 >>> stream.rf()
 >>> stream.write('rf', 'Q')
 
-rf can also calculate S receiver functions (not much tested):
+rf can also calculate S receiver functions:
 
 >>> stream.rf(method='S')
 
