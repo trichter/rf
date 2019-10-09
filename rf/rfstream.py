@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2013-2016 Tom Eulenfeld, MIT license
+# Copyright 2013-2019 Tom Eulenfeld, MIT license
 """
 Classes and functions for receiver function calculation.
 """

@@ -1,4 +1,4 @@
-# Copyright 2013-2016 Tom Eulenfeld, MIT license
+# Copyright 2013-2019 Tom Eulenfeld, MIT license
 """
 Utility functions and classes for receiver function calculation.
 """
