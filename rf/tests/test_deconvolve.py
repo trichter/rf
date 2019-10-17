@@ -42,7 +42,7 @@ def test_deconvolve_Qpeak(testcase, stream, *args, **kwargs):
 
 class DeconvolveTestCase(unittest.TestCase):
 
-    # should be tested in toeplitz module
+#    # should be tested in toeplitz module
 #    def test_toeplitz_real_sym(self):
 #        # set specific seed value such that random numbers are reproducible
 #        seed(0)
@@ -136,9 +136,8 @@ class DeconvolveTestCase(unittest.TestCase):
             for r_ in rsp:
                 r_.data[:] = 1
                 r_.stats.custom = 'X'
-            src.data
+            self.assertTrue(hasattr(src, 'stats'))
             return rsp
-
 
         stream = read_rf()[:3]
         rfstats(stream)
