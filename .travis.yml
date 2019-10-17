@@ -9,7 +9,7 @@ matrix:
     - os: linux
       env: PYTHON_VERSION=3.7
     - os: linux
-      env: PYTHON_VERSION=3.7 USE_OBSPYH5="true" USE_TOEPLITZ="true"
+      env: PYTHON_VERSION=3.7 USE_OBSPYH5="true" USE_TOEPLITZ="true" NPY_DISTUTILS_APPEND_FLAGS=1
     - os: osx
       env: PYTHON_VERSION=3.7
     - os: osx

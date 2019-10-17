@@ -26,11 +26,14 @@ ENTRY_POINTS = {
 
 REQUIRES = ['decorator', 'matplotlib>=2', 'numpy', 'scipy',
             'setuptools', 'obspy>=1.0.3',
-            'cartopy', 'geographiclib', 'shapely', 'toeplitz', 'tqdm']
+            'cartopy', 'geographiclib', 'shapely']
 
 EXTRAS_REQUIRE = {
     'doc': ['sphinx', 'alabaster'],  # and decorator, obspy
-    'h5': ['obspyh5>=0.3']}
+    'h5': ['obspyh5>=0.3'],
+    'toeplitz': ['toeplitz'],
+    'batch': ['tqdm']
+    }
 
 CLASSIFIERS = [
     'Environment :: Console',

@@ -54,10 +54,11 @@ Dependencies of rf are
 
     * ObsPy_ and some of its dependencies,
     * cartopy, geographiclib, shapely,
-    * toeplitz_ (time domain deconvolution), tqdm,
-    * obspyh5_ for hdf5 file support (optional).
+    * toeplitz_ for faster time domain deconvolution (optional),
+    * obspyh5_ for hdf5 file support (optional),
+    * tqdm for progress bar in batch processing (optional).
 
-After the installation of Obspy rf can be installed with ::
+rf can be installed with ::
 
     pip install rf
 
@@ -65,16 +66,16 @@ The tests can be run with the script ::
 
     rf-runtests
 
-To install the development version of obspy download the source code and run ::
+To install the development version of rf download the source code and run ::
 
-    python setup.py install
+    pip install .
 
 Here are some instructions to install rf into a fresh conda environment::
 
     conda config --add channels conda-forge
     conda create -n rfenv decorator matplotlib numpy scipy obspy tqdm shapely cartopy geographiclib h5py gfortran_linux-64
     conda activate rfenv
-    pip install obspyh5 rf
+    pip install obspyh5 toeplitz rf
     rf-runtests
 
 For OSX the package ``gfortran_osx-64`` must be used instead of ``gfortran_linux-64``.
