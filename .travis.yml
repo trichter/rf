@@ -9,19 +9,19 @@ matrix:
     - os: linux
       env: PYTHON_VERSION=3.7
     - os: linux
-      env: PYTHON_VERSION=3.7 USE_OBSPYH5="true"
+      env: PYTHON_VERSION=3.7 USE_OBSPYH5="true" USE_TOEPLITZ="true"
     - os: osx
       env: PYTHON_VERSION=3.7
     - os: osx
       env: PYTHON_VERSION=3.7 USE_OBSPYH5="true"
     - os: windows
+      env: PYTHON_VERSION=3.7
+    - os: windows
       env: PYTHON_VERSION=3.7 USE_OBSPYH5="true"
 before_install:
   - wget https://raw.githubusercontent.com/trichter/conda4travis/latest/conda4travis.sh -O conda4travis.sh
   - source conda4travis.sh
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      GF="gfortran_osx-64"; TOEPLITZ="toeplitz";
-    elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  - if [[ "$USE_TOEPLITZ" == "true" ]]; then
       GF="gfortran_linux-64"; TOEPLITZ="toeplitz";
     fi
   - if [[ $USE_OBSPYH5 == "true" ]]; then
@@ -39,7 +39,9 @@ before_install:
       $GF $OBSPYH5DEP
       coverage
   - conda activate testenv
-  - pip install $TOEPLITZ $OBSPYH5
+  - if [[ -v USE_OBSPYH5 ]] || [[ -v USE_TOEPLITZ ]]; then
+      pip install $TOEPLITZ $OBSPYH5;
+    fi
   - conda list
 install:
   - pip install -v --no-deps .
