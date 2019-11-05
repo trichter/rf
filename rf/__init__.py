@@ -25,7 +25,8 @@ by removing the source and deep mantle propagation effects.
 Firstly, the S-wave field is separated from the P-wave field by a rotation
 from the station coordinate system (ZNE - vertical, north, east)
 to the wave coordinate system (LQT - P-wave polarization,
-approx. SV-wave polarization, SH-wave polarization).
+approx. SV-wave polarization, SH-wave polarization). Alternatively, it is
+possible to rotate to the ZRT coordinate system (vertical, radial, transverse).
 Secondly, the waveform on the L component is deconvolved from the other
 components, which removes source side and propagation effects.
 The resulting functions are the Q and T component of the P receiver function.
@@ -79,7 +80,9 @@ Here are some instructions to install rf into a fresh conda environment::
     rf-runtests
 
 For OSX the package ``gfortran_osx-64`` must be used instead of ``gfortran_linux-64``.
-For Windows you need to install the FORTRAN compiler yourself (MinGW).
+For Windows you need to install the FORTRAN compiler yourself (MinGW). Often, problems
+with the compilation of Fortran codes (toeplitz package) can be solved by setting
+``export NPY_DISTUTILS_APPEND_FLAGS=1``.
 
 Using the Python module
 -----------------------
@@ -188,6 +191,16 @@ for a more detailed description.
 RFStream provides the possibility to perform moveout correction,
 piercing point calculation and profile stacking.
 
+Tutorials
+---------
+
+The following Jupyter notebooks can be viewed online or downloaded
+to be locally reproduced.
+
+    1. Calculate receiver functions - minimal example (notebook1_)
+    2. Calculate receiver functions and stack them by common conversion points
+       to create a profile (notebook2_)
+
 Command line tool for batch processing
 --------------------------------------
 
@@ -236,6 +249,10 @@ version is |buildstatus|.
 .. _pip: http://www.pip-installer.org/
 .. _obspyh5: https://github.com/trichter/obspyh5/
 .. _toeplitz: https://github.com/trichter/toeplitz/
+
+.. _notebook1: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
+.. _notebook2: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
+
 .. _GitHub: https://github.com/trichter/rf/
 .. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
     branch=master

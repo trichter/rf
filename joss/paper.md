@@ -30,7 +30,7 @@ of different components of the rotated seismogram.
 ``rf`` is a Python package for calculating receiver functions. It provides the ``RFStream`` class which extents Obspy's
 ``Stream`` class [@obspy] with functionality needed for receiver function calculation.
 Among those are, waveform input/output with metadata preservation,
-calculation of incidence angles for rotation of waves into LQT system,
+calculation of incidence angles for rotation of waves into ZRT or LQT coordinate systems,
 frequency domain or time domain deconvolution techniques, move-out correction,
 calculation of and stacking by piercing points.
 Receiver functions of S to P converted waves can also be calculated.
