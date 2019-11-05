@@ -25,7 +25,8 @@ by removing the source and deep mantle propagation effects.
 Firstly, the S-wave field is separated from the P-wave field by a rotation
 from the station coordinate system (ZNE - vertical, north, east)
 to the wave coordinate system (LQT - P-wave polarization,
-approx. SV-wave polarization, SH-wave polarization).
+approx. SV-wave polarization, SH-wave polarization). Alternatively, it is
+possible to rotate to the ZRT coordinate system (vertical, radial, transverse).
 Secondly, the waveform on the L component is deconvolved from the other
 components, which removes source side and propagation effects.
 The resulting functions are the Q and T component of the P receiver function.
