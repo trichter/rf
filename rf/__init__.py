@@ -79,7 +79,9 @@ Here are some instructions to install rf into a fresh conda environment::
     rf-runtests
 
 For OSX the package ``gfortran_osx-64`` must be used instead of ``gfortran_linux-64``.
-For Windows you need to install the FORTRAN compiler yourself (MinGW).
+For Windows you need to install the FORTRAN compiler yourself (MinGW). Often, problems
+with the compilation of Fortran codes (toeplitz package) can be solved by setting
+``export NPY_DISTUTILS_APPEND_FLAGS=1``.
 
 Using the Python module
 -----------------------
