@@ -74,7 +74,7 @@ To install the development version of rf download the source code and run ::
 Here are some instructions to install rf into a fresh conda environment::
 
     conda config --add channels conda-forge
-    conda create -n rfenv decorator matplotlib numpy scipy obspy tqdm shapely cartopy geographiclib h5py gfortran_linux-64
+    conda create -n rfenv obspy cartopy geographiclib shapely h5py tqdm gfortran_linux-64
     conda activate rfenv
     pip install obspyh5 toeplitz rf
     rf-runtests
