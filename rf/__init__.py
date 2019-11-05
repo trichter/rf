@@ -191,6 +191,16 @@ for a more detailed description.
 RFStream provides the possibility to perform moveout correction,
 piercing point calculation and profile stacking.
 
+Tutorials
+---------
+
+The following Jupyter notebooks can be viewed online or downloaded
+to be locally reproduced.
+
+    1. Calculate receiver functions - minimal example (notebook1_)
+    2. Calculate receiver functions and stack them by common conversion points
+       to create a profile (notebook2_)
+
 Command line tool for batch processing
 --------------------------------------
 
@@ -239,6 +249,10 @@ version is |buildstatus|.
 .. _pip: http://www.pip-installer.org/
 .. _obspyh5: https://github.com/trichter/obspyh5/
 .. _toeplitz: https://github.com/trichter/toeplitz/
+
+.. _notebook1: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
+.. _notebook2: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
+
 .. _GitHub: https://github.com/trichter/rf/
 .. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
     branch=master
