@@ -18,10 +18,16 @@ class ImagingTestCase(unittest.TestCase):
 
     def test_plot_rf(self):
         stream = minimal_example_rf()
-        stream.select(component='Q').plot_rf()
+        streamQ = stream.select(component='Q')
+        streamQ.plot_rf()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             stream.plot_rf()
+        # test plotting with different number of samples
+        streamQ[0].data = streamQ[0].data[:-10]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            streamQ.plot_rf()
 
     @unittest.skipIf(cartopy is None, 'cartopy not installed')
     def test_plot_ppoints(self):

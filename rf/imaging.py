@@ -12,6 +12,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def _label(stream):
+    label_fmts = ['{network}.{station}.{location}.{channel}',
+                  '{network}.{station}.{location}.{channel:.2}?',
+                  '{network}.{station}']
+    for label_fmt in label_fmts:
+        labelset = {label_fmt.format(**tr.stats) for tr in stream}
+        if len(labelset) == 1:
+            return labelset.pop()
+    return ''
+
+
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             stack_height=0.5, dpi=None,
             scale=1, fillcolors=(None, None), trim=None,
@@ -45,9 +56,6 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     if trim:
         stream = stream.slice2(*trim, reftime='onset')
     N = len(stream)
-    # calculate lag times
-    stats = stream[0].stats
-    times = stream[0].times() - (stats.onset - stats.starttime)
     # calculate axes and figure dimensions
     # big letters: inches, small letters: figure fraction
     H = trace_height
@@ -89,8 +97,11 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
         if c2:
             ax.fill_between(t, d + i, i, where=d < 0, lw=0., facecolor=c2)
         ax.plot(t, d + i, 'k')
+    xlim = (0, 0)
     max_ = max(np.max(np.abs(tr.data)) for tr in stream)
     for i, tr in enumerate(stream):
+        times = tr.times(reftime=tr.stats.onset)
+        xlim = (min(xlim[0], times[0]), max(xlim[1], times[-1]))
         _plot(ax1, times, tr.data / max_ * scale, i + 1)
     # plot right axes with header information
     for ax, header, label, color in info:
@@ -106,7 +117,7 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
                 l.set_fontsize('small')
         ax.xaxis.set_minor_locator(AutoMinorLocator())
     # set x and y limits
-    ax1.set_xlim(times[0], times[-1])
+    ax1.set_xlim(*xlim)
     ax1.set_ylim(-0.5, N + 1.5)
     ax1.set_yticklabels('')
     ax1.set_xlabel('time (s)')
@@ -116,25 +127,31 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
         ax1.xaxis.grid(True, color=aligner_color, linestyle=':')
 
     # plot stack
-    stack = stream.stack()
-    if len(stack) > 1:
-        warnings.warn('Different stations or channels in one RF plot.')
-    elif len(stack) == 1:
-        ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
-        _plot(ax2, times, stack[0].data, 0)
-        for l in ax2.get_xticklabels():
-            l.set_visible(False)
-        ax2.yaxis.set_major_locator(MaxNLocator(4))
-        for l in ax2.get_yticklabels():
-            l.set_fontsize('small')
-        if show_vlines:
-            ax2.xaxis.grid(True, color=aligner_color, linestyle=':')
-        # annotate plot with seed id
-        bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
-        text = '%s traces  %s' % (len(stream), stack[0].id)
-        ax2.annotate(text, (1 - 0.5 * fr, 1 - 0.5 * ft),
-                     xycoords='figure fraction', va='top', ha='right',
-                     bbox=bbox, clip_on=False)
+    try:
+        stack = stream.stack()
+    except ValueError:
+        msg = 'Different npts for traces in one RF plot. Do not plot stack.'
+        warnings.warn(msg)
+    else:
+        if len(stack) > 1:
+            warnings.warn('Different stations or channels in one RF plot. ' +
+                          'Do not plot stack.')
+        elif len(stack) == 1:
+            ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
+            _plot(ax2, times, stack[0].data, 0)
+            for l in ax2.get_xticklabels():
+                l.set_visible(False)
+            ax2.yaxis.set_major_locator(MaxNLocator(4))
+            for l in ax2.get_yticklabels():
+                l.set_fontsize('small')
+            if show_vlines:
+                ax2.xaxis.grid(True, color=aligner_color, linestyle=':')
+    # annotate plot with seed id
+    bbox = dict(boxstyle='round', facecolor='white', alpha=0.8, lw=0)
+    title = '%s traces  %s' % (len(stream), _label(stream))
+    ax1.annotate(title, (1 - 0.5 * fr, 1 - 0.5 * ft),
+                 xycoords='figure fraction', va='top', ha='right',
+                 bbox=bbox, clip_on=False)
     # save plot
     if fname:
         fig.savefig(fname, dpi=dpi)

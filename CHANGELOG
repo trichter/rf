@@ -1,3 +1,6 @@
+dev:
+  * fix: plot_rf can now plot stream with traces of different length,
+    the stack is not plotted in this case (see #23)
 v0.9.0:
   * Custom deconvolution function is now called with RFStream and RFTrace
     objects and should return a RFStream object (see #17)
