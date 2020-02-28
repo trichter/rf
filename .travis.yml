@@ -18,11 +18,14 @@ matrix:
       env: PYTHON_VERSION=3.7
     - os: windows
       env: PYTHON_VERSION=3.7 USE_OBSPYH5="true"
+    - os: windows
+      env: PYTHON_VERSION=3.7 USE_OBSPYH5="true" USE_TOEPLITZ="true" NPY_DISTUTILS_APPEND_FLAGS=1
+
 before_install:
   - wget https://raw.githubusercontent.com/trichter/conda4travis/latest/conda4travis.sh -O conda4travis.sh
   - source conda4travis.sh
   - if [[ $USE_TOEPLITZ == "true" ]]; then
-      GF="gfortran_${TRAVIS_OS_NAME}-64"; TOEPLITZ="toeplitz";
+      GF="fortran-compiler"; TOEPLITZ="toeplitz";
     fi
   - if [[ $USE_OBSPYH5 == "true" ]]; then
       OBSPYH5DEP="h5py"; OBSPYH5="obspyh5";
