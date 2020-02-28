@@ -20,4 +20,4 @@
 
 All contributions are welcome ... e.g. report bugs, discuss or add new features.
 For example, the package could profit from more advanced deconvolution techniques.
-New deconvolution functions can be testst by just passing them to deconvolve method (see docs).
+New deconvolution functions can be tested by just passing them to deconvolve method (see docs).

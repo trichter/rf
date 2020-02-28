@@ -74,14 +74,14 @@ To install the development version of rf download the source code and run ::
 Here are some instructions to install rf into a fresh conda environment::
 
     conda config --add channels conda-forge
-    conda create -n rfenv obspy cartopy geographiclib shapely h5py tqdm gfortran_linux-64
+    conda create -n rfenv obspy cartopy geographiclib shapely h5py tqdm fortran-compiler
     conda activate rfenv
     pip install obspyh5 toeplitz rf
     rf-runtests
 
-For OSX the package ``gfortran_osx-64`` must be used instead of ``gfortran_linux-64``.
-For Windows you need to install the FORTRAN compiler yourself (MinGW). Often, problems
-with the compilation of Fortran codes (toeplitz package) can be solved by setting
+The ``fortran-compiler`` metapackage helps finding the right fortran compiler
+and its dependencies for any OS. Often, problems with the compilation of Fortran
+codes (toeplitz package) can be solved by setting
 ``export NPY_DISTUTILS_APPEND_FLAGS=1``.
 
 Using the Python module
