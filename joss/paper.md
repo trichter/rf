@@ -8,6 +8,7 @@ tags:
   - deconvolution
 authors:
   - name: Tom Eulenfeld
+    orcid: 0000-0002-8378-559X
     affiliation: 1
 affiliations:
  - name: Institute of Geosciences, Friedrich Schiller University Jena, Germany
@@ -20,9 +21,9 @@ bibliography: paper.bib
 # Summary
 
 The receiver function method is a popular seismological technique to investigate velocity
-discontinuities in the crust and upper mantle, like the crust-mantle boundary (the Moho). 
-The basic concept behind the method is that a part of the incident P-waves from a 
-teleseismic event (e.g., a distant earthquake) gets converted to S-waves at significant discontinuities 
+discontinuities in the crust and upper mantle, like the crust-mantle boundary (the Moho).
+The basic concept behind the method is that a part of the incident P-waves from a
+teleseismic event (e.g., a distant earthquake) gets converted to S-waves at significant discontinuities
 underneath a seismometer (receiver).
 The travel time difference between the first arriving P-wave and the converted S-wave constrains
 the depth of the discontinuity and the velocity ratio of P- and S-waves of the overlaying structure.
