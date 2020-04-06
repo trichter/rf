@@ -243,6 +243,14 @@ Please feel free to request features, report bugs or contribute code on
 GitHub_. The code is continuously tested by travis-ci. The test status of this
 version is |buildstatus|.
 
+Citation
+--------
+
+If you found this package useful, please consider citing it.
+
+Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal of Open Source Software*, 5(48), 1808, doi: `10.21105/joss.01808`__.
+
+.. __: https://dx.doi.org/10.21105/joss.01808
 
 .. _this: http://www.diss.fu-berlin.de/diss/servlets/MCRFileNodeServlet/FUDISS_derivate_000000014929/dissertation_richter.pdf
 .. _ObsPy: http://www.obspy.org/
