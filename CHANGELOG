@@ -1,4 +1,4 @@
-dev:
+0.9.1:
   * fix: plot_rf can now plot stream with traces of different length,
     the stack is not plotted in this case (see #23)
 v0.9.0:
