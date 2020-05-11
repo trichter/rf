@@ -27,3 +27,10 @@ New deconvolution functions can be tested by just passing them to deconvolve met
 If you found this package useful, please consider citing it.
 
 Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal of Open Source Software*, 5(48), 1808, doi: [10.21105/joss.01808](https://doi.org/10.21105/joss.01808) [[pdf]](https://www.theoj.org/joss-papers/joss.01808/10.21105.joss.01808.pdf)
+
+##### Related receiver function projects
+
+* [seispy](https://github.com/xumi1993/seispy) including hk-stacking
+* [RFPy](https://github.com/paudetseis/RfPy) including hk-stacking, harmonic decomposition
+* [BayHunter](https://github.com/jenndrei/BayHunter) inversion of receiver functions and surface wave dispersion
+* [telewavesim](https://github.com/paudetseis/Telewavesim) synthetics
