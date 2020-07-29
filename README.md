@@ -16,7 +16,7 @@
 [nb1]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
 [nb2]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
 
-##### Get help and discuss: [ObsPy Related Projects category](https://discourse.obspy.org/c/obspy-related-projects) in the ObsPy forum
+##### Get help and discuss: [ObsPy Related Projects category](https://discourse.obspy.org/c/obspy-related-projects/rf/14) in the ObsPy forum
 
 ##### Contribute:
 
