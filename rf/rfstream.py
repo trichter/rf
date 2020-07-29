@@ -380,7 +380,7 @@ class RFStream(Stream):
         :param pp_depth: depth of interface in km
         :param pp_phase: 'P' for piercing points of P wave, 'S' for piercing
             points of S wave or multiples, if None will be
-            set to 'S' for P receiver functions or 'S' for S receiver functions
+            set to 'S' for P receiver functions or 'P' for S receiver functions
         :param model: path to model file (see `.SimpleModel`, default: iasp91)
         :return: NumPy array with coordinates of piercing points
         """
