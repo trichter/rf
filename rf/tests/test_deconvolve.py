@@ -107,8 +107,10 @@ class DeconvolveTestCase(unittest.TestCase):
             tr.stats.channel = tr.stats.channel[:2] + 'LQT'[i]
             tr.stats.onset = tr.stats.starttime + 40
         stream2 = stream1.copy()
+        stream3 = stream1.copy()
         stream1.deconvolve(spiking=10)
         stream2.deconvolve(method='freq', waterlevel=0.1)
+        stream3.deconvolve(method='iter')
 
 #        import matplotlib.pyplot as plt
 #        plt.subplot(121)
@@ -130,6 +132,7 @@ class DeconvolveTestCase(unittest.TestCase):
         peakpos = np.argmax(data) - 10
         self.assertEqual(peakpos, np.argmax(stream1[1].data))
         self.assertEqual(peakpos, np.argmax(stream2[1].data))
+        self.assertEqual(peakpos, np.argmax(stream3[1].data))
 
     def test_deconvolve_custom_function(self):
         def test_func_stream(rsp, src, **kw):
