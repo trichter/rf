@@ -200,6 +200,8 @@ to be locally reproduced.
     1. Calculate receiver functions - minimal example (notebook1_)
     2. Calculate receiver functions and stack them by common conversion points
        to create a profile (notebook2_)
+    3. Calculate and compare receiver functions calculated with different
+       deconvolution methods (notebook3_)
 
 Command line tool for batch processing
 --------------------------------------
@@ -260,6 +262,7 @@ Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal 
 
 .. _notebook1: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
 .. _notebook2: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
+.. _notebook3: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_comparison.ipynb
 
 .. _GitHub: https://github.com/trichter/rf/
 .. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
