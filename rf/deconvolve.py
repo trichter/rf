@@ -490,7 +490,7 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
 
             p0[i1] = p0[i1] + amp  # add the amplitude of the spike to our spike-train RF
             p_flt = _apply_filter(p0, gaussF, dt)  # gaussian filter the spike
-            p_flt = _apply_filter(p_flt, sft, dt)  # convolve with fft of source
+            p_flt = _apply_filter(p_flt, sft, dt) * dt  # convolve with fft of source
 
             rem_flt = r_flt - p_flt  # subtract spike estimate from source to see what's left to model
             sumsq = np.sum(rem_flt**2)/powerR
