@@ -415,7 +415,6 @@ def _phase_shift(x, nft, dt, tshift):
     """
     xf = fft(x, n=nft)
     freq = np.fft.fftfreq(nft, d=dt)
-    tshift = np.round(tshift / dt) * dt
     x = ifft(xf * np.exp(-2j * pi*freq*tshift), n=nft)[:len(xf)]
     return x.real
 
