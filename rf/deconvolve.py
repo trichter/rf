@@ -463,9 +463,8 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
     for c in range(ncomp):  # loop over the responses
         rms = np.zeros(itmax)    # to store rms
         p0 = np.zeros(nfft)      # and rf for this component iteration
-
-        r0 = np.pad(rsp[c],(0,nfft-nt), mode='constant')  # zero-pad the source and response arrays
-        s0 = np.pad(src,(0,nfft-nt), mode='constant')     # (only matters if nfft!=nt for the sake of 2**)
+        r0 = rsp[c]
+        s0 = src
 
         gaussF = _gauss_filter(dt, nfft, gauss)  # construct and apply gaussian filter
         r_flt = _apply_filter(r0, gaussF, dt)
