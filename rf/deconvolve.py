@@ -7,7 +7,6 @@ from numpy import max, pi
 from scipy.fftpack import fft, ifft, next_fast_len
 from scipy.signal import correlate
 from rf.util import _add_processing_info
-from obspy.signal.util import next_pow_2
 from copy import copy
 
 
@@ -456,7 +455,6 @@ def deconv_iter(rsp, src, tshift, dt, gauss=0.5, itmax=400, minderr=0.001,
     nt = len(src)       # number of points actually in trace
     ncomp = len(rsp)    # number of components we're looping over here
 
-    #nfft = next_pow_2(nt)               # closest power of 2 for fft'ing the arrays
     nfft = nt
     RF_out = np.zeros((ncomp,nt))       # spike trains that we're going to make
     nit = np.zeros(ncomp)               # number of iterations each component uses
