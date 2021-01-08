@@ -178,9 +178,8 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     if nfft is None:
         nfft = next_fast_len(N)
     dt = 1. / sampling_rate
-    freq = np.fft.fftfreq(nfft, d=dt)
-    gauss = _gauss_filter(dt, nfft, gauss, waterlevel=-700) * np.exp(
-            - 1j * tshift * 2 * pi * freq)
+    ffilt = _gauss_filter(dt, nfft, gauss, waterlevel=-700) * \
+                _phase_shift_filter(nfft, dt, tshift)
     spec_src = fft(src, nfft)
     spec_src_conj = np.conjugate(spec_src)
     spec_src_water = np.abs(spec_src * spec_src_conj)
@@ -188,7 +187,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
         spec_src_water, max(spec_src_water) * waterlevel)
 
     if normalize == 'src':
-        spec_src = gauss * spec_src * spec_src_conj / spec_src_water
+        spec_src = ffilt * spec_src * spec_src_conj / spec_src_water
         rf_src = ifft(spec_src, nfft)[:N]
         norm = 1 / max(rf_src)
         rf_src = norm * rf_src
@@ -197,7 +196,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     if not isinstance(rsp_list, (list, tuple)):
         flag = True
         rsp_list = [rsp_list]
-    rf_list = [ifft(gauss * fft(rsp, nfft) * spec_src_conj / spec_src_water,
+    rf_list = [ifft(ffilt * fft(rsp, nfft) * spec_src_conj / spec_src_water,
                     nfft)[:N] for rsp in rsp_list]
     if normalize not in (None, 'src'):
         norm = 1. / max(rf_list[normalize])
@@ -206,13 +205,14 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
             rf *= norm
     if return_info:
         if normalize not in (None, 'src'):
-            spec_src = gauss * spec_src * spec_src_conj / spec_src_water
+            spec_src = ffilt * spec_src * spec_src_conj / spec_src_water
             rf_src = ifft(spec_src, nfft)[:N]
             norm = 1 / max(rf_src)
             rf_src = norm * rf_src
         info = {'rf_src': rf_src, 'rf_src_conj': spec_src_conj,
-                'spec_src_water': spec_src_water, 'freq': freq,
-                'gauss': gauss, 'norm': norm, 'N': N, 'nfft': nfft}
+                'spec_src_water': spec_src_water,
+                'freq': np.fft.fftfreq(nfft, d=dt),
+                'gauss': ffilt, 'norm': norm, 'N': N, 'nfft': nfft}
         return rf_list, info
     elif flag:
         return rf
@@ -356,6 +356,7 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0,
     else:
         return RF_list
 
+
 def _gauss_filter(dt, nft, f0, waterlevel=None):
     """
     Gaussian filter with width f0
@@ -375,20 +376,22 @@ def _gauss_filter(dt, nft, f0, waterlevel=None):
         gauss_arg = np.maximum(gauss_arg, waterlevel)
     return np.exp(gauss_arg)
 
-def _gfilter(x, nft, gauss, dt):
+
+def _apply_filter(x, filt, dt):
     """
-    Apply a (Gaussian) filter to a data array
+    Apply a filter defined in frequency domain to a data array
 
     :param x: array of data to filter
-    :param nft: number of points for fft
-    :param gauss: filter to apply in frequency domain, from _gauss_filter()
-        or elsewhere
+    :param filter: filter to apply in frequency domain,
+        e.g. from _gauss_filter()
     :param dt: sample spacing in seconds
     :return: real part of filtered array
     """
+    nft = len(filt)
     xf = fft(x, n=nft)
-    xnew = ifft(xf*gauss, n=nft)
+    xnew = ifft(xf*filt, n=nft)
     return xnew.real
+
 
 def _fft_correlate(a, b, nft):
     """
@@ -403,20 +406,17 @@ def _fft_correlate(a, b, nft):
     return x.real
 
 
-def _phase_shift(x, nft, dt, tshift):
+def _phase_shift_filter(nft, dt, tshift):
     """
-    Shift array to account for time before onset
+    Construct filter to shift an array to account for time before onset
 
-    :param x: array to shift
     :param nft: number of points for fft
     :param dt: sample spacing in seconds
     :param tshift: time to shift by in seconds
     :return: shifted array
     """
-    xf = fft(x, n=nft)
     freq = np.fft.fftfreq(nft, d=dt)
-    x = ifft(xf * np.exp(-2j * pi*freq*tshift), n=nft)[:len(xf)]
-    return x.real
+    return np.exp(-2j * pi * freq * tshift)
 
 
 def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
@@ -468,8 +468,8 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
         s0 = np.pad(src,(0,nfft-nt))     # (only matters if nfft!=nt for the sake of 2**)
 
         gaussF = _gauss_filter(dt, nfft, gauss)  # construct and apply gaussian filter
-        r_flt = _gfilter(r0, nfft, gaussF, dt)
-        s_flt = _gfilter(s0, nfft, gaussF, dt)
+        r_flt = _apply_filter(r0, gaussF, dt)
+        s_flt = _apply_filter(s0, gaussF, dt)
 
         sft = fft(s0, nfft)  # fourier transform of the source
         rem_flt = copy(r_flt)  # thing to subtract from as spikes are added to p
@@ -490,8 +490,8 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
             amp = rs[i1]/dt
 
             p0[i1] = p0[i1] + amp  # add the amplitude of the spike to our spike-train RF
-            p_flt = _gfilter(p0, nfft, gaussF, dt)  # gaussian filter the spike
-            p_flt = _gfilter(p_flt, nfft, sft, dt)  # convolve with fft of source
+            p_flt = _apply_filter(p0, gaussF, dt)  # gaussian filter the spike
+            p_flt = _apply_filter(p_flt, sft, dt)  # convolve with fft of source
 
             rem_flt = r_flt - p_flt  # subtract spike estimate from source to see what's left to model
             sumsq = np.sum(rem_flt**2)/powerR
@@ -502,9 +502,10 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
             it = it + 1         # and add one to the iteration count
 
         # once we get out of the loop:
-        p_flt = _gfilter(p0, nfft, gaussF, dt)
-        p_flt = _phase_shift(p_flt, nfft, dt, tshift)
-        RF_out[c,:] = p_flt  # save the RF for output
+        p_flt = _apply_filter(p0, gaussF, dt)
+        shift_filt = _phase_shift_filter(nfft, dt, tshift)
+        p_flt = _apply_filter(p_flt, shift_filt, dt)
+        RF_out[c,:] = p_flt[:nt]  # save the RF for output
         nit[c] = it
 
     if normalize is not None:
