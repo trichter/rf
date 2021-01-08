@@ -178,9 +178,10 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     N = length
     if nfft is None:
         nfft = next_fast_len(N)
-    freq = np.fft.fftfreq(nfft, d=1. / sampling_rate)
-    gauss = np.exp(np.maximum(-0.5 * (freq / gauss) ** 2, -700.) -
-                   1j * tshift * 2 * pi * freq)
+    dt = 1. / sampling_rate
+    freq = np.fft.fftfreq(nfft, d=dt)
+    gauss = _gauss_filter(dt, nfft, gauss, waterlevel=-700) * np.exp(
+            - 1j * tshift * 2 * pi * freq)
     spec_src = fft(src, nfft)
     spec_src_conj = np.conjugate(spec_src)
     spec_src_water = np.abs(spec_src * spec_src_conj)
@@ -356,19 +357,24 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0,
     else:
         return RF_list
 
-def _gauss_filter(dt, nft,f0):
+def _gauss_filter(dt, nft, f0, waterlevel=None):
     """
     Gaussian filter with width f0
 
     :param dt: sample spacing in seconds
     :param nft: length of filter in points
-    :param f0: width of gaussian filter in seconds
-    :return: array with Gaussian filter
+    :param f0: Standard deviation of the Gaussian Low-pass filter,
+        corresponds to cut-off frequency in Hz for a response value of
+        exp(0.5)=0.607.
+    :param waterlevel: waterlevel for eliminating very low values
+        (default: no waterlevel)
+    :return: array with Gaussian filter frequency response
     """
-    f = np.fft.fftfreq(nft,dt)
-    w = 2*pi*f
-    gauss = np.exp(-0.25*(w/f0)**2)/dt
-    return gauss
+    f = np.fft.fftfreq(nft, dt)
+    gauss_arg = -0.5 * (f/f0) ** 2
+    if waterlevel is not None:
+        gauss_arg = np.maximum(gauss_arg, waterlevel)
+    return np.exp(gauss_arg)
 
 def _gfilter(x, nft, gauss, dt):
     """
@@ -382,7 +388,7 @@ def _gfilter(x, nft, gauss, dt):
     :return: real part of filtered array
     """
     xf = fft(x, n=nft)
-    xnew = ifft(xf*gauss*dt, n=nft)
+    xnew = ifft(xf*gauss, n=nft)
     return xnew.real
 
 def _fft_correlate(a, b, nft):
@@ -414,7 +420,7 @@ def _phase_shift(x, nft, dt, tshift):
     x = ifft(xf, n=nft)/np.cos(2*pi*ish/nft)
     return x.real
 
-def deconv_iter(rsp, src, tshift, dt, f0=3.0, itmax=400, minderr=0.001,
+def deconv_iter(rsp, src, tshift, dt, gauss=0.5, itmax=400, minderr=0.001,
                 normalize=0):
     """
     Iterative deconvolution.
@@ -434,7 +440,10 @@ def deconv_iter(rsp, src, tshift, dt, f0=3.0, itmax=400, minderr=0.001,
     :param src: array with source function
     :param tshift: time window length before onset in seconds
     :param dt: sampling interval of data in seconds
-    :param f0: width of Gaussian filter in seconds
+    :param gauss: Gauss parameter (standard deviation) of the
+        Gaussian Low-pass filter,
+        corresponds to cut-off frequency in Hz for a response value of
+        exp(0.5)=0.607.
     :param itmax: limit on number of iterations/spikes to add
     :param minderr: stop iteration when the change in error from adding another
         spike drops below this threshold
@@ -459,7 +468,7 @@ def deconv_iter(rsp, src, tshift, dt, f0=3.0, itmax=400, minderr=0.001,
         r0 = np.pad(rsp[c],(0,nfft-nt))  # zero-pad the source and response arrays
         s0 = np.pad(src,(0,nfft-nt))     # (only matters if nfft!=nt for the sake of 2**)
 
-        gaussF = _gauss_filter(dt, nfft, f0)  # construct and apply gaussian filter
+        gaussF = _gauss_filter(dt, nfft, gauss)  # construct and apply gaussian filter
         r_flt = _gfilter(r0, nfft, gaussF, dt)
         s_flt = _gfilter(s0, nfft, gaussF, dt)
 
