@@ -402,6 +402,7 @@ def _fft_correlate(a, b, nft):
     x = ifft(fft(a, n=nft) * np.conj(fft(b, n=nft)), n=nft)
     return x.real
 
+
 def _phase_shift(x, nft, dt, tshift):
     """
     Shift array to account for time before onset
@@ -410,14 +411,14 @@ def _phase_shift(x, nft, dt, tshift):
     :param nft: number of points for fft
     :param dt: sample spacing in seconds
     :param tshift: time to shift by in seconds
-    :return: scaled real part of shifted array
+    :return: shifted array
     """
     xf = fft(x, n=nft)
-    ish = int(tshift/dt)
-    p = 2*pi*np.arange(1, nft+1)*ish/nft
-    xf = xf*np.vectorize(complex)(np.cos(p), -np.sin(p))
-    x = ifft(xf, n=nft)/np.cos(2*pi*ish/nft)
+    freq = np.fft.fftfreq(nft, d=dt)
+    tshift = np.round(tshift / dt) * dt
+    x = ifft(xf * np.exp(-2j * pi*freq*tshift), n=nft)[:len(xf)]
     return x.real
+
 
 def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
                 minderr=0.001, normalize=0):
@@ -504,7 +505,7 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
         # once we get out of the loop:
         p_flt = _gfilter(p0, nfft, gaussF, dt)
         p_flt = _phase_shift(p_flt, nfft, dt, tshift)
-        RF_out[c,:] = p_flt[:nt]  # save the RF for output
+        RF_out[c,:] = p_flt  # save the RF for output
         nit[c] = it
 
     if normalize is not None:
