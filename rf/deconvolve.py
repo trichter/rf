@@ -127,7 +127,7 @@ def deconvolve(stream, method='time', func=None,
             tr.data = rf_data[i].real
     elif method == 'iter':
         rsp_data = [tr.data for tr in rsp]
-        rf_data, nit = deconv_iter(rsp_data, src.data, tshift, src.stats.delta,
+        rf_data, nit = deconv_iter(rsp_data, src.data, sr, tshift=tshift,
                                    **kwargs)
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
@@ -419,8 +419,8 @@ def _phase_shift(x, nft, dt, tshift):
     x = ifft(xf, n=nft)/np.cos(2*pi*ish/nft)
     return x.real
 
-def deconv_iter(rsp, src, tshift, dt, gauss=0.5, itmax=400, minderr=0.001,
-                normalize=0):
+def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
+                minderr=0.001, normalize=0):
     """
     Iterative deconvolution.
 
@@ -437,8 +437,8 @@ def deconv_iter(rsp, src, tshift, dt, gauss=0.5, itmax=400, minderr=0.001,
     :param rsp: either a list of arrays containing the response functions
         or a single array
     :param src: array with source function
-    :param tshift: time window length before onset in seconds
-    :param dt: sampling interval of data in seconds
+    :param sampling_rate: sampling rate of the data
+    :param tshift: delay time 0s will be at time tshift afterwards
     :param gauss: Gauss parameter (standard deviation) of the
         Gaussian Low-pass filter,
         corresponds to cut-off frequency in Hz for a response value of
@@ -454,6 +454,7 @@ def deconv_iter(rsp, src, tshift, dt, gauss=0.5, itmax=400, minderr=0.001,
 
     nt = len(src)       # number of points actually in trace
     ncomp = len(rsp)    # number of components we're looping over here
+    dt = 1 / sampling_rate
 
     nfft = nt
     RF_out = np.zeros((ncomp,nt))       # spike trains that we're going to make
