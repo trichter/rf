@@ -7,6 +7,7 @@ from numpy import max, pi
 from scipy.fftpack import fft, ifft, next_fast_len
 from scipy.signal import correlate
 from rf.util import _add_processing_info
+from copy import copy
 
 
 def __find_nearest(array, value):
@@ -36,6 +37,7 @@ def deconvolve(stream, method='time', func=None,
     :param method:
         'time' -> use time domain deconvolution in `deconvt()`,\n
         'freq' -> use frequency domain deconvolution in `deconvf()`\n
+        'iter' -> use iterative time domain deconvolution in `deconv_iter()`\n
         'func' -> user defined function (func keyword)
     :param func: Custom deconvolution function with the following signature
 
@@ -53,7 +55,7 @@ def deconvolve(stream, method='time', func=None,
         defines a source time window appropriate for this type of receiver
         function and deconvolution method (see source code for details).
     :param \*\*kwargs: other kwargs are passed to the underlying deconvolution
-        functions `deconvt()` and `deconvf()`
+        functions `deconvt()`, `deconvf()`, and `deconv_iter()`
 
     .. note::
         If parameter normalize is not present in kwargs and source component is
@@ -63,7 +65,7 @@ def deconvolve(stream, method='time', func=None,
         excluded from the results, the normalization will performed against
         the first trace in results.
     """
-    if method not in ('time', 'freq', 'func'):
+    if method not in ('time', 'freq', 'iter', 'func'):
         raise NotImplementedError()
     # identify source and response components
     src = [tr for tr in stream if tr.stats.channel[-1] in source_components]
@@ -93,6 +95,10 @@ def deconvolve(stream, method='time', func=None,
         winsrc = (-10, 30, 5)
     elif winsrc == 'S' and method == 'time':
         winsrc = (-10, 30, 5)
+    elif winsrc == 'P' and method == 'iter':
+        winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
+    elif winsrc == 'S' and method == 'iter':  # TODO: test this
+        winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
     elif winsrc == 'P':
         winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
     elif winsrc == 'S':
@@ -119,6 +125,13 @@ def deconvolve(stream, method='time', func=None,
         rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, **kwargs)
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
+    elif method == 'iter':
+        rsp_data = [tr.data for tr in rsp]
+        rf_data, nit = deconv_iter(rsp_data, src.data, sr, tshift=tshift,
+                                   **kwargs)
+        for i, tr in enumerate(rsp):
+            tr.data = rf_data[i].real
+            tr.stats['iterations'] = nit[i]
     else:
         rsp = func(stream.__class__(rsp), src, tshift=tshift, **kwargs)
     return stream.__class__(rsp)
@@ -164,9 +177,9 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     N = length
     if nfft is None:
         nfft = next_fast_len(N)
-    freq = np.fft.fftfreq(nfft, d=1. / sampling_rate)
-    gauss = np.exp(np.maximum(-0.5 * (freq / gauss) ** 2, -700.) -
-                   1j * tshift * 2 * pi * freq)
+    dt = 1. / sampling_rate
+    ffilt = _gauss_filter(dt, nfft, gauss, waterlevel=-700) * \
+                _phase_shift_filter(nfft, dt, tshift)
     spec_src = fft(src, nfft)
     spec_src_conj = np.conjugate(spec_src)
     spec_src_water = np.abs(spec_src * spec_src_conj)
@@ -174,7 +187,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
         spec_src_water, max(spec_src_water) * waterlevel)
 
     if normalize == 'src':
-        spec_src = gauss * spec_src * spec_src_conj / spec_src_water
+        spec_src = ffilt * spec_src * spec_src_conj / spec_src_water
         rf_src = ifft(spec_src, nfft)[:N]
         norm = 1 / max(rf_src)
         rf_src = norm * rf_src
@@ -183,7 +196,7 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     if not isinstance(rsp_list, (list, tuple)):
         flag = True
         rsp_list = [rsp_list]
-    rf_list = [ifft(gauss * fft(rsp, nfft) * spec_src_conj / spec_src_water,
+    rf_list = [ifft(ffilt * fft(rsp, nfft) * spec_src_conj / spec_src_water,
                     nfft)[:N] for rsp in rsp_list]
     if normalize not in (None, 'src'):
         norm = 1. / max(rf_list[normalize])
@@ -192,13 +205,14 @@ def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
             rf *= norm
     if return_info:
         if normalize not in (None, 'src'):
-            spec_src = gauss * spec_src * spec_src_conj / spec_src_water
+            spec_src = ffilt * spec_src * spec_src_conj / spec_src_water
             rf_src = ifft(spec_src, nfft)[:N]
             norm = 1 / max(rf_src)
             rf_src = norm * rf_src
         info = {'rf_src': rf_src, 'rf_src_conj': spec_src_conj,
-                'spec_src_water': spec_src_water, 'freq': freq,
-                'gauss': gauss, 'norm': norm, 'N': N, 'nfft': nfft}
+                'spec_src_water': spec_src_water,
+                'freq': np.fft.fftfreq(nfft, d=dt),
+                'gauss': ffilt, 'norm': norm, 'N': N, 'nfft': nfft}
         return rf_list, info
     elif flag:
         return rf
@@ -341,3 +355,161 @@ def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0,
         return RF
     else:
         return RF_list
+
+
+def _gauss_filter(dt, nft, f0, waterlevel=None):
+    """
+    Gaussian filter with width f0
+
+    :param dt: sample spacing in seconds
+    :param nft: length of filter in points
+    :param f0: Standard deviation of the Gaussian Low-pass filter,
+        corresponds to cut-off frequency in Hz for a response value of
+        exp(0.5)=0.607.
+    :param waterlevel: waterlevel for eliminating very low values
+        (default: no waterlevel)
+    :return: array with Gaussian filter frequency response
+    """
+    f = np.fft.fftfreq(nft, dt)
+    gauss_arg = -0.5 * (f/f0) ** 2
+    if waterlevel is not None:
+        gauss_arg = np.maximum(gauss_arg, waterlevel)
+    return np.exp(gauss_arg)
+
+
+def _apply_filter(x, filt, dt):
+    """
+    Apply a filter defined in frequency domain to a data array
+
+    :param x: array of data to filter
+    :param filter: filter to apply in frequency domain,
+        e.g. from _gauss_filter()
+    :param dt: sample spacing in seconds
+    :return: real part of filtered array
+    """
+    nft = len(filt)
+    xf = fft(x, n=nft)
+    xnew = ifft(xf*filt, n=nft)
+    return xnew.real
+
+
+def _fft_correlate(a, b, nft):
+    """
+    Correlate two arrays; basically equivalent to summing two cross-correlations
+        with each shifted toward one end by half the array length
+
+    :param a, b: data arrays
+    :param nft: number of points for fft
+    :return: array of real part of correlation
+    """
+    x = ifft(fft(a, n=nft) * np.conj(fft(b, n=nft)), n=nft)
+    return x.real
+
+
+def _phase_shift_filter(nft, dt, tshift):
+    """
+    Construct filter to shift an array to account for time before onset
+
+    :param nft: number of points for fft
+    :param dt: sample spacing in seconds
+    :param tshift: time to shift by in seconds
+    :return: shifted array
+    """
+    freq = np.fft.fftfreq(nft, d=dt)
+    return np.exp(-2j * pi * freq * tshift)
+
+
+def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
+                minderr=0.001, normalize=0):
+    """
+    Iterative deconvolution.
+
+    Deconvolve src from arrays in rsp.
+    Iteratively construct a spike train based on least-squares minimzation of the
+    difference between one component of an observed seismogram and a predicted
+    signal generated by convolving the spike train with an orthogonal component
+    of the seismogram.
+
+    Reference: Ligorría, J. P., & Ammon, C. J. (1999). Iterative Deconvolution
+    and Receiver-Function Estimation. Bulletin of the Seismological Society of
+    America, 89, 5.
+
+    :param rsp: either a list of arrays containing the response functions
+        or a single array
+    :param src: array with source function
+    :param sampling_rate: sampling rate of the data
+    :param tshift: delay time 0s will be at time tshift afterwards
+    :param gauss: Gauss parameter (standard deviation) of the
+        Gaussian Low-pass filter,
+        corresponds to cut-off frequency in Hz for a response value of
+        exp(0.5)=0.607.
+    :param itmax: limit on number of iterations/spikes to add
+    :param minderr: stop iteration when the change in error from adding another
+        spike drops below this threshold
+    :param normalize: normalize all results so that the maximum of the trace
+        with the supplied index is 1. Set normalize to None for no normalization.
+
+    :return: (list of) array(s) with deconvolution(s)
+    """
+
+    nt = len(src)       # number of points actually in trace
+    ncomp = len(rsp)    # number of components we're looping over here
+    dt = 1 / sampling_rate
+
+    nfft = nt
+    RF_out = np.zeros((ncomp,nt))       # spike trains that we're going to make
+    nit = np.zeros(ncomp)               # number of iterations each component uses
+
+    for c in range(ncomp):  # loop over the responses
+        rms = np.zeros(itmax)    # to store rms
+        p0 = np.zeros(nfft)      # and rf for this component iteration
+        r0 = rsp[c]
+        s0 = src
+
+        gaussF = _gauss_filter(dt, nfft, gauss)  # construct and apply gaussian filter
+        r_flt = _apply_filter(r0, gaussF, dt)
+        s_flt = _apply_filter(s0, gaussF, dt)
+
+        sft = fft(s0, nfft)  # fourier transform of the source
+        rem_flt = copy(r_flt)  # thing to subtract from as spikes are added to p
+
+        powerR = np.sum(r_flt**2)  # power in the response for scaling
+
+        it = 0
+        sumsq_i = 1
+        d_error = 100*powerR + minderr
+        maxlag = 0.5*nfft
+
+        while np.abs(d_error) > minderr and it < itmax:  # loop iterations, add spikes
+            rs = _fft_correlate(rem_flt, s_flt, nfft)  # correlate (what's left of) the num & demon
+            rs = rs/np.sum(s_flt**2)  # scale the correlation
+
+            i1 = np.argmax(np.abs(rs[0:int(maxlag) - 1]))  # index for getting spike amplitude
+            # note that ^abs there means negative spikes are allowed
+            amp = rs[i1]/dt
+
+            p0[i1] = p0[i1] + amp  # add the amplitude of the spike to our spike-train RF
+            p_flt = _apply_filter(p0, gaussF, dt)  # gaussian filter the spike
+            p_flt = _apply_filter(p_flt, sft, dt) * dt  # convolve with fft of source
+
+            rem_flt = r_flt - p_flt  # subtract spike estimate from source to see what's left to model
+            sumsq = np.sum(rem_flt**2)/powerR
+            rms[it] = sumsq   # save rms
+            d_error = 100*(sumsq_i - sumsq)  # check change in error as a result of this iteration
+
+            sumsq_i = sumsq     # update rms
+            it = it + 1         # and add one to the iteration count
+
+        # once we get out of the loop:
+        p_flt = _apply_filter(p0, gaussF, dt)
+        shift_filt = _phase_shift_filter(nfft, dt, tshift)
+        p_flt = _apply_filter(p_flt, shift_filt, dt)
+        RF_out[c,:] = p_flt[:nt]  # save the RF for output
+        nit[c] = it
+
+    if normalize is not None:
+        norm = 1 / np.max(np.abs(RF_out[normalize]))
+        for RF in RF_out:
+            RF *= norm
+
+    return RF_out, nit
