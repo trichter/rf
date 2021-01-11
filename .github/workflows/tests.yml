@@ -54,6 +54,4 @@ jobs:
           mkdir empty; cd empty
           coverage run --include='*/rf/*' -m rf.tests
       - name: upload coverage
-        shell: bash -l {0}
-        run: |
-          bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v1
