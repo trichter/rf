@@ -242,8 +242,7 @@ Miscellaneous
 -------------
 
 Please feel free to request features, report bugs or contribute code on
-GitHub_. The code is continuously tested by travis-ci. The test status of this
-version is |buildstatus|.
+GitHub_. The code is continuously tested by Github Actions.
 
 Citation
 --------
@@ -265,9 +264,6 @@ Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal 
 .. _notebook3: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_comparison.ipynb
 
 .. _GitHub: https://github.com/trichter/rf/
-.. |buildstatus| image:: https://api.travis-ci.org/trichter/rf.png?
-    branch=master
-   :target: https://travis-ci.org/trichter/rf
 """
 
 __version__ = '0.9.2-dev'
