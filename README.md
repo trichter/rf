@@ -1,7 +1,6 @@
 # rf
 ## Receiver function calculation in seismology
-
-[![build status](https://travis-ci.org/trichter/rf.svg?branch=master)](https://travis-ci.org/trichter/rf)
+[![build status](https://github.com/trichter/rf/workflows/run_tests/badge.svg)](https://github.com/trichter/rf/actions)
 [![codecov](https://codecov.io/gh/trichter/rf/branch/master/graph/badge.svg)](https://codecov.io/gh/trichter/rf)
 [![pypi version](https://img.shields.io/pypi/v/rf.svg)](https://pypi.python.org/pypi/rf)
 [![python version](https://img.shields.io/pypi/pyversions/rf.svg)](https://python.org)
