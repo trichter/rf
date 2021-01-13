@@ -25,6 +25,9 @@ jobs:
             add_package: obspyh5_toeplitz
     env:
       add_package: ${{ matrix.add_package }}
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
       - name: Setup conda
@@ -32,26 +35,24 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: .github/test_conda_env.yml
+      - name: print conda environment info
+        run: |
+          conda info -a
+          conda list
       - name: install optional dependencies
-        shell: bash -l {0}
         run: |
           if [[ $add_package == "obspyh5_toeplitz" ]]; then
             conda install h5py fortran-compiler;
             pip install obspyh5 toeplitz;
           fi
-      - name: print package info
-        shell: bash -l {0}
-        run: |
-          conda info -a
-          conda list
       - name: install package
-        shell: bash -l {0}
         run: |
           pip install -v --no-deps .
+          conda list
       - name: run test suite
-        shell: bash -l {0}
         run: |
           mkdir empty; cd empty
           coverage run --include='*/rf/*' -m rf.tests
+          coverage xml -o ../coverage.xml
       - name: upload coverage
         uses: codecov/codecov-action@v1
