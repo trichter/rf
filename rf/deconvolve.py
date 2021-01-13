@@ -5,8 +5,9 @@ Frequency and time domain deconvolution.
 import numpy as np
 from numpy import max, pi
 from scipy.fftpack import fft, ifft, next_fast_len
-from scipy.signal import correlate
+from scipy.signal import correlate, detrend
 from rf.util import _add_processing_info
+import mtspec as mt
 from copy import copy
 
 
@@ -38,6 +39,7 @@ def deconvolve(stream, method='time', func=None,
         'time' -> use time domain deconvolution in `deconvt()`,\n
         'freq' -> use frequency domain deconvolution in `deconvf()`\n
         'iter' -> use iterative time domain deconvolution in `deconv_iter()`\n
+        'multi' -> use frequency domain multitaper deconvolution in `deconv_multi()`\n
         'func' -> user defined function (func keyword)
     :param func: Custom deconvolution function with the following signature
 
@@ -64,8 +66,14 @@ def deconvolve(stream, method='time', func=None,
         and tapered source from the untouched source is 1. If the source is
         excluded from the results, the normalization will performed against
         the first trace in results.
+
+    .. note::
+        If multitaper deconvolution is used and a stream of (pre-event) noise
+        is not present in kwargs, noise will be sampled from the data in a
+        pre-event window whose size depends on the trace length prior to the
+        onset time.
     """
-    if method not in ('time', 'freq', 'iter', 'func'):
+    if method not in ('time', 'freq', 'iter', 'multi', 'func'):
         raise NotImplementedError()
     # identify source and response components
     src = [tr for tr in stream if tr.stats.channel[-1] in source_components]
@@ -91,9 +99,9 @@ def deconvolve(stream, method='time', func=None,
     # define default time windows
     lenrsp_sec = src.stats.endtime - src.stats.starttime
     onset_sec = onset - src.stats.starttime
-    if winsrc == 'P' and method == 'time':
+    if winsrc == 'P' and method in ['time','multi']:
         winsrc = (-10, 30, 5)
-    elif winsrc == 'S' and method == 'time':
+    elif winsrc == 'S' and method in ['time','multi']:  # TODO: test this
         winsrc = (-10, 30, 5)
     elif winsrc == 'P' and method == 'iter':
         winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
@@ -132,6 +140,19 @@ def deconvolve(stream, method='time', func=None,
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
             tr.stats['iterations'] = nit[i]
+    elif method == 'multi':
+        noise = kwargs.get('noise',None)
+        if noise is None:  # no kwarg, grab from pre-event time series
+            onset_rsp = rsp[0].stats.onset - rsp[0].stats.starttime
+            noise = stream.copy().trim2(-onset_rsp,-5,'onset') # NOTE window length will vary
+        # noise is not None (kwarg provided), noise should be Stream() or RFStream()
+        # so now we grab that data and make a list of arrays
+        nse_data = [tr.data for tr in noise if response_components is None or
+                    tr.stats.channel[-1] in response_components]
+        rsp_data = [tr.data for tr in rsp]
+        rf_data = deconv_multi(rsp_data, src.data, nse_data, src.stats.sampling_rate, -tshift, **kwargs)
+        for i, tr in enumerate(rsp):
+            tr.data = rf_data[i].real
     else:
         rsp = func(stream.__class__(rsp), src, tshift=tshift, **kwargs)
     return stream.__class__(rsp)
@@ -513,3 +534,150 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
             RF *= norm
 
     return RF_out, nit
+
+def deconv_multi(rsp, src, nse, sampling_rate, tshift, K=3, tband=4, T=10, olap=0.75,
+                 glp=5, normalize=0):
+    """
+    Multitaper frequency domain deconvolution
+
+    Deconvolve src from arrays in rsp.
+
+    Based on mtdecon.f by G. Helffrich (2006) with some slight modifications
+    Filtering based on Shibutani et al. (2008)
+
+    :param rsp: a list of arrays containing the response functions
+    :param src: array of source function
+    :param nse: a list of arrays containing samples of pre-event noise
+    :param sampling_rate: sampling rate of the data
+    :param tshift: shift the source by that amount of samples to the left side
+        to get onset in RF at the desired time (src time window length pre-onset)
+    :param K: number of Slepian tapers to use (default: 3)
+    :param tband: time-bandwidth product (default: 4)
+    :param T: time length of taper window in seconds (default: 10)
+    :param olap: window overlap between 0 and 1 (default: 0.75)
+    :param glp: gaussian lowpass filter parameter (default: 5)
+    :param normalize: normalize all results so that the maximum of the trace
+        with supplied index is 1. Set normalize to None for no normalization.
+
+    :return: (list of) array(s) with deconvolution(s)
+    """
+
+    # check src trace length < rsp trace length:
+    assert len(src) < len(rsp[0]), 'source wavelet must be shorter than response'
+    assert len(nse[0]) <= len(rsp[0]), 'noise should not be longer than response'
+
+    nft = len(rsp[0])  # length of final arrays
+    dt = 1./sampling_rate  # sample spacing
+    freq = np.fft.fftfreq(nft,d=dt)
+
+    # calculate multitapers with mtspec
+    ntap = int(round(T/dt))  # #points in each taper
+
+    tap, el, _ = mt.multitaper.dpss(ntap, tband, K); tap = tap.T
+    if K >= 2:
+        tap[1] = -tap[1]  # adjust to match sign convention
+    if K >= 3:
+        tap[2] = -tap[2]
+    if K > 3:
+        print('Warning: taper signs may need adjustment for K>3')
+
+    ofac = 1 / (1 - olap)  # calculate overlap factor
+
+    sfft = np.zeros((K,nft), dtype=np.complex)  # array for holding freq-domain source estimate
+    src = detrend(src, type='constant')  # demean and detrend source
+    src = detrend(src, type='linear')
+
+    # window and taper the source
+    nwav = len(src)   # number of nonzero points for the source
+    nwin = int(ofac*nwav/ntap)  # number of windows needed to cover the source
+
+    src_pad = np.zeros(nft)
+    src_pad[:nwav] = src
+    for j in range(nwin):
+        js = int(j*ntap/ofac)  # get indices for overlapping taper window
+        je = int(js + ntap)
+        for k in range(K):
+            bit = np.zeros(nft)
+            bit[js:je] = tap[k] # insert window taper into full-length zeros
+            bit = bit*src_pad   # window/taper the padded source trace
+            bit = fft(bit)      # transform tapered bit to frequency domain
+            sfft[k] = sfft[k] + bit  # sum to total freq-domain source estimate
+
+    # multiply by factor to account for short wavelet relative to fft
+    fac = nwav/float(nwin*nft)
+    sfft = fac*sfft
+
+    # loop response components and do a similar window/taper/transform thing
+    ncomp = len(rsp)
+    RF_out = np.zeros((ncomp, nft))
+    for c in range(ncomp):
+        dat = rsp[c]; nos = nse[c]  # pick out component
+        dfft = np.zeros((K,nft), dtype=np.complex)  # arrays for storing freq-domain estimates
+        nfft = np.zeros((K,nft), dtype=np.complex)
+
+        # window, taper, and transform the noise
+        nos = detrend(nos, type='constant')
+        nos = detrend(nos, type='linear')
+        nos_pad = np.zeros(nft)
+        nos_pad[:len(nos)] = nos
+        nwin = int(ofac*len(nos)/ntap)
+        for j in range(nwin):
+            js = int(j*ntap/ofac)
+            je = int(js + ntap)
+            if je < nft:
+                for k in range(K):
+                    bit = np.zeros(nft)
+                    bit[js:je] = tap[k]
+                    bit = bit*nos_pad
+                    bit = fft(bit)
+                    nfft[k] = nfft[k] + bit
+
+        fac = nwav/float(nwin*nft)  # scale for noise trace length
+        nfft = nfft*fac
+
+        # calculate power in the noise window
+        s0 = np.zeros(nft)
+        for k in range(K):
+            s0 = s0 + (np.real(nfft[k])**2 + np.imag(nfft[k])**2)/el[k]
+
+        # window, taper, and transform the response traces
+        dat = detrend(dat, type='constant')
+        dat = detrend(dat, type='linear')
+        nwin = int(ofac*nft/ntap)-1
+        for j in range(nwin):
+            js = int(j*ntap/ofac)
+            je = int(js + ntap)
+            if je < nft:
+                for k in range(K):
+                    bit = np.zeros(nft)
+                    bit[js:je] = tap[k]
+                    bit = bit*dat
+                    bit = fft(bit)
+                    dfft[k] = dfft[k] + bit
+
+        fac = float(nft)/float(nwin*nft)
+        dfft = dfft*fac
+
+        # deconvolve
+        num = np.zeros(nft)
+        denom = np.zeros(nft)
+        for k in range(K):
+            num = num + sfft[k]*np.conj(dfft[k])
+            denom = denom + sfft[k]*np.conj(sfft[k])
+        recF = num/(denom + s0)
+
+        # time-shift for onset and apply gaussian lowpass
+        for i in range(nft):
+            recF[i] = recF[i]*np.exp(-1j*freq[i]*2*pi*tshift)
+            recF[i] = recF[i]*np.exp(-(freq[i]/2*glp)**2)
+
+        # inverse fft, put in output array
+        recT = ifft(recF)
+        RF_out[c] = copy(recT.real[::-1])
+
+    if normalize is not None:
+        norm = 1 / np.max(np.abs(RF_out[normalize]))
+        for RF in RF_out:
+            RF *= norm
+
+    return RF_out
