@@ -277,11 +277,12 @@ class RFStream(Stream):
             method with the angles given by the back_azimuth and inclination
             attributes of the traces stats objects. You can set these to your
             needs or let them be computed by :func:`~rf.rfstream.rfstats`.
-        :param deconvolve: 'time' or 'freq' for time or frequency domain
-            deconvolution by the streams
+        :param deconvolve: 'time', 'freq', 'iter', or 'multi' for time domain
+            water level, frequency domain water level, time domain iterative, or
+            frequency domain multitaper deconvolution using the stream's
             `deconvolve()`
             method. See `~.deconvolve.deconvolve()`,
-            `.deconvt()` and `.deconvf()`
+            `.deconvt()`, `.deconvf()`, `deconv_iter()`, and `deconv_multi()`
             for further documentation.
         :param source_components: parameter is passed to deconvolve.
             If None, source components will be chosen depending on method.
