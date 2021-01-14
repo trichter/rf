@@ -32,7 +32,7 @@ jobs:
           - os: windows-latest
             python: 3.8
             add_package: features
-            continue-on-error: false
+            continue-on-error: true
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.continue-on-error }}
     env:
@@ -53,10 +53,12 @@ jobs:
           conda info -a
           conda list
       - name: install optional dependencies
+        continue-on-error: ${{ matrix.continue-on-error }}
         run: |
           if [[ $add_package == "features" ]]; then
-            conda install h5py fortran-compiler mtspec;
+            conda install h5py fortran-compiler;
             pip install obspyh5 toeplitz;
+            conda install mtspec;
           fi
       - name: install package
         run: |
