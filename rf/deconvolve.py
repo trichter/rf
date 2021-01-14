@@ -538,8 +538,8 @@ def deconv_iterative(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
 
     return RF_out, nit
 
-def deconv_multitaper(rsp, src, nse, sampling_rate, tshift,
-                      K=3, tband=4, T=10, olap=0.75, glp=5, normalize=0):
+def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
+                      K=3, tband=4, T=10, olap=0.75, normalize=0):
     """
     Multitaper frequency domain deconvolution
 
@@ -554,11 +554,14 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift,
     :param sampling_rate: sampling rate of the data
     :param tshift: shift the source by that amount of samples to the left side
         to get onset in RF at the desired time (src time window length pre-onset)
+    :param gauss: Gauss parameter (standard deviation) of the
+        Gaussian Low-pass filter,
+        corresponds to cut-off frequency in Hz for a response value of
+        exp(0.5)=0.607.
     :param K: number of Slepian tapers to use (default: 3)
     :param tband: time-bandwidth product (default: 4)
     :param T: time length of taper window in seconds (default: 10)
     :param olap: window overlap between 0 and 1 (default: 0.75)
-    :param glp: gaussian lowpass filter parameter (default: 5)
     :param normalize: normalize all results so that the maximum of the trace
         with supplied index is 1. Set normalize to None for no normalization.
 
@@ -675,9 +678,9 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift,
         recF = num/(denom + s0)
 
         # time-shift for onset and apply gaussian lowpass
-        for i in range(nft):
-            recF[i] = recF[i]*np.exp(-1j*freq[i]*2*pi*(tshift-dt)) # one sample gets lost in the shuffle
-            recF[i] = recF[i]*np.exp(-(freq[i]/2*glp)**2)
+        if gauss is not None:
+            recF = recF * _gauss_filter(dt, nft, gauss)
+        recF = recF * _phase_shift_filter(nft, dt, tshift-dt)  # one sample gets lost in the shuffle
 
         # inverse fft, put in output array
         recT = ifft(recF)
