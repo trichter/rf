@@ -202,8 +202,9 @@ def deconv_waterlevel(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     if nfft is None:
         nfft = next_fast_len(N)
     dt = 1. / sampling_rate
-    ffilt = _gauss_filter(dt, nfft, gauss, waterlevel=-700) * \
-                _phase_shift_filter(nfft, dt, tshift)
+    ffilt = _phase_shift_filter(nfft, dt, tshift)
+    if gauss is not None:
+        ffilt = _gauss_filter(dt, nfft, gauss, waterlevel=-700) * ffilt
     spec_src = fft(src, nfft)
     spec_src_conj = np.conjugate(spec_src)
     spec_src_water = np.abs(spec_src * spec_src_conj)
@@ -579,7 +580,6 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
 
     nft = len(rsp[0])  # length of final arrays
     dt = 1./sampling_rate  # sample spacing
-    freq = np.fft.fftfreq(nft,d=dt)
 
     # calculate multitapers with mtspec
     ntap = int(round(T/dt))  # #points in each taper
