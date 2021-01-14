@@ -56,7 +56,7 @@ def deconvolve(stream, method='time', func=None,
         defines a source time window appropriate for this type of receiver
         function and deconvolution method (see source code for details).
     :param \*\*kwargs: other kwargs are passed to the underlying deconvolution
-        functions `deconvt()`, `deconvf()`, `deconv_iter()`, and `deconv_multi()`
+        functions
 
     .. note::
         If parameter normalize is not present in kwargs and source component is
