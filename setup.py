@@ -30,6 +30,7 @@ REQUIRES = ['decorator', 'matplotlib>=2', 'numpy', 'scipy',
 
 EXTRAS_REQUIRE = {
     'doc': ['sphinx', 'alabaster'],  # and decorator, obspy
+    'deconv_multi': ['mtspec'],
     'h5': ['obspyh5>=0.3'],
     'toeplitz': ['toeplitz'],
     'batch': ['tqdm']

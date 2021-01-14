@@ -2,13 +2,12 @@
 """
 Frequency and time domain deconvolution.
 """
+from copy import copy
 import numpy as np
 from numpy import max, pi
 from scipy.fftpack import fft, ifft, next_fast_len
 from scipy.signal import correlate, detrend
 from rf.util import _add_processing_info
-import mtspec as mt
-from copy import copy
 
 
 def __find_nearest(array, value):
@@ -561,6 +560,11 @@ def deconv_multi(rsp, src, nse, sampling_rate, tshift, K=3, tband=4, T=10, olap=
 
     :return: (list of) array(s) with deconvolution(s)
     """
+    try:
+        import mtspec as mt
+    except ImportError as ex:
+        msg = 'mtspec package is needed for multitaper deconvolution'
+        raise ImportError(msg) from ex
 
     # check src trace length < rsp trace length:
     assert len(src) < len(rsp[0]), 'source wavelet must be shorter than response'

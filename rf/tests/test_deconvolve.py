@@ -64,7 +64,10 @@ class DeconvolveTestCase(unittest.TestCase):
         test_deconvolve_Lpeak(self, stream, 'time', solve_toeplitz='scipy')
         test_deconvolve_Lpeak(self, stream, 'freq')
         test_deconvolve_Lpeak(self, stream, 'iter')
-        test_deconvolve_Lpeak(self, stream, 'multi')
+        try:
+            test_deconvolve_Lpeak(self, stream, 'multi')
+        except ImportError:
+            pass
         test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
         test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
         stream.trim2(5, 70, reftime='starttime')
@@ -89,7 +92,10 @@ class DeconvolveTestCase(unittest.TestCase):
         test_deconvolve_Qpeak(self, stream, 'time', solve_toeplitz='scipy')
         test_deconvolve_Qpeak(self, stream, 'freq')
         test_deconvolve_Qpeak(self, stream, 'iter')
-        test_deconvolve_Qpeak(self, stream, 'multi')
+        try:
+            test_deconvolve_Qpeak(self, stream, 'multi')
+        except ImportError:
+            pass
         test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-5, 18, 5))
         test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-5, 18, 5))
         test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-20, 40, 5))
@@ -116,7 +122,10 @@ class DeconvolveTestCase(unittest.TestCase):
         stream1.deconvolve(spiking=10)
         stream2.deconvolve(method='freq', waterlevel=0.1)
         stream3.deconvolve(method='iter')
-        stream4.deconvolve(method='multi')
+        try:
+            stream4.deconvolve(method='multi')
+        except ImportError:
+            pass
 
 #        import matplotlib.pyplot as plt
 #        plt.subplot(121)
