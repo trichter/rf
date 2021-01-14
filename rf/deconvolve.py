@@ -668,7 +668,7 @@ def deconv_multi(rsp, src, nse, sampling_rate, tshift, K=3, tband=4, T=10, olap=
 
         # time-shift for onset and apply gaussian lowpass
         for i in range(nft):
-            recF[i] = recF[i]*np.exp(-1j*freq[i]*2*pi*tshift)
+            recF[i] = recF[i]*np.exp(-1j*freq[i]*2*pi*(tshift-dt)) # one sample gets lost in the shuffle
             recF[i] = recF[i]*np.exp(-(freq[i]/2*glp)**2)
 
         # inverse fft, put in output array
