@@ -62,21 +62,21 @@ class DeconvolveTestCase(unittest.TestCase):
         # check that maximum in L component is at 0s (at P onset)
         test_deconvolve_Lpeak(self, stream, 'time')
         test_deconvolve_Lpeak(self, stream, 'time', solve_toeplitz='scipy')
-        test_deconvolve_Lpeak(self, stream, 'freq')
-        test_deconvolve_Lpeak(self, stream, 'iter')
+        test_deconvolve_Lpeak(self, stream, 'waterlevel')
+        test_deconvolve_Lpeak(self, stream, 'iterative')
         try:
-            test_deconvolve_Lpeak(self, stream, 'multi')
+            test_deconvolve_Lpeak(self, stream, 'multitaper')
         except ImportError:
             pass
         test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
-        test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
+        test_deconvolve_Lpeak(self, stream, 'waterlevel', winsrc=(-20, 40, 5))
         stream.trim2(5, 70, reftime='starttime')
         test_deconvolve_Lpeak(self, stream, 'time')
-        test_deconvolve_Lpeak(self, stream, 'freq')
+        test_deconvolve_Lpeak(self, stream, 'waterlevel')
         test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-20, 40, 5))
-        test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
+        test_deconvolve_Lpeak(self, stream, 'waterlevel', winsrc=(-20, 40, 5))
         test_deconvolve_Lpeak(self, stream, 'time', winsrc=(-5, 18, 5))
-        test_deconvolve_Lpeak(self, stream, 'freq', winsrc=(-5, 18, 5))
+        test_deconvolve_Lpeak(self, stream, 'waterlevel', winsrc=(-5, 18, 5))
 
     def test_deconvolution_of_stream_Qpeak_position(self):
         # S receiver deconvolution
@@ -90,16 +90,16 @@ class DeconvolveTestCase(unittest.TestCase):
         # check that maximum in Q component is at 0s (at S onset)
         test_deconvolve_Qpeak(self, stream, 'time')
         test_deconvolve_Qpeak(self, stream, 'time', solve_toeplitz='scipy')
-        test_deconvolve_Qpeak(self, stream, 'freq')
-        test_deconvolve_Qpeak(self, stream, 'iter')
+        test_deconvolve_Qpeak(self, stream, 'waterlevel')
+        test_deconvolve_Qpeak(self, stream, 'iterative')
         try:
-            test_deconvolve_Qpeak(self, stream, 'multi')
+            test_deconvolve_Qpeak(self, stream, 'multitaper')
         except ImportError:
             pass
         test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-5, 18, 5))
-        test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-5, 18, 5))
+        test_deconvolve_Qpeak(self, stream, 'waterlevel', winsrc=(-5, 18, 5))
         test_deconvolve_Qpeak(self, stream, 'time', winsrc=(-20, 40, 5))
-        test_deconvolve_Qpeak(self, stream, 'freq', winsrc=(-20, 40, 5))
+        test_deconvolve_Qpeak(self, stream, 'waterlevel', winsrc=(-20, 40, 5))
 
     def test_deconvolution_of_convolution(self):
         from rf.rfstream import RFStream, RFTrace
@@ -120,10 +120,10 @@ class DeconvolveTestCase(unittest.TestCase):
         stream3 = stream1.copy()
         stream4 = stream1.copy()
         stream1.deconvolve(spiking=10)
-        stream2.deconvolve(method='freq', waterlevel=0.1)
-        stream3.deconvolve(method='iter')
+        stream2.deconvolve(method='waterlevel', waterlevel=0.1)
+        stream3.deconvolve(method='iterative')
         try:
-            stream4.deconvolve(method='multi')
+            stream4.deconvolve(method='multitaper')
         except ImportError:
             pass
 

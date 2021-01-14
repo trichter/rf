@@ -35,14 +35,14 @@ def deconvolve(stream, method='time', func=None,
 
     :param stream: stream including responses and source
     :param method:
-        'time' -> use time domain deconvolution in `deconvt()`,\n
-        'freq' -> use frequency domain deconvolution in `deconvf()`\n
-        'iter' -> use iterative time domain deconvolution in `deconv_iter()`\n
-        'multi' -> use frequency domain multitaper deconvolution in `deconv_multi()`\n
+        'time' -> use time domain deconvolution, see `deconv_time()`,\n
+        'waterlevel' -> use frequency domain deconvolution with water level, see `deconv_waterlevel()`\n
+        'iterative' -> use iterative time domain deconvolution, see `deconv_iterative()`\n
+        'multitaper' -> use frequency domain multitaper deconvolution, see `deconv_multitaper()`\n
         'func' -> user defined function (func keyword)
     :param func: Custom deconvolution function with the following signature
 
-             def custom_deconv(rsp: RFStream, src: RFTrace, tshift=10,
+             def deconv_custom(rsp: RFStream, src: RFTrace, tshift=10,
                                **other_kwargs_possible) -> RFStream:
 
     :param source_components: names of components identifying the source traces,
@@ -72,7 +72,9 @@ def deconvolve(stream, method='time', func=None,
         pre-event window whose length depends on the trace length prior to the
         onset time.
     """
-    if method not in ('time', 'freq', 'iter', 'multi', 'func'):
+    if method == 'freq':
+        method = 'waterlevel'
+    if method not in ('time', 'waterlevel', 'iterative', 'multitaper', 'func'):
         raise NotImplementedError()
     # identify source and response components
     src = [tr for tr in stream if tr.stats.channel[-1] in source_components]
@@ -98,13 +100,13 @@ def deconvolve(stream, method='time', func=None,
     # define default time windows
     lenrsp_sec = src.stats.endtime - src.stats.starttime
     onset_sec = onset - src.stats.starttime
-    if winsrc == 'P' and method in ['time','multi']:
+    if winsrc == 'P' and method in ('time', 'multitaper'):
         winsrc = (-10, 30, 5)
-    elif winsrc == 'S' and method in ['time','multi']:  # TODO: test this
+    elif winsrc == 'S' and method in ('time','multitaper'):  # TODO: test this
         winsrc = (-10, 30, 5)
-    elif winsrc == 'P' and method == 'iter':
+    elif winsrc == 'P' and method == 'iterative':
         winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
-    elif winsrc == 'S' and method == 'iter':  # TODO: test this
+    elif winsrc == 'S' and method == 'iterative':  # TODO: test this
         winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
     elif winsrc == 'P':
         winsrc = (-onset_sec, lenrsp_sec - onset_sec, 5)
@@ -124,22 +126,23 @@ def deconvolve(stream, method='time', func=None,
     if method == 'time':
         shift = int(round(tshift * sr - len(src) // 2))
         rsp_data = [tr.data for tr in rsp]
-        rf_data = deconvt(rsp_data, src.data, shift,  **kwargs)
+        rf_data = deconv_time(rsp_data, src.data, shift,  **kwargs)
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
-    elif method == 'freq':
+    elif method == 'waterlevel':
         rsp_data = [tr.data for tr in rsp]
-        rf_data = deconvf(rsp_data, src.data, sr, tshift=tshift, **kwargs)
+        rf_data = deconv_waterlevel(rsp_data, src.data, sr, tshift=tshift,
+                                    **kwargs)
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
-    elif method == 'iter':
+    elif method == 'iterative':
         rsp_data = [tr.data for tr in rsp]
-        rf_data, nit = deconv_iter(rsp_data, src.data, sr, tshift=tshift,
-                                   **kwargs)
+        rf_data, nit = deconv_iterative(rsp_data, src.data, sr, tshift=tshift,
+                                        **kwargs)
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
             tr.stats['iterations'] = nit[i]
-    elif method == 'multi':
+    elif method == 'multitaper':
         noise = kwargs.pop('noise',None)
         if noise is None:  # no kwarg, grab from pre-event time series
             onset_rsp = rsp[0].stats.onset - rsp[0].stats.starttime
@@ -149,7 +152,8 @@ def deconvolve(stream, method='time', func=None,
         nse_data = [tr.data for tr in noise if response_components is None or
                     tr.stats.channel[-1] in response_components]
         rsp_data = [tr.data for tr in rsp]
-        rf_data = deconv_multi(rsp_data, src.data, nse_data, src.stats.sampling_rate, -tshift, **kwargs)
+        rf_data = deconv_multitaper(rsp_data, src.data, nse_data, sr, -tshift,
+                                    **kwargs)
         for i, tr in enumerate(rsp):
             tr.data = rf_data[i].real
     else:
@@ -163,9 +167,9 @@ def __get_length(rsp_list):
     return len(rsp_list)
 
 
-def deconvf(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
-            tshift=10., length=None, normalize=0, nfft=None,
-            return_info=False):
+def deconv_waterlevel(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
+                      tshift=10., length=None, normalize=0, nfft=None,
+                      return_info=False):
     """
     Frequency-domain deconvolution using waterlevel method.
 
@@ -285,8 +289,8 @@ def _xcorrt(a, b, num, zero_sample=0):
 
 # Gives similar results as a deconvolution with Seismic handler,
 # but SH is faster
-def deconvt(rsp_list, src, shift, spiking=1., length=None, normalize=0,
-            solve_toeplitz='toeplitz'):
+def deconv_time(rsp_list, src, shift, spiking=1., length=None, normalize=0,
+                solve_toeplitz='toeplitz'):
     """
     Time domain deconvolution.
 
@@ -439,8 +443,8 @@ def _phase_shift_filter(nft, dt, tshift):
     return np.exp(-2j * pi * freq * tshift)
 
 
-def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
-                minderr=0.001, normalize=0):
+def deconv_iterative(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
+                     minderr=0.001, normalize=0):
     """
     Iterative deconvolution.
 
@@ -534,8 +538,8 @@ def deconv_iter(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
 
     return RF_out, nit
 
-def deconv_multi(rsp, src, nse, sampling_rate, tshift, K=3, tband=4, T=10, olap=0.75,
-                 glp=5, normalize=0):
+def deconv_multitaper(rsp, src, nse, sampling_rate, tshift,
+                      K=3, tband=4, T=10, olap=0.75, glp=5, normalize=0):
     """
     Multitaper frequency domain deconvolution
 
