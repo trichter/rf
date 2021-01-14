@@ -1,5 +1,10 @@
 name: tests
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+    branches:
+      # only branches from forks which have the form 'user:branch-name'
+      - '**:**'
 jobs:
   run_tests:
     strategy:
