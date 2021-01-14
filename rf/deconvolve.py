@@ -57,7 +57,7 @@ def deconvolve(stream, method='time', func=None,
         defines a source time window appropriate for this type of receiver
         function and deconvolution method (see source code for details).
     :param \*\*kwargs: other kwargs are passed to the underlying deconvolution
-        functions `deconvt()`, `deconvf()`, and `deconv_iter()`
+        functions `deconvt()`, `deconvf()`, `deconv_iter()`, and `deconv_multi()`
 
     .. note::
         If parameter normalize is not present in kwargs and source component is
@@ -70,7 +70,7 @@ def deconvolve(stream, method='time', func=None,
     .. note::
         If multitaper deconvolution is used and a stream of (pre-event) noise
         is not present in kwargs, noise will be sampled from the data in a
-        pre-event window whose size depends on the trace length prior to the
+        pre-event window whose length depends on the trace length prior to the
         onset time.
     """
     if method not in ('time', 'freq', 'iter', 'multi', 'func'):
@@ -141,7 +141,7 @@ def deconvolve(stream, method='time', func=None,
             tr.data = rf_data[i].real
             tr.stats['iterations'] = nit[i]
     elif method == 'multi':
-        noise = kwargs.get('noise',None)
+        noise = kwargs.pop('noise',None)
         if noise is None:  # no kwarg, grab from pre-event time series
             onset_rsp = rsp[0].stats.onset - rsp[0].stats.starttime
             noise = stream.copy().trim2(-onset_rsp,-5,'onset') # NOTE window length will vary
