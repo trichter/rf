@@ -23,24 +23,21 @@ jobs:
             continue-on-error: false
           - os: ubuntu-latest
             python: 3.8
-            add_package: obspyh5_toeplitz
+            add_package: features
             continue-on-error: false
           - os: macos-latest
             python: 3.8
-            add_package: obspyh5_toeplitz
+            add_package: features
             continue-on-error: true
           - os: windows-latest
             python: 3.8
-            add_package: obspyh5_toeplitz
-            continue-on-error: false
+            add_package: features
+            continue-on-error: true
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.continue-on-error }}
-    env:
-      add_package: ${{ matrix.add_package }}
     defaults:
       run:
         shell: bash -l {0}
-
     steps:
       - uses: actions/checkout@v2
       - name: Setup conda
@@ -52,12 +49,17 @@ jobs:
         run: |
           conda info -a
           conda list
-      - name: install optional dependencies
+      - name: install mtspec
+        if: ${{ matrix.add_package == 'features' }}
+        continue-on-error: ${{ matrix.continue-on-error }}
         run: |
-          if [[ $add_package == "obspyh5_toeplitz" ]]; then
-            conda install h5py fortran-compiler;
-            pip install obspyh5 toeplitz;
-          fi
+          conda install mtspec
+      - name: install other optional dependencies
+        if: ${{ matrix.add_package == 'features' }}
+        continue-on-error: ${{ matrix.continue-on-error }}
+        run: |
+          conda install h5py fortran-compiler
+          pip install obspyh5 toeplitz
       - name: install package
         run: |
           pip install -v --no-deps .

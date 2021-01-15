@@ -1,5 +1,7 @@
 dev:
-  * add iterative deconvolution
+  * add iterative deconvolution and multitaper deconvolution (see #30, #31)
+  * the available deconvolve methods are
+    'time', 'waterlevel' (previously called 'freq'), 'iterative', 'multitaper'
 0.9.1:
   * fix: plot_rf can now plot stream with traces of different length,
     the stack is not plotted in this case (see #23)

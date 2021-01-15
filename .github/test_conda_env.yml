@@ -6,5 +6,4 @@ dependencies:
   - shapely
   - cartopy
   - geographiclib
-  - codecov
   - coverage
