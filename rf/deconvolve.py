@@ -546,8 +546,15 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
 
     Deconvolve src from arrays in rsp.
 
-    Based on mtdecon.f by G. Helffrich (2006) with some slight modifications
-    Filtering based on Shibutani et al. (2008)
+    Based on mtdecon.f by G. Helffrich with some slight modifications
+    
+    References: 
+    Helffrich, G (2006). Extended-time multitaper frequency domain
+    cross-correlation receiver function estimation. Bulletin of the
+    Seismological Society of America, 96 (1).
+    Shibutani, T., Ueno, T., & Hirahara, K. (2008). Improvement in the
+    Extended-Time Multitaper Receiver Function Estimation Technique.
+    Bulletin of the Seismological Society of America, 98 (2).
 
     :param rsp: a list of arrays containing the response functions
     :param src: array of source function
