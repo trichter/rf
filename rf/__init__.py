@@ -268,7 +268,7 @@ Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal 
 .. _GitHub: https://github.com/trichter/rf/
 """
 
-__version__ = '0.9.2-dev'
+__version__ = '1.0.0'
 
 from rf.profile import get_profile_boxes
 from rf.rfstream import read_rf, RFStream, rfstats

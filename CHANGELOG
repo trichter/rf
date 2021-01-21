@@ -1,4 +1,4 @@
-dev:
+1.0.0:
   * add iterative deconvolution and multitaper deconvolution (see #30, #31)
   * the available deconvolve methods are
     'time', 'waterlevel' (previously called 'freq'), 'iterative', 'multitaper'
