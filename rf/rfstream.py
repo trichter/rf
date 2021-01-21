@@ -282,7 +282,8 @@ class RFStream(Stream):
             frequency domain multitaper deconvolution using the stream's
             `deconvolve()`
             method. See `~.deconvolve.deconvolve()`,
-            `.deconvt()`, `.deconvf()`, `deconv_iter()`, and `deconv_multi()`
+            `.deconv_time()`, `.deconv_waterlevel()`,
+            `.deconv_iterative()`, and `.deconv_multitaper()`
             for further documentation.
         :param source_components: parameter is passed to deconvolve.
             If None, source components will be chosen depending on method.

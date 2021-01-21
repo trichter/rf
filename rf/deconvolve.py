@@ -43,7 +43,7 @@ def deconvolve(stream, method='time', func=None,
     :param func: Custom deconvolution function with the following signature
 
              def deconv_custom(rsp: RFStream, src: RFTrace, tshift=10,
-                               **other_kwargs_possible) -> RFStream:
+                               \*\*other_kwargs_possible) -> RFStream:
 
     :param source_components: names of components identifying the source traces,
         e.g. 'LZ' for P receiver functions and 'QR' for S receiver functions
@@ -547,8 +547,8 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
     Deconvolve src from arrays in rsp.
 
     Based on mtdecon.f by G. Helffrich with some slight modifications
-    
-    References: 
+
+    References:
     Helffrich, G (2006). Extended-time multitaper frequency domain
     cross-correlation receiver function estimation. Bulletin of the
     Seismological Society of America, 96 (1).
