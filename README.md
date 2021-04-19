@@ -11,7 +11,7 @@
 ##### Tutorials:
   1. Calculate receiver functions - minimal example ([notebook][nb1])
   2. Calculate receiver functions and stack them by common conversion points to create a profile ([notebook][nb2])
-  3. Compare different types of deconvolution ([notebook][nb3])
+  3. Compare different deconvolution methods ([notebook][nb3])
 
 [nb1]: https://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
 [nb2]: https://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
