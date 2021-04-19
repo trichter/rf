@@ -5,7 +5,7 @@
 [![pypi version](https://img.shields.io/pypi/v/rf.svg)](https://pypi.python.org/pypi/rf)
 [![python version](https://img.shields.io/pypi/pyversions/rf.svg)](https://python.org)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.01808/status.svg)](https://doi.org/10.21105/joss.01808)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3741365.svg)](https://doi.org/10.5281/zenodo.3741365)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4455036.svg)](https://doi.org/10.5281/zenodo.4455036)
 
 ##### Documentation: https://rf.readthedocs.io/
 ##### Tutorials:
