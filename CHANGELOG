@@ -1,4 +1,4 @@
-dev:
+1.0.1:
   * improvements for iterative deconvolution (see #33)
 1.0.0:
   * add iterative deconvolution and multitaper deconvolution (see #30, #31)
