@@ -11,9 +11,11 @@
 ##### Tutorials:
   1. Calculate receiver functions - minimal example ([notebook][nb1])
   2. Calculate receiver functions and stack them by common conversion points to create a profile ([notebook][nb2])
+  3. Compare different types of deconvolution ([notebook][nb3])
 
-[nb1]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
-[nb2]: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
+[nb1]: https://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
+[nb2]: https://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
+[nb3]: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_comparison.ipynb
 
 ##### Get help and discuss: [ObsPy Related Projects category](https://discourse.obspy.org/c/obspy-related-projects/rf/14) in the ObsPy forum
 
