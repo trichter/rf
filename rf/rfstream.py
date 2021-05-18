@@ -180,16 +180,21 @@ class RFStream(Stream):
         for tr in self:
             tr.stats.phase = value
 
-    def write(self, filename, format, **kwargs):
+    def write(self, filename, format, sh_compat=False, **kwargs):
         """
         Save stream to file including format specific headers.
 
         See `Stream.write() <obspy.core.stream.Stream.write>` in ObsPy.
+
+        :param sh_compat: Ensure files in Q format can be read with
+            SeismicHandler (default: False). If set to True the COMMENT field
+            will be deleted which might result in loss of some metadata.
+            (see issue #37).
         """
         if len(self) == 0:
             return
         for tr in self:
-            tr._write_format_specific_header(format)
+            tr._write_format_specific_header(format, sh_compat=sh_compat)
             if format.upper() == 'Q':
                 tr.stats.station = tr.id
         if format.upper() == 'H5':
@@ -466,7 +471,7 @@ class RFTrace(Trace):
         super(RFTrace, self).__init__(data=data, header=header)
         st = self.stats
         if ('_format'in st and st._format.upper() == 'Q' and
-                st.station.count('.') > 0):
+                st.station.count('.') > 1):
             st.network, st.station, st.location = st.station.split('.')[:3]
         self._read_format_specific_header()
 
@@ -527,10 +532,7 @@ class RFTrace(Trace):
         except KeyError:
             # file format is H5 or not supported
             return
-        read_comment = False
         for head, head_format in header_map:
-            if format == 'sh' and read_comment:
-                continue
             try:
                 value = st[format][head_format]
             except KeyError:
@@ -539,7 +541,10 @@ class RFTrace(Trace):
                 if format == 'sac' and '-12345' in str(value):
                     pass
                 elif format == 'sh' and head_format == 'COMMENT':
-                    st.update(json.loads(value))
+                    try:
+                        st.update(json.loads(value))
+                    except json.JSONDecodeError:
+                        pass
                     continue
                 else:
                     st[head] = value
@@ -549,7 +554,7 @@ class RFTrace(Trace):
             except KeyError:
                 pass
 
-    def _write_format_specific_header(self, format):
+    def _write_format_specific_header(self, format, sh_compat=False):
         st = self.stats
         format = format.lower()
         if format == 'q':
@@ -584,11 +589,14 @@ class RFTrace(Trace):
             except KeyError:
                 pass
             st[format][head_format] = val
-        if format == 'sh' and len(comment) > 0:
-            def default(obj):  # convert numpy types
-                return np.asscalar(obj)
-            st[format]['COMMENT'] = json.dumps(comment, separators=(',', ':'),
-                                               default=default)
+        if format == 'sh':
+            if sh_compat:
+                st[format].pop('COMMENT', None)
+            elif len(comment) > 0:
+                def default(obj):  # convert numpy types
+                    return np.asscalar(obj)
+                st[format]['COMMENT'] = json.dumps(
+                    comment, separators=(',', ':'), default=default)
 
     def _seconds2utc(self, seconds, reftime=None):
         """Return UTCDateTime given as seconds relative to reftime"""

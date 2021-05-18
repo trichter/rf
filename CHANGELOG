@@ -1,3 +1,5 @@
+dev:
+  * enhance compatibility with SeismicHandler (see #37, #38)
 1.0.1:
   * improvements for iterative deconvolution (see #33)
 1.0.0:
