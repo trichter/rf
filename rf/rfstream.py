@@ -686,6 +686,8 @@ def rfstats(obj=None, event=None, station=None,
         return stream
     if dist_range == 'default' and phase.upper() in 'PS':
         dist_range = (30, 90) if phase.upper() == 'P' else (50, 85)
+    elif dist_range == 'default':
+        raise ValueError('Please specify dist_range parameter')
     stats = AttribDict({}) if obj is None else obj
     if event is not None and station is not None:
         stats.update(obj2stats(event=event, station=station))
