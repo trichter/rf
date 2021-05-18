@@ -705,7 +705,7 @@ def rfstats(obj=None, event=None, station=None,
                         (phase, dist))
     if len(arrivals) > 1:
         msg = ('TauPy returns more than one arrival for phase %s at '
-               'distance -> take first arrival')
+               'distance %s -> take first arrival')
         warnings.warn(msg % (phase, dist))
     arrival = arrivals[0]
     onset = stats.event_time + arrival.time
