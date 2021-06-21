@@ -183,7 +183,7 @@ def deconv_waterlevel(rsp_list, src, sampling_rate, waterlevel=0.05, gauss=0.5,
     :param gauss: Gauss parameter (standard deviation) of the
         Gaussian Low-pass filter,
         corresponds to cut-off frequency in Hz for a response value of
-        exp(0.5)=0.607.
+        exp(-0.5)=0.607.
     :param tshift: delay time 0s will be at time tshift afterwards
     :param nfft: explicitely set number of samples for the fft
     :param length: number of data points in results, optional
@@ -453,7 +453,7 @@ def deconv_iterative(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
     :param gauss: Gauss parameter (standard deviation) of the
         Gaussian Low-pass filter,
         corresponds to cut-off frequency in Hz for a response value of
-        exp(0.5)=0.607.
+        exp(-0.5)=0.607.
     :param itmax: limit on number of iterations/spikes to add
     :param minderr: stop iteration when the change in error from adding another
         spike drops below this threshold
@@ -547,7 +547,7 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
     :param gauss: Gauss parameter (standard deviation) of the
         Gaussian Low-pass filter,
         corresponds to cut-off frequency in Hz for a response value of
-        exp(0.5)=0.607.
+        exp(-0.5)=0.607.
     :param K: number of Slepian tapers to use (default: 3)
     :param tband: time-bandwidth product (default: 4)
     :param T: time length of taper window in seconds (default: 10)
