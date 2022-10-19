@@ -594,7 +594,7 @@ class RFTrace(Trace):
                 st[format].pop('COMMENT', None)
             elif len(comment) > 0:
                 def default(obj):  # convert numpy types
-                    return np.asscalar(obj)
+                    return np.asarray(obj).item()
                 st[format]['COMMENT'] = json.dumps(
                     comment, separators=(',', ':'), default=default)
 
