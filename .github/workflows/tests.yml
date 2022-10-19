@@ -70,4 +70,4 @@ jobs:
           coverage run --include='*/rf/*' -m rf.tests
           coverage xml -o ../coverage.xml
       - name: upload coverage
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
