@@ -600,7 +600,7 @@ class RFTrace(Trace):
 
     def _seconds2utc(self, seconds, reftime=None):
         """Return UTCDateTime given as seconds relative to reftime"""
-        from collections import Iterable
+        from collections.abc import Iterable
         from obspy import UTCDateTime as UTC
         if isinstance(seconds, Iterable):
             return [self._seconds2utc(s, reftime=reftime) for s in seconds]
