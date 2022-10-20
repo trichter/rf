@@ -45,10 +45,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: .github/test_conda_env.yml
-      - name: print conda environment info
-        run: |
-          conda info -a
-          conda list
       - name: install mtspec
         if: ${{ matrix.add_package == 'features' }}
         continue-on-error: ${{ matrix.continue-on-error }}
@@ -60,6 +56,10 @@ jobs:
         run: |
           conda install h5py fortran-compiler
           pip install obspyh5 toeplitz
+      - name: print conda environment info
+        run: |
+          conda info -a
+          conda list
       - name: install package
         run: |
           pip install -v --no-deps .
