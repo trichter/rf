@@ -24,7 +24,7 @@ jobs:
           - os: ubuntu-latest
             python: 3.9
             add_package: features
-            continue-on-error: false
+            continue-on-error: true
           - os: macos-latest
             python: 3.9
             add_package: features
