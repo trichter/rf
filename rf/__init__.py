@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Tom Eulenfeld, MIT license
+# Copyright 2013-2022 Tom Eulenfeld, MIT license
 """
 rf Documentation
 ================
