@@ -315,7 +315,7 @@ def plot_profile(profile, fname=None, figsize=None, dpi=None,
         slowness = profile[0].stats.slowness
         pd = model.calculate_delay_times(phase=phase, slowness=slowness)
         ax2 = ax.twinx()
-        ax.get_shared_y_axes().join(ax, ax2)
+        ax.sharey(ax2)
         dkm = 50
         if profile[0].stats.endtime - profile[0].stats.onset > 50:
             dkm = 200
