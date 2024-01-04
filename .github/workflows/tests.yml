@@ -5,6 +5,8 @@ on:
     branches:
       # only branches from forks which have the form 'user:branch-name'
       - '**:**'
+  schedule:
+    - cron:  '42 0 * * 0'
 jobs:
   run_tests:
     strategy:
