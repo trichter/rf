@@ -1,5 +1,5 @@
 1.0.3:
-  * fix: use ax.sharey instead of join method which is unsupported in recent mpl verions
+  * fix: use ax.sharey instead of join method which is unsupported in recent mpl versions
 1.0.2:
   * enhance compatibility with SeismicHandler (see #37, #38)
   * fix: replace np.asscalar
