@@ -366,3 +366,84 @@ def plot_profile(profile, fname=None, figsize=None, dpi=None,
         plt.close(fig)
     else:
         return fig
+
+def plot_harmonics(hd, hd2=None, fillcolors=('b','r'), trim=None):
+    """Plot components from harmonic decomposition.
+
+    The plot will have two panels. In all cases the left panel will show
+    the modeled components of hd. 
+    If hd2 is supplied, the right panel will show the modeled components of hd2. 
+    If hd2 is None and hd has unmodeled components, those will be on the right. 
+    If hd2 is None and hd does not have unmodeled components, the right panel will
+    be empty.
+
+   :param hd: RFStream of harmonics, returned from rf.harmonics.harmonics()
+        The stream should contain modeled components, and may also include
+        unmodeled components
+    :param hd2: Optional second RFStream of harmonics. If used, it should
+        contain modeled components
+    :param fillcolors: fill colors for positive and negative wiggles
+    :param trim: trim stream relative to onset before plotting using
+         `~.rfstream.RFStream.slice2()`
+    """
+    if trim:
+        try:
+            hd = hd.slice2(*trim, reftime='onset')
+            if hd2:
+                hd2 = hd2.slice2(*trim, reftime='onset')
+        except AttributeError:  # if it's obspy.Stream() instead of RFStream()
+            pass                # we might still be ok
+    ref0 = max(abs(hd.select(channel='0',location='mod')[0].data))
+    mod = hd.select(location='mod')
+    if hd2:
+        ref1 = max(abs(hd2.select(channel='0',location='mod')[0].data))
+        unmod = hd2.select(location='mod')
+    else:
+        ref1 = ref0
+        unmod = hd.select(location='unmod')
+
+    fig = plt.figure(constrained_layout=True)
+    gs = fig.add_gridspec(1,2)
+    ax_mod = fig.add_subplot(gs[:,0])
+    ax_unmod = fig.add_subplot(gs[:,1],sharey=ax_mod,sharex=ax_mod)
+
+    def _plot(ax, t, d, i):
+        c1, c2 = fillcolors
+        if c1:
+            ax.fill_between(t, d + i, i, where=d >= 0, lw=0., facecolor=c1)
+        if c2:
+            ax.fill_between(t, d + i, i, where=d < 0, lw=0., facecolor=c2)
+        ax.plot(t, d + i, 'k')
+
+    for i in range(5):
+        tr = mod[i]
+        t = tr.times(reftime=tr.stats.onset)
+        j = 4 - int(tr.stats['channel'])
+        wiggle = tr.data/ref0
+        _plot(ax_mod, t, wiggle, j)
+        if len(unmod) > 0:
+            tr = unmod[i]
+            t = tr.times(reftime=tr.stats.onset)
+            j = 4 - int(tr.stats['channel'])
+            wiggle = tr.data/ref1
+            _plot(ax_unmod, t, wiggle, j)
+
+    ax_mod.set_title('anisotropy/dip %s' % mod[0].stats.components)
+    if not hd2 and len(unmod) > 0:
+        ax_unmod.set_title('unmodeled %s' % mod[0].stats.components)
+    if hd2:
+        ax_unmod.set_title('anisotropy/dip %s' % unmod[0].stats.components)
+
+    ax_mod.set_xlabel('Delay time [s]')
+    ax_unmod.set_xlabel('Delay time [s]')
+
+    ax_mod.yaxis.set_ticks(np.arange(5))
+    ax_mod.set_yticklabels(['sin($2\\theta$)','cos($2\\theta$)',\
+            'sin($\\theta$)','cos($\\theta$)','constant'])
+    ax_unmod.yaxis.tick_right()
+    if trim:
+        ax_mod.set_xlim(trim)  # fallback if not trimmed as requested
+
+    fig.suptitle('Harmonics: %s' % (mod[0].stats.station))
+
+    return fig
