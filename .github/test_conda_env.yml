@@ -7,3 +7,4 @@ dependencies:
   - cartopy
   - geographiclib
   - coverage
+  - "scipy<1.13"
