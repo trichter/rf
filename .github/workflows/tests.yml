@@ -13,26 +13,26 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: [3.7, 3.8, 3.9, "3.10"]
+        python: ["3.10", "3.11"]
         add_package: [""]
         continue-on-error: [false]
         include:
           - os: macos-latest
-            python: 3.9
+            python: "3.11"
             continue-on-error: false
           - os: windows-latest
-            python: 3.9
+            python: "3.11"
             continue-on-error: false
           - os: ubuntu-latest
-            python: 3.9
+            python: "3.11"
             add_package: features
             continue-on-error: true
           - os: macos-latest
-            python: 3.9
+            python: "3.11"
             add_package: features
             continue-on-error: true
           - os: windows-latest
-            python: 3.9
+            python: "3.11"
             add_package: features
             continue-on-error: true
     runs-on: ${{ matrix.os }}
