@@ -8,7 +8,7 @@ import warnings
 from rf.util import _add_processing_info
 
 @_add_processing_info
-def harmonics(stream, first_comp='R',second_comp=None, azim=0, method='time', **kwargs):
+def harmonics(stream, components='R', azim=0, method='time', **kwargs):
     """
     Perform harmonic decomposition of PRFs.
 
@@ -29,9 +29,8 @@ def harmonics(stream, first_comp='R',second_comp=None, azim=0, method='time', **
        components (e.g. R and T) are indexed in a common order.
 
     :param stream: RFStream including components to be decomposed 
-    :param first_comp: name of primary component to use in decomposition;
-        'R' or 'Q' for PRFs
-    :param second_comp: name of secondary component, if using; 'T' or None
+    :param components: names of components to use in decomposition;
+        can be R, RT, Q, QT, or T (for PRFs)
     :param azim: azimuth along which to decompose the RFs (default: 0)
     :param method: domain for harmonic decomposition. Options are
         'time' -> time domain (Bianchi et al. 2010)
@@ -47,7 +46,6 @@ def harmonics(stream, first_comp='R',second_comp=None, azim=0, method='time', **
         for that single component.
     """
     # various checks for components and inputs
-    components = first_comp + second_comp if second_comp else first_comp
     if components not in ['RT','R','Q','QT','T']:  # TODO L/Z for SRFs?
         raise NotImplementedError('Component choice %s not supported' % components)
     for c in components:
@@ -60,8 +58,8 @@ def harmonics(stream, first_comp='R',second_comp=None, azim=0, method='time', **
         raise NotImplementedError('Supported methods are time and freq')
 
     # short names to save some typing
-    R = first_comp; T = False
-    if second_comp:
+    R = components[0]; T = False
+    if len(components)==2:
         T = True        # and the second is T
 
     # get back azimuths (in degrees) with evt time as unique key
