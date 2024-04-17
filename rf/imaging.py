@@ -25,7 +25,7 @@ def _label(stream):
 
 def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             stack_height=0.5, dpi=None,
-            scale=1, fillcolors=(None, None), trim=None,
+            trace_scale=False, scale_factor=1, fillcolors=(None, None), trim=None,
             info=(('back_azimuth', u'baz (°)', 'C0'),
                   ('distance', u'dist (°)', 'C3')),
             show_traces=True,
@@ -40,7 +40,10 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
     :param trace_height: height of one trace in inches
     :param stack_height: height of stack axes in inches
     :param dpi: dots per inch for the created figure
-    :param scale: scale for individual traces
+    :param trace_scale: if True, scale each trace individually; if false,
+        scale traces by global max amplitude
+    :param scale_factor: factor for scaling traces, either individually
+        or globally. A value of 1 generally works well.
     :param fillcolors: fill colors for positive and negative wiggles
     :param trim: trim stream relative to onset before plotting using
          `~.rfstream.RFStream.slice2()`
@@ -105,16 +108,14 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             ax.fill_between(t, d + i, i, where=d < 0, lw=0., facecolor=c2)
         ax.plot(t, d + i, 'k')
     xlim = (0, 0)
-    max_ = max(np.max(np.abs(tr.data)) for tr in stream)
+    max_ = max(np.max(np.abs(tr.data)) for tr in stream)  # for scaling, if not trace_scale
     for i, tr in enumerate(stream):
         times = tr.times(reftime=tr.stats.onset)
         xlim = (min(xlim[0], times[0]), max(xlim[1], times[-1]))
         if show_traces: 
-            if scale > 0:  # scale to all-trace max
-                _plot(ax1, times, tr.data / max_ * scale, i + 1)
-            elif scale < 0:  # scale trace by trace
+            if trace_scale:  # scale trace by trace (otherwise, we scale by global trace max)
                 max_ = max(np.abs(tr.data))
-                _plot(ax1, times, tr.data / max_ * abs(scale), i + 1)
+            _plot(ax1, times, tr.data / max_ * scale_factor, i + 1)
     # plot right axes with header information
     if info:
         for ax, header, label, color in info:
@@ -151,8 +152,10 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
             warnings.warn('Different stations or channels in one RF plot. ' +
                           'Do not plot stack.')
         elif len(stack) == 1:
-            if show_traces: ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
-            if not show_traces: ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs])
+            if show_traces: 
+                ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs], sharex=ax1)
+            elif not show_traces: 
+                ax2 = fig.add_axes([fl, 1 - ft - hs, fw2, hs])
             _plot(ax2, times, stack[0].data, 0)
             if not show_traces: ax2.set_xlim(*xlim)
             for l in ax2.get_xticklabels():
@@ -391,8 +394,8 @@ def plot_harmonics(hd, hd2=None, fillcolors=('b','r'), trim=None):
             hd = hd.slice2(*trim, reftime='onset')
             if hd2:
                 hd2 = hd2.slice2(*trim, reftime='onset')
-        except AttributeError:  # if it's obspy.Stream() instead of RFStream()
-            pass                # we might still be ok
+        except AttributeError:  # if it's obspy.Stream() instead of RFStream(), might still work
+            warnings.warn('Warning: onset is not in trace stats, so this may not work as expected')
     ref0 = max(abs(hd.select(channel='0',location='mod')[0].data))
     mod = hd.select(location='mod')
     if hd2:
