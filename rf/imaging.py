@@ -397,9 +397,15 @@ def plot_harmonics(hd, hd2=None, fillcolors=('b','r'), trim=None):
         except AttributeError:  # if it's obspy.Stream() instead of RFStream(), might still work
             warnings.warn('Warning: onset is not in trace stats, so this may not work as expected')
     ref0 = max(abs(hd.select(channel='0',location='mod')[0].data))
+    for tr in hd:
+        if max(abs(tr.data)) > ref0:
+            ref0 = max(abs(tr.data))
     mod = hd.select(location='mod')
     if hd2:
         ref1 = max(abs(hd2.select(channel='0',location='mod')[0].data))
+        for tr in hd2.select(location='mod'):
+            if max(abs(tr.data)) > ref0:
+                ref1 = max(abs(tr.data))
         unmod = hd2.select(location='mod')
     else:
         ref1 = ref0
