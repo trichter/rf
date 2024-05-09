@@ -35,6 +35,15 @@ class ImagingTestCase(unittest.TestCase):
         stream = minimal_example_rf()
         plot_ppoints(stream.ppoints(50), inventory=stream)
 
+    def test_plot_harmonics(self):
+        from rf.imaging import plot_harmonics
+        from rf.harmonics import harmonics
+        stream = minimal_example_rf()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            harm = harmonics(stream,components='QT',scalars=(1,1))
+        plot_harmonics(harm)
+
 
 def suite():
     return unittest.makeSuite(ImagingTestCase, 'test')
