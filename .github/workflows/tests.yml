@@ -46,11 +46,11 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           environment-file: .github/test_conda_env.yml
-      - name: install mtspec
+      - name: install multitaper
         if: ${{ matrix.add_package == 'features' }}
         continue-on-error: ${{ matrix.continue-on-error }}
         run: |
-          conda install mtspec
+          conda install multitaper
       - name: install other optional dependencies
         if: ${{ matrix.add_package == 'features' }}
         continue-on-error: ${{ matrix.continue-on-error }}
