@@ -32,6 +32,11 @@ API Documentation
 
 .. automodule:: rf.simple_model
 
+:mod:`!harmonics` Module
+---------------------------
+
+.. automodule:: rf.harmonics
+
 :mod:`!util` Module
 -------------------------
 
