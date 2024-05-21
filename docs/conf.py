@@ -106,7 +106,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rf'
-copyright = u'2013-2022, Tom Eulenfeld'
+copyright = u'2013-2024, Tom Eulenfeld'
 
 # The full version, including alpha/beta/rc tags.
 release = rf.__version__
