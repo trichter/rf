@@ -459,7 +459,7 @@ def deconv_iterative(rsp, src, sampling_rate, tshift=10, gauss=0.5, itmax=400,
         spike drops below this threshold
     :param mute_shift: Mutes all samples at beginning of trace
         (lenght given by time shift).
-        For `len(src)==len(rsp)` this mutes all samples before the onset.
+        For ``len(src)==len(rsp)`` this mutes all samples before the onset.
     :param normalize: normalize all results so that the maximum of the trace
         with the supplied index is 1. Set normalize to None for no normalization.
 

@@ -88,7 +88,13 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode',
               'alabaster']
 
-autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
+
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'show-inheritance': True,
+}
+
 default_role = 'py:obj'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -222,6 +228,6 @@ epub_copyright = u'2013-2016, Tom Eulenfeld'
 
 
 # Configuration for intersphinx
-intersphinx_mapping = {'obspy': ('http://docs.obspy.org/', None),
+intersphinx_mapping = {'obspy': ('https://docs.obspy.org/', None),
                        #'python': ('https://docs.python.org/2.7/', None)
                        }
