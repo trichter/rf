@@ -434,7 +434,7 @@ class RFStream(Stream):
         Perform harmonic decomposition on stream.
 
         All args and kwargs are passed to the function
-        `~rf.harmonics.harmonic()`.
+        `~rf.harmonics.harmonics()`.
         """
         hd = harmonics(self, *args, **kwargs)
         return hd

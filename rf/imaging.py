@@ -380,7 +380,8 @@ def plot_profile(profile, fname=None, figsize=None, dpi=None,
 
 
 def plot_harmonics(hd, hd2=None, fillcolors=('b', 'r'), trim=None):
-    """Plot components from harmonic decomposition.
+    """
+    Plot components from harmonic decomposition.
 
     The plot will have two panels. In all cases the left panel will show
     the modeled components of hd.
@@ -389,14 +390,16 @@ def plot_harmonics(hd, hd2=None, fillcolors=('b', 'r'), trim=None):
     If hd2 is None and hd does not have unmodeled components, the right panel will
     be empty.
 
-   :param hd: RFStream of harmonics, returned from rf.harmonics.harmonics()
+    :param hd: RFStream of harmonics, returned from `rf.harmonics.harmonics()`
+        or the corresponding `~rf.rfstream.RFStream.harmonics()` method.
         The stream should contain modeled components, and may also include
         unmodeled components
     :param hd2: Optional second RFStream of harmonics. If used, it should
         contain modeled components
     :param fillcolors: fill colors for positive and negative wiggles
     :param trim: trim stream relative to onset before plotting using
-         `~.rfstream.RFStream.slice2()`
+        `~rf.rfstream.RFStream.slice2()`
+
     """
     if trim:
         try:
