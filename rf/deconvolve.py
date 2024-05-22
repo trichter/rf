@@ -558,9 +558,9 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
     :return: (list of) array(s) with deconvolution(s)
     """
     try:
-        import mtspec as mt
+        import multitaper as mt
     except ImportError as ex:
-        msg = 'mtspec package is needed for multitaper deconvolution'
+        msg = 'multitaper package is needed for multitaper deconvolution'
         raise ImportError(msg) from ex
 
     # check src trace length < rsp trace length:
@@ -570,10 +570,10 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
     nft = len(rsp[0])  # length of final arrays
     dt = 1./sampling_rate  # sample spacing
 
-    # calculate multitapers with mtspec
+    # calculate multitapers with German's multitaper package
     ntap = int(round(T/dt))  # #points in each taper
-
-    tap, el, _ = mt.multitaper.dpss(ntap, tband, K); tap = tap.T
+    slepians = mt.MTSpec(np.arange(ntap),nw=tband,kspec=K)
+    tap = slepians.vn.T; el = slepians.lamb
     if K >= 2:
         tap[1] = -tap[1]  # adjust to match sign convention
     if K >= 3:
@@ -583,7 +583,7 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
 
     ofac = 1 / (1 - olap)  # calculate overlap factor
 
-    sfft = np.zeros((K,nft), dtype=np.complex)  # array for holding freq-domain source estimate
+    sfft = np.zeros((K,nft), dtype=complex)  # array for holding freq-domain source estimate
     src = detrend(src, type='constant')  # demean and detrend source
     src = detrend(src, type='linear')
 
@@ -612,8 +612,8 @@ def deconv_multitaper(rsp, src, nse, sampling_rate, tshift, gauss=0.5,
     RF_out = np.zeros((ncomp, nft))
     for c in range(ncomp):
         dat = rsp[c]; nos = nse[c]  # pick out component
-        dfft = np.zeros((K,nft), dtype=np.complex)  # arrays for storing freq-domain estimates
-        nfft = np.zeros((K,nft), dtype=np.complex)
+        dfft = np.zeros((K,nft), dtype=complex)  # arrays for storing freq-domain estimates
+        nfft = np.zeros((K,nft), dtype=complex)
 
         # window, taper, and transform the noise
         nos = detrend(nos, type='constant')

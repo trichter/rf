@@ -55,7 +55,7 @@ Dependencies of rf are
 
     * ObsPy_ and some of its dependencies,
     * cartopy, geographiclib, shapely,
-    * mtspec_ for multitaper deconvolution,
+    * multitaper_ for multitaper deconvolution,
     * toeplitz_ for faster time domain deconvolution (optional),
     * obspyh5_ for hdf5 file support (optional),
     * tqdm for progress bar in batch processing (optional).
@@ -75,7 +75,7 @@ To install the development version of rf download the source code and run ::
 Here are some instructions to install rf into a fresh conda environment::
 
     conda config --add channels conda-forge
-    conda create -n rfenv obspy cartopy geographiclib shapely h5py mtspec tqdm fortran-compiler
+    conda create -n rfenv obspy cartopy geographiclib shapely h5py multitaper tqdm fortran-compiler
     conda activate rfenv
     pip install obspyh5 toeplitz rf
     rf-runtests
@@ -259,7 +259,7 @@ Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal 
 .. _pip: http://www.pip-installer.org/
 .. _obspyh5: https://github.com/trichter/obspyh5/
 .. _toeplitz: https://github.com/trichter/toeplitz/
-.. _mtspec: https://github.com/krischer/mtspec
+.. _multitaper: https://github.com/gaprieto/multitaper
 
 .. _notebook1: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
 .. _notebook2: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
