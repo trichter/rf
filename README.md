@@ -13,18 +13,18 @@
   1. Calculate receiver functions - minimal example ([notebook][nb1])
   2. Calculate receiver functions and stack them by common conversion points to create a profile ([notebook][nb2])
   3. Compare different deconvolution methods ([notebook][nb3])
+  4. Harmonic deconvolution with synthetics - minimal example ([notebook][nb4])
 
 [nb1]: https://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
 [nb2]: https://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
 [nb3]: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_comparison.ipynb
+[nb4]: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_harmonics.ipynb
 
 ##### Get help and discuss: [ObsPy Related Projects category](https://discourse.obspy.org/c/obspy-related-projects/rf/14) in the ObsPy forum
 
 ##### Contribute:
 
 All contributions are welcome ... e.g. report bugs, discuss or add new features.
-For example, the package could profit from more advanced deconvolution techniques.
-New deconvolution functions can be tested by just passing them to deconvolve method (see docs).
 
 ##### Citation:
 
