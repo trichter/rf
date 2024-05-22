@@ -65,6 +65,9 @@ def plot_rf(stream, fname=None, fig_width=7., trace_height=0.5,
         stream = stream.slice2(*trim, reftime='onset')
     if info is None:
         info = ()
+    if not show_traces:
+        info=None
+        trace_height=0
     N = len(stream)
     # calculate axes and figure dimensions
     # big letters: inches, small letters: figure fraction
