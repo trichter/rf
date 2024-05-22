@@ -2,7 +2,6 @@
 """
 Harmonic decomposition
 """
-from copy import copy
 import numpy as np
 import warnings
 from rf.util import _add_processing_info
@@ -12,23 +11,23 @@ def harmonics(stream, components='R', azim=0, method='time', **kwargs):
     """
     Perform harmonic decomposition of PRFs.
 
-    This implements the method described in Bianchi et al 2010, 
-    doi:10.1029/2009JB007061 (equations in supplemental material) and in 
+    This implements the method described in Bianchi et al 2010,
+    doi:10.1029/2009JB007061 (equations in supplemental material) and in
     Park and Levin 2016, doi:10.1093/gji/ggw323 (equations 44/45 and 47).
 
     .. The equations in the two papers are equivalent, just written
        out slightly differently. Park and Levin have some sign errors.
 
-    The harmonic components are returned in an array with rows for 
+    The harmonic components are returned in an array with rows for
     constant, cos, sin, cos2, and sin2 terms.
-    The stats dictionaries of the traces in the input stream must have a 
+    The stats dictionaries of the traces in the input stream must have a
     'back_azimuth' entry and an 'event_time' entry.
 
     .. 'event_time' is used for trace sorting, under the assumption that
        it's a unique key and can be used to make sure that different
        components (e.g. R and T) are indexed in a common order.
 
-    :param stream: RFStream including components to be decomposed 
+    :param stream: RFStream including components to be decomposed
     :param components: names of components to use in decomposition;
         can be R, RT, Q, QT, or T (for PRFs)
     :param azim: azimuth along which to decompose the RFs (default: 0)
