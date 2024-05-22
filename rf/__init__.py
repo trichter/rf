@@ -190,7 +190,7 @@ the given kwargs:
 Please see `.RFStream.rf()`
 for a more detailed description.
 RFStream provides the possibility to perform moveout correction,
-piercing point calculation and profile stacking. 
+piercing point calculation and profile stacking.
 There are also functions included for calculating back-azimuthal harmonics
 from an RFStream.
 
@@ -205,7 +205,7 @@ to be locally reproduced.
        to create a profile (notebook2_)
     3. Calculate and compare receiver functions calculated with different
        deconvolution methods (notebook3_)
-    4. Harmonic deconvolution with synthetics - minimal example (notebook4_) 
+    4. Harmonic deconvolution with synthetics - minimal example (notebook4_)
 
 Command line tool for batch processing
 --------------------------------------
@@ -277,6 +277,3 @@ __version__ = '1.0.4-dev'
 from rf.profile import get_profile_boxes
 from rf.rfstream import read_rf, RFStream, rfstats
 from rf.util import iter_event_data, IterMultipleComponents
-
-if 'dev' not in __version__:  # get image for correct version from travis-ci
-    __doc__ = __doc__.replace('branch=master', 'branch=v%s' % __version__)
