@@ -1,3 +1,7 @@
+dev:
+  * add calculation of harmonic decomposition and corresponding plot (see #48)
+  * update multitaper deconvolution to use the multitaper package instead of outdated mtspec (see #49)
+  * add option to only plot stacked receiver function (see #48)
 1.0.3:
   * fix: use ax.sharey instead of join method which is unsupported in recent mpl versions
 1.0.2:
