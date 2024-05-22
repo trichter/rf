@@ -1,4 +1,4 @@
-# Copyright 2013-2019 Tom Eulenfeld, MIT license
+# Copyright 2024 Hannah Mark, MIT license
 """
 Harmonic decomposition
 """
