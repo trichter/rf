@@ -191,6 +191,8 @@ Please see `.RFStream.rf()`
 for a more detailed description.
 RFStream provides the possibility to perform moveout correction,
 piercing point calculation and profile stacking.
+There are also functions included for calculating back-azimuthal harmonics
+from an RFStream.
 
 Tutorials
 ---------
@@ -203,6 +205,7 @@ to be locally reproduced.
        to create a profile (notebook2_)
     3. Calculate and compare receiver functions calculated with different
        deconvolution methods (notebook3_)
+    4. Harmonic deconvolution with synthetics - minimal example (notebook4_)
 
 Command line tool for batch processing
 --------------------------------------
@@ -264,6 +267,7 @@ Tom Eulenfeld (2020), rf: Receiver function calculation in seismology, *Journal 
 .. _notebook1: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_minimal_example.ipynb
 .. _notebook2: http://nbviewer.jupyter.org/github/trichter/notebooks/blob/master/receiver_function_profile_chile.ipynb
 .. _notebook3: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_comparison.ipynb
+.. _notebook4: https://nbviewer.jupyter.org/github/hfmark/notebooks/blob/main/rf_harmonics.ipynb
 
 .. _GitHub: https://github.com/trichter/rf/
 """
@@ -273,6 +277,3 @@ __version__ = '1.0.4-dev'
 from rf.profile import get_profile_boxes
 from rf.rfstream import read_rf, RFStream, rfstats
 from rf.util import iter_event_data, IterMultipleComponents
-
-if 'dev' not in __version__:  # get image for correct version from travis-ci
-    __doc__ = __doc__.replace('branch=master', 'branch=v%s' % __version__)

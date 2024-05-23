@@ -14,6 +14,7 @@ from obspy.core import AttribDict
 from obspy.geodetics import gps2dist_azimuth
 from obspy.taup import TauPyModel
 from rf.deconvolve import deconvolve
+from rf.harmonics import harmonics
 from rf.simple_model import load_model
 from rf.util import DEG2KM, IterMultipleComponents, _add_processing_info
 
@@ -427,6 +428,16 @@ class RFStream(Stream):
                 tr2.stats.onset = tr2.stats.starttime + onset
             traces.append(tr2)
         return self.__class__(traces)
+
+    def harmonics(self, *args, **kwargs):
+        """
+        Perform harmonic decomposition on stream.
+
+        All args and kwargs are passed to the function
+        `~rf.harmonics.harmonics()`.
+        """
+        hd = harmonics(self, *args, **kwargs)
+        return hd
 
     def profile(self, *args, **kwargs):
         """
