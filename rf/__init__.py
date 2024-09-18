@@ -1,7 +1,7 @@
 # Copyright 2013-2022 Tom Eulenfeld, MIT license
 """
-rf Documentation
-================
+rf Docs
+=======
 
 rf is a Python framework for receiver function analysis.
 Read and write support of necessary metadata is provided for
@@ -221,7 +221,7 @@ The command ::
 
     rf create
 
-creates a :ref:`template configuration file <config_label>` in the current
+creates a template configuration file in the current
 directory. This file is in JSON format and well documented.
 After adapting the file to your needs you can use the various
 commands of rf to perform different tasks (e.g. receiver function

@@ -1,5 +1,5 @@
 # requirements to build the docs
-alabaster
+furo
 decorator
 obspy
 sphinx

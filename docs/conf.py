@@ -4,7 +4,7 @@
 # sphinx-quickstart on Mon Nov  4 11:31:39 2013.
 #
 # This file is execfile()d with the current directory set to its containing dir.
-
+# build with sphinx-build -aEn . _build
 
 import sys, os, traceback
 
@@ -86,7 +86,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.intersphinx',
               'sphinx.ext.autosummary',
               'sphinx.ext.viewcode',
-              'alabaster']
+             ]
 
 
 autodoc_default_options = {
@@ -96,23 +96,11 @@ autodoc_default_options = {
 }
 
 default_role = 'py:obj'
-
-# Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
-
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
 exclude_patterns = ['_build']
 
-# The suffix of source filenames.
-source_suffix = '.rst'
-
-# The master toctree document.
-master_doc = 'index'
-
-# General information about the project.
-project = u'rf'
-copyright = u'2013-2024, Tom Eulenfeld'
+project = 'rf'
+copyright = '2013-2024, Tom Eulenfeld'
 
 # The full version, including alpha/beta/rc tags.
 release = rf.__version__
@@ -128,104 +116,17 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 #html_theme = 'nature'  #nature, sphinxdoc
 
-import alabaster
-
-html_theme_path = [alabaster.get_path()]
-html_theme = 'alabaster'
-html_sidebars = {
-    '**': [
-        'about.html',
-        'mynavigation.html',
-        'searchbox.html',
-    ]
-}
-
-html_theme_options = {
-    'logo': 'logo_rf.svg',
-    'github_user': 'trichter',
-    'github_repo': 'rf',
-    'description': 'Receiver function calculation in seismology',
-    'show_powered_by': False,
-    'page_width': '1240px',
-    #'sidebar_width': '220px',
-    'extra_nav_links': {'Project on Github': 'https://github.com/trichter/rf'}
-
-}
-
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-#html_logo = None
-
-# The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
-#html_favicon = ''
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+html_theme = 'furo'
+html_logo = '_static/logo_rf.svg'
+html_show_sphinx = True
 html_static_path = ['_static']
-
-
-# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-#html_show_sphinx = True
-
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+html_title = f'Receiver function calculation in seismology <br>(v{version} docs)'
+html_theme_options = {
+    'top_of_page_buttons': [],
+}
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'rfdoc'
-
-
-# -- Options for LaTeX output --------------------------------------------------
-
-latex_elements = {} # stuff for the LaTeX preamble
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-  ('index', 'rf.tex', u'rf Documentation',
-   u'Tom Eulenfeld', 'manual'),
-]
-
-# The name of an image file (relative to this directory) to place at the top of
-# the title page.
-#latex_logo = None
-
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-#latex_use_parts = False
-
-
-# -- Options for manual page output --------------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'rf', u'rf Documentation',
-     [u'Tom Eulenfeld'], 1)
-]
-
-
-# -- Options for Texinfo output ------------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-  ('index', 'rf', u'rf Documentation',
-   u'Tom Eulenfeld', 'rf', 'Receiver function calculation in seismology',
-   'Miscellaneous'),
-]
-
-# -- Options for Epub output ---------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = u'rf'
-epub_author = u'Tom Eulenfeld'
-epub_publisher = u'Tom Eulenfeld'
-epub_copyright = u'2013-2016, Tom Eulenfeld'
-
 
 # Configuration for intersphinx
 intersphinx_mapping = {'obspy': ('https://docs.obspy.org/', None),
