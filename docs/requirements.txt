@@ -1,5 +1,6 @@
 # requirements to build the docs
 furo
 decorator
+numpy<2.0
 obspy
 sphinx
