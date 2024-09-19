@@ -123,6 +123,7 @@ html_static_path = ['_static']
 html_title = f'Receiver function calculation in seismology <br>(v{version} docs)'
 html_short_title = f'rf v{version} docs'
 html_theme_options = {
+    'footer_icons' : [],
     'top_of_page_buttons': [],
 }
 
