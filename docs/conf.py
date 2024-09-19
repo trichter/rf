@@ -120,8 +120,8 @@ html_theme = 'furo'
 html_logo = '_static/logo_rf.svg'
 html_show_sphinx = True
 html_static_path = ['_static']
-html_title = f'Receiver function calculation in seismology <br>(v{version} docs)'
-html_short_title = f'rf v{version} docs'
+html_title = f'Receiver function calculation in seismology <br>(v{release} docs)'
+html_short_title = f'rf v{release} docs'
 html_theme_options = {
     'footer_icons' : [],
     'top_of_page_buttons': [],
