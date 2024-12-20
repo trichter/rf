@@ -206,7 +206,7 @@ def plot_stations(inventory, label_stations=True, ax=None, crs=None, **kwargs):
     Plot stations.
 
     :param inventory: station inventory
-    :param label_stations: weather to label stations
+    :param label_stations: wether to label stations
     :param ax: geoaxes (default None: new ax will be created)
     :param crs: coordinate reference system for new geoaxis, (default: None,
         then AzimuthalEquidistant projection with appropriate center is used.)
