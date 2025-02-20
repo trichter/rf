@@ -339,6 +339,7 @@ def plot_profile(profile, fname=None, figsize=None, dpi=None,
         phase = profile[0].stats.moveout
         slowness = profile[0].stats.slowness
         pd = model.calculate_delay_times(phase=phase, slowness=slowness)
+        ylim = ax.get_ylim()
         ax2 = ax.twinx()
         ax.sharey(ax2)
         dkm = 50
@@ -355,7 +356,7 @@ def plot_profile(profile, fname=None, figsize=None, dpi=None,
         ax2.yaxis.set_minor_locator(myMinorLocator)
         ax2.yaxis.set_major_formatter(myFormatter)
         ax2.set_ylabel('depth (km)')
-        ax2.set_ylim(ax.get_ylim())
+        ax2.set_ylim(ylim)
     if top is not None:
         ax3 = fig.add_axes([0.1, 0.85, 0.8, 0.1], sharex=ax)
     if top == 'hist':
