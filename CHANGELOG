@@ -1,4 +1,4 @@
-dev:
+1.1.1:
   * fix: correctly set ylim in profile plot
 1.1.0:
   * add calculation of harmonic decomposition and corresponding plot (see #48)
