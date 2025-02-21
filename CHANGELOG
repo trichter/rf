@@ -1,3 +1,5 @@
+dev:
+  * fix: correctly set ylim in profile plot
 1.1.0:
   * add calculation of harmonic decomposition and corresponding plot (see #48)
   * update multitaper deconvolution to use the multitaper package instead of outdated mtspec (see #49)
