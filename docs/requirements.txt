@@ -1,6 +1,7 @@
 # requirements to build the docs
 furo
 decorator
+setuptools<82
 numpy<2.0
 obspy
 sphinx

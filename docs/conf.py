@@ -65,7 +65,7 @@ def get_all_param_type_declarations():
         with open(fname) as f:
             text = text + f.read()
     for line in text.splitlines():
-        match = search(':param\s+(\S+)\s+\S+:', line)
+        match = search(r':param\s+(\S+)\s+\S+:', line)
         if match is None:
             match = search(':type.*:\s*(.*?)\s*$', line)
         if match is not None:
