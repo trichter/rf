@@ -6,10 +6,10 @@ rf: receiver function calculation - batch command line utility
 import argparse
 from argparse import SUPPRESS
 from importlib import import_module
+import importlib.resources as imp_resources
 import json
 import os
 from os.path import join
-from pkg_resources import resource_filename
 import shutil
 import sys
 
@@ -206,7 +206,7 @@ def run(command, conf=None, tutorial=False, **kw):
             for src in example_files:
                 dests.append(os.path.join(dest_dir, src))
         for src, dest in zip(srcs, dests):
-            src = resource_filename('rf', 'example/%s' % src)
+            src = imp_resources.files('rf') / ('example/%s' % src)
             shutil.copyfile(src, dest)
         return
     # Load configuration

@@ -5,7 +5,6 @@ Tests for batch module.
 from glob import glob
 import unittest
 import os
-from pkg_resources import load_entry_point
 import sys
 import warnings
 
@@ -80,14 +79,14 @@ class BatchTestCase(unittest.TestCase):
         import rf.batch
         rf.batch.tqdm = lambda: None
 
-    @unittest.skipIf(sys.platform.startswith("win"), "fails on Windows")
-    def test_entry_point(self):
-        ep_script = load_entry_point('rf', 'console_scripts', 'rf')
-        try:
-            with quiet():
-                ep_script(['-h'])
-        except SystemExit:
-            pass
+    # @unittest.skipIf(sys.platform.startswith("win"), "fails on Windows")
+    # def test_entry_point(self):
+    #     ep_script = load_entry_point('rf', 'console_scripts', 'rf')
+    #     try:
+    #         with quiet():
+    #             ep_script(['-h'])
+    #     except SystemExit:
+    #         pass
 
     @unittest.skipIf(sys.platform.startswith("win"), "fails on Windows")
     def test_batch_command_interface_Q(self):

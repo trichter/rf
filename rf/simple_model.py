@@ -2,8 +2,8 @@
 """
 Simple move out and piercing point calculation.
 """
+import importlib.resources as imp_resources
 from math import floor
-from pkg_resources import resource_filename
 
 import numpy as np
 from rf.util import direct_geodetic, DEG2KM
@@ -34,8 +34,10 @@ def load_model(fname='iasp91'):
         pass
     fname_key = fname
     if fname == 'iasp91':
-        fname = resource_filename('rf', 'data/iasp91.dat')
-    values = np.loadtxt(fname, unpack=True)
+        with imp_resources.as_file(imp_resources.files('rf') / 'data/iasp91.dat') as fname:
+            values = np.loadtxt(fname, unpack=True)
+    else:
+        values = np.loadtxt(fname, unpack=True)
     try:
         z, vp, vs, n = values
         n = n.astype(int)

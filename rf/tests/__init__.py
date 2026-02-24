@@ -2,7 +2,7 @@
 Tests for the rf package.
 """
 
-from pkg_resources import resource_filename
+import importlib.resources as imp_resources
 import sys
 import unittest
 
@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 
 def run():
     loader = unittest.TestLoader()
-    test_dir = resource_filename('rf', 'tests')
+    test_dir = imp_resources.files('rf') / 'tests'
     suite = loader.discover(test_dir)
     runner = unittest.runner.TextTestRunner()
     ret = not runner.run(suite).wasSuccessful()

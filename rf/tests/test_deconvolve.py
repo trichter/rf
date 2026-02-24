@@ -80,9 +80,9 @@ class DeconvolveTestCase(unittest.TestCase):
 
     def test_deconvolution_of_stream_Qpeak_position(self):
         # S receiver deconvolution
-        from pkg_resources import resource_filename
-        fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
-        stream = read_rf(fname)[:3]
+        import importlib.resources as imp_resources
+        with imp_resources.as_file(imp_resources.files('rf') / 'example/minimal_example_S.tar.gz') as fname:
+            stream = read_rf(fname)[:3]
         rfstats(stream, phase='S')
         stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
         stream.trim2(10, 120, reftime='starttime')

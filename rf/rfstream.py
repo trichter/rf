@@ -3,9 +3,9 @@
 """
 Classes and functions for receiver function calculation.
 """
+import importlib.resources as imp_resources
 import json
 from operator import itemgetter
-from pkg_resources import resource_filename
 import warnings
 
 import numpy as np
@@ -114,10 +114,10 @@ def read_rf(pathname_or_url=None, format=None, **kwargs):
     See :func:`~obspy.core.stream.read` in ObsPy.
     """
     if pathname_or_url is None:   # use example file
-        fname = resource_filename('rf', 'example/minimal_example.tar.gz')
-        pathname_or_url = fname
-        format = 'SAC'
-    stream = read(pathname_or_url, format=format, **kwargs)
+        with imp_resources.as_file(imp_resources.files('rf') / 'example/minimal_example.tar.gz') as fname:
+            stream = read(fname, format='SAC', **kwargs)
+    else:
+        stream = read(pathname_or_url, format=format, **kwargs)
     return RFStream(stream)
 
 

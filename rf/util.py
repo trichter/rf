@@ -3,9 +3,10 @@
 Utility functions and classes for receiver function calculation.
 """
 import collections
+import importlib.resources as imp_resources
 import inspect
 import itertools
-from pkg_resources import resource_filename
+
 
 from decorator import decorator
 import numpy as np
@@ -210,8 +211,8 @@ def minimal_example_Srf():
     if cache_key in __CACHE:
         return __CACHE[cache_key].copy()
     from rf.rfstream import read_rf, rfstats
-    fname = resource_filename('rf', 'example/minimal_example_S.tar.gz')
-    stream = read_rf(fname)
+    with imp_resources.as_file(imp_resources.files('rf') / 'example/minimal_example_S.tar.gz') as fname:
+        stream = read_rf(fname)
     rfstats(stream, phase='S')
     stream.filter('bandpass', freqmin=0.2, freqmax=0.5)
     stream.trim2(10, 120, reftime='starttime')
