@@ -339,6 +339,7 @@ def plot_profile(profile, fname=None, figsize=None, dpi=None,
         phase = profile[0].stats.moveout
         slowness = profile[0].stats.slowness
         pd = model.calculate_delay_times(phase=phase, slowness=slowness)
+        pd = np.abs(pd)  # pd has negative values for S phases/rfs
         ylim = ax.get_ylim()
         ax2 = ax.twinx()
         ax.sharey(ax2)

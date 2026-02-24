@@ -1,5 +1,6 @@
 1.1.2:
   * use imp_resources.files instead of resource_filename
+  * fix missing ticks in Srf profile plot
 1.1.1:
   * fix: correctly set ylim in profile plot
 1.1.0:
